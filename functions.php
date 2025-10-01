@@ -490,6 +490,143 @@ function isRecaptchaEnabled() {
     return RECAPTCHA_ENABLED && !empty(RECAPTCHA_SITE_KEY) && !empty(RECAPTCHA_SECRET_KEY);
 }
 
+// Event date utility functions
+function parseEventDate($eventDate) {
+    // Handle different date formats
+    $formats = [
+        'd-M Y',           // 22-Oct 2025
+        'd-M-Y',           // 22-Oct-2025
+        'd M Y',           // 22 October 2025
+        'd-M-Y H:i:s',     // 22-Oct-2025 00:00:00
+        'Y-m-d',           // 2025-10-22
+        'd/m/Y',           // 22/10/2025
+        'm/d/Y',           // 10/22/2025
+    ];
+    
+    foreach ($formats as $format) {
+        $parsed = DateTime::createFromFormat($format, $eventDate);
+        if ($parsed !== false) {
+            return $parsed;
+        }
+    }
+    
+    // Fallback to strtotime
+    $timestamp = strtotime($eventDate);
+    if ($timestamp !== false) {
+        return new DateTime('@' . $timestamp);
+    }
+    
+    // If all else fails, return current date
+    return new DateTime();
+}
+
+function getEventYear($eventDate) {
+    $parsedDate = parseEventDate($eventDate);
+    return $parsedDate->format('Y');
+}
+
+function getEventDateRange($eventDate) {
+    $parsedDate = parseEventDate($eventDate);
+    $year = $parsedDate->format('Y');
+    
+    // Return a date range for the event (1 year before to 1 year after)
+    return [
+        'start' => $parsedDate->modify('-1 year')->format('Y-m-d'),
+        'end' => $parsedDate->modify('+2 years')->format('Y-m-d'),
+        'year' => $year
+    ];
+}
+
+// Duplicate registration check functions
+function checkDuplicateRegistration($email, $packageId, $eventDate = null) {
+    if ($eventDate === null) {
+        // Use the conference event date from configuration
+        $eventDate = CONFERENCE_DATES; // e.g., "22-25 October 2025"
+    }
+    
+    $pdo = getConnection();
+    
+    // Get event date range for more accurate checking
+    $eventRange = getEventDateRange($eventDate);
+    $eventYear = $eventRange['year'];
+    
+    $stmt = $pdo->prepare("
+        SELECT r.id, r.status, r.created_at, p.name as package_name, u.first_name, u.last_name
+        FROM registrations r
+        JOIN packages p ON r.package_id = p.id
+        JOIN users u ON r.user_id = u.id
+        WHERE u.email = ? 
+        AND r.package_id = ? 
+        AND r.created_at >= ? 
+        AND r.created_at <= ?
+        ORDER BY r.created_at DESC
+        LIMIT 1
+    ");
+    
+    $stmt->execute([$email, $packageId, $eventRange['start'], $eventRange['end']]);
+    $existingRegistration = $stmt->fetch();
+    
+    if ($existingRegistration) {
+        return [
+            'is_duplicate' => true,
+            'registration' => $existingRegistration,
+            'event_date' => $eventDate,
+            'event_year' => $eventYear
+        ];
+    }
+    
+    return ['is_duplicate' => false];
+}
+
+function getRegistrationHistory($email, $eventDate = null) {
+    if ($eventDate === null) {
+        // Use the conference event date from configuration
+        $eventDate = CONFERENCE_DATES; // e.g., "22-25 October 2025"
+    }
+    
+    $pdo = getConnection();
+    
+    // Get event date range for more accurate checking
+    $eventRange = getEventDateRange($eventDate);
+    
+    $stmt = $pdo->prepare("
+        SELECT r.id, r.status, r.created_at, r.total_amount, r.currency, 
+               p.name as package_name, p.type as package_type,
+               u.first_name, u.last_name
+        FROM registrations r
+        JOIN packages p ON r.package_id = p.id
+        JOIN users u ON r.user_id = u.id
+        WHERE u.email = ? 
+        AND r.created_at >= ? 
+        AND r.created_at <= ?
+        ORDER BY r.created_at DESC
+    ");
+    
+    $stmt->execute([$email, $eventRange['start'], $eventRange['end']]);
+    return $stmt->fetchAll();
+}
+
+function getDuplicateRegistrationMessage($duplicateData) {
+    $registration = $duplicateData['registration'];
+    $packageName = $registration['package_name'];
+    $status = $registration['status'];
+    $createdAt = date('F j, Y \a\t g:i A', strtotime($registration['created_at']));
+    $name = $registration['first_name'] . ' ' . $registration['last_name'];
+    $eventDate = $duplicateData['event_date'] ?? CONFERENCE_DATES;
+    
+    $statusMessages = [
+        'pending' => 'is pending payment',
+        'paid' => 'has been completed and paid',
+        'cancelled' => 'was cancelled'
+    ];
+    
+    $statusText = $statusMessages[$status] ?? 'exists';
+    
+    return "You have already registered for the <strong>{$packageName}</strong> package for <strong>{$eventDate}</strong>. " .
+           "Your previous registration (ID: #{$registration['id']}) {$statusText} and was created on {$createdAt}. " .
+           "If you need to make changes or have questions, please contact our support team.";
+}
+
 // Function to check if a nationality is African
 function isAfricanNational($nationality) {
     $africanNationalities = [

@@ -94,6 +94,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     
     if (empty($errors)) {
+        // Check for duplicate registration using event date
+        $duplicateCheck = checkDuplicateRegistration($_POST['email'], $_POST['package_id'], CONFERENCE_DATES);
+        if ($duplicateCheck['is_duplicate']) {
+            $errors[] = getDuplicateRegistrationMessage($duplicateCheck);
+            logSecurityEvent('duplicate_registration_attempt', 'Duplicate registration attempt for email: ' . $_POST['email'] . ', package: ' . $_POST['package_id'] . ', event: ' . CONFERENCE_DATES);
+        }
+    }
+    
+    if (empty($errors)) {
         // Get package details
         $package = getPackageById($_POST['package_id']);
         
@@ -261,6 +270,14 @@ $packages = getAllPackages();
 $individualPackages = getPackagesByType('individual');
 $groupPackages = getPackagesByType('group');
 $exhibitionPackages = getPackagesByType('exhibition');
+
+// Check if user has existing registrations (for display purposes)
+$userEmail = '';
+$registrationHistory = [];
+if (isset($_GET['email']) && validateEmail($_GET['email'])) {
+    $userEmail = sanitizeInput($_GET['email']);
+    $registrationHistory = getRegistrationHistory($userEmail, CONFERENCE_DATES);
+}
 ?>
 
 <!DOCTYPE html>
@@ -321,6 +338,41 @@ $exhibitionPackages = getPackagesByType('exhibition');
         <div class="package-selection-container" id="packageSelection">
             <h2>Select Your Registration Package</h2>
             <p>Choose the package that best fits your needs for the 4th International Conference on Public Health in Africa</p>
+            
+            <!-- Registration History Check -->
+            <?php if (!empty($registrationHistory)): ?>
+            <div class="alert alert-info mb-4">
+                <h5><i class="fas fa-history me-2"></i>Your Registration History for <?php echo CONFERENCE_SHORT_NAME; ?> (<?php echo CONFERENCE_DATES; ?>)</h5>
+                <p class="mb-3">You have previously registered for the following packages for this event:</p>
+                <div class="row">
+                    <?php foreach ($registrationHistory as $registration): ?>
+                    <div class="col-md-6 mb-3">
+                        <div class="card">
+                            <div class="card-body p-3">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <h6 class="card-title mb-0"><?php echo htmlspecialchars($registration['package_name']); ?></h6>
+                                    <span class="badge bg-<?php echo $registration['status'] == 'paid' ? 'success' : ($registration['status'] == 'pending' ? 'warning' : 'secondary'); ?>">
+                                        <?php echo ucfirst($registration['status']); ?>
+                                    </span>
+                                </div>
+                                <div class="text-muted small">
+                                    <div>Registration ID: #<?php echo $registration['id']; ?></div>
+                                    <div>Date: <?php echo date('M j, Y', strtotime($registration['created_at'])); ?></div>
+                                    <div>Amount: <?php echo formatCurrency($registration['total_amount'], $registration['currency']); ?></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+                <div class="mt-3">
+                    <small class="text-muted">
+                        <i class="fas fa-info-circle me-1"></i>
+                        If you try to register for the same package again, you will receive a duplicate registration warning.
+                    </small>
+                </div>
+            </div>
+            <?php endif; ?>
             
             <!-- Individual & Group Packages -->
             <div class="package-category">
