@@ -79,8 +79,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = "Please enter a valid organization name";
     }
     
+    // Exhibition description is optional - only validate if provided
     if (!empty($_POST['exhibition_description']) && !validateExhibitionDescription($_POST['exhibition_description'])) {
-        $errors[] = "Please enter a valid exhibition description (10-1000 characters)";
+        $errors[] = "Please enter a valid exhibition description (5-1000 characters)";
     }
     
     // Validate reCAPTCHA if enabled
@@ -336,8 +337,17 @@ if (isset($_GET['email']) && validateEmail($_GET['email'])) {
 
         <!-- Package Selection (Initial View) -->
         <div class="package-selection-container" id="packageSelection">
-            <h2>Select Your Registration Package</h2>
-            <p>Choose the package that best fits your needs for the 4th International Conference on Public Health in Africa</p>
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2>Select Your Registration Package</h2>
+                    <p class="mb-0">Choose the package that best fits your needs for the 4th International Conference on Public Health in Africa</p>
+                </div>
+                <div>
+                    <a href="registration_lookup.php" class="btn btn-outline-info">
+                        <i class="fas fa-search me-2"></i>View My Registrations
+                    </a>
+                </div>
+            </div>
             
             <!-- Registration History Check -->
             <?php if (!empty($registrationHistory)): ?>
@@ -370,6 +380,11 @@ if (isset($_GET['email']) && validateEmail($_GET['email'])) {
                         <i class="fas fa-info-circle me-1"></i>
                         If you try to register for the same package again, you will receive a duplicate registration warning.
                     </small>
+                    <div class="mt-2">
+                        <a href="registration_lookup.php" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-eye me-1"></i>View Detailed Registration History
+                        </a>
+                    </div>
                 </div>
             </div>
             <?php endif; ?>
@@ -603,9 +618,9 @@ if (isset($_GET['email']) && validateEmail($_GET['email'])) {
                     </div>
                     <div class="card-body">
                         <div class="mb-3">
-                            <label for="exhibition_description" class="form-label">Description of What You Will Exhibit *</label>
-                            <textarea class="form-control" name="exhibition_description" id="exhibition_description" rows="4" placeholder="Please describe what you plan to exhibit at the conference..."></textarea>
-                            <div class="form-text">Provide a detailed description of your exhibition, including products, services, or information you will showcase.</div>
+                            <label for="exhibition_description" class="form-label">Description of What You Will Exhibit (Optional)</label>
+                            <textarea class="form-control" name="exhibition_description" id="exhibition_description" rows="4" placeholder="Please describe what you plan to exhibit at the conference... (optional)"></textarea>
+                            <div class="form-text">Provide a detailed description of your exhibition, including products, services, or information you will showcase. This field is optional.</div>
                         </div>
                     </div>
                 </div>

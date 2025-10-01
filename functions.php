@@ -385,7 +385,8 @@ function validateOrganization($organization) {
 
 function validateExhibitionDescription($description) {
     // Allow letters, numbers, spaces, and common punctuation
-    return preg_match('/^[A-Za-z0-9\s\-\.\,\!\?\:\;\(\)]{10,1000}$/', $description);
+    // More lenient validation for optional field - allow shorter descriptions
+    return preg_match('/^[A-Za-z0-9\s\-\.\,\!\?\:\;\(\)]{5,1000}$/', $description);
 }
 
 // Rate limiting functions
@@ -606,6 +607,50 @@ function getRegistrationHistory($email, $eventDate = null) {
     return $stmt->fetchAll();
 }
 
+function getRegistrationHistoryByEmailAndPhone($email, $phone, $eventDate = null) {
+    if ($eventDate === null) {
+        $eventDate = CONFERENCE_DATES;
+    }
+    
+    $pdo = getConnection();
+    $eventRange = getEventDateRange($eventDate);
+    
+    $stmt = $pdo->prepare("
+        SELECT r.id, r.status, r.created_at, r.total_amount, r.currency, r.registration_type,
+               p.name as package_name, p.type as package_type,
+               u.first_name, u.last_name, u.email, u.phone, u.nationality, u.organization
+        FROM registrations r
+        JOIN packages p ON r.package_id = p.id
+        JOIN users u ON r.user_id = u.id
+        WHERE u.email = ? 
+        AND u.phone = ?
+        AND r.created_at >= ? 
+        AND r.created_at <= ?
+        ORDER BY r.created_at DESC
+    ");
+    
+    $stmt->execute([$email, $phone, $eventRange['start'], $eventRange['end']]);
+    return $stmt->fetchAll();
+}
+
+function getRegistrationDetails($registrationId) {
+    $pdo = getConnection();
+    
+    $stmt = $pdo->prepare("
+        SELECT r.*, p.name as package_name, p.type as package_type, p.price as package_price,
+               u.first_name, u.last_name, u.email, u.phone, u.nationality, u.organization,
+               u.address_line1, u.address_line2, u.city, u.state, u.country, u.postal_code
+        FROM registrations r
+        JOIN packages p ON r.package_id = p.id
+        JOIN users u ON r.user_id = u.id
+        WHERE r.id = ?
+    ");
+    
+    $stmt->execute([$registrationId]);
+    return $stmt->fetch();
+}
+
+
 function getDuplicateRegistrationMessage($duplicateData) {
     $registration = $duplicateData['registration'];
     $packageName = $registration['package_name'];
@@ -624,6 +669,7 @@ function getDuplicateRegistrationMessage($duplicateData) {
     
     return "You have already registered for the <strong>{$packageName}</strong> package for <strong>{$eventDate}</strong>. " .
            "Your previous registration (ID: #{$registration['id']}) {$statusText} and was created on {$createdAt}. " .
+           "<a href='registration_lookup.php' class='btn btn-sm btn-outline-primary ms-2'>View All My Registrations</a> " .
            "If you need to make changes or have questions, please contact our support team.";
 }
 

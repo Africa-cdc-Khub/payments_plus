@@ -308,7 +308,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Show/hide exhibition description based on package type
             if (selectedPackage && selectedPackage.type === 'exhibition') {
                 exhibitionDescriptionSection.style.display = 'block';
-                exhibitionDescriptionInput.required = true;
+                exhibitionDescriptionInput.required = false; // Make it optional
             } else {
                 exhibitionDescriptionSection.style.display = 'none';
                 exhibitionDescriptionInput.required = false;
@@ -398,15 +398,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Participants are optional - no validation needed
         }
         
-        // Validate exhibition description for exhibition packages
-        if (selectedPackage && selectedPackage.type === 'exhibition') {
-            const exhibitionDescription = exhibitionDescriptionInput.value.trim();
-            if (!exhibitionDescription) {
-                e.preventDefault();
-                showError('Please provide a description of what you will exhibit', 'Exhibition Description Required');
-                return;
-            }
-        }
+        // Exhibition description is optional - no validation needed
         
         // Validate reCAPTCHA if enabled
         const recaptchaResponse = document.querySelector('[name="g-recaptcha-response"]');
