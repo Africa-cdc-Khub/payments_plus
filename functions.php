@@ -356,4 +356,62 @@ function isAfricanNational($nationality) {
 function getAfricanStatus($nationality) {
     return isAfricanNational($nationality) ? 'African' : 'Non-African';
 }
+
+// Function to send side event confirmation email
+function sendSideEventConfirmationEmail($user, $registrationId, $package, $amount) {
+    $emailQueue = new \Cphia2025\EmailQueue();
+    $userName = $user['first_name'] . ' ' . $user['last_name'];
+
+    $templateData = [
+        'user_name' => $userName,
+        'registration_id' => $registrationId,
+        'package_name' => $package['name'],
+        'amount' => $amount,
+        'conference_name' => CONFERENCE_NAME,
+        'conference_short_name' => CONFERENCE_SHORT_NAME,
+        'conference_dates' => CONFERENCE_DATES,
+        'conference_location' => CONFERENCE_LOCATION,
+        'conference_venue' => CONFERENCE_VENUE,
+        'logo_url' => EMAIL_LOGO_URL
+    ];
+
+    return $emailQueue->addToQueue(
+        $user['email'],
+        $userName,
+        CONFERENCE_SHORT_NAME . " - Side Event Registration Confirmation #" . $registrationId,
+        'side_event_confirmation',
+        $templateData,
+        'registration_confirmation',
+        5
+    );
+}
+
+// Function to send exhibition confirmation email
+function sendExhibitionConfirmationEmail($user, $registrationId, $package, $amount) {
+    $emailQueue = new \Cphia2025\EmailQueue();
+    $userName = $user['first_name'] . ' ' . $user['last_name'];
+
+    $templateData = [
+        'user_name' => $userName,
+        'registration_id' => $registrationId,
+        'package_name' => $package['name'],
+        'amount' => $amount,
+        'conference_name' => CONFERENCE_NAME,
+        'conference_short_name' => CONFERENCE_SHORT_NAME,
+        'conference_dates' => CONFERENCE_DATES,
+        'conference_location' => CONFERENCE_LOCATION,
+        'conference_venue' => CONFERENCE_VENUE,
+        'logo_url' => EMAIL_LOGO_URL
+    ];
+
+    return $emailQueue->addToQueue(
+        $user['email'],
+        $userName,
+        CONFERENCE_SHORT_NAME . " - Exhibition Registration Confirmation #" . $registrationId,
+        'exhibition_confirmation',
+        $templateData,
+        'registration_confirmation',
+        5
+    );
+}
 ?>

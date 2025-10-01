@@ -1,8 +1,8 @@
 <?php
-/**
- * Email Queue Processor
- * This script should be run by cron every 5-10 minutes
- * Example cron: */5 * * * * /usr/bin/php /path/to/process_emails.php
+/*
+ Email Queue Processor
+  This script should be run by cron every 5-10 minutes
+  Example cron: 5 * * * * /usr/bin/php /path/to/process_emails.php
  */
 
 require_once 'bootstrap.php';

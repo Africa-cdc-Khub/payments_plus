@@ -144,16 +144,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 groupRadio.disabled = false;
                 groupRadio.checked = false;
             } else if (selectedPackage.type === 'group') {
-                // Group package - enable group, disable individual
-                groupRadio.checked = true;
-                groupRadio.disabled = false;
-                individualRadio.disabled = true;
-                individualRadio.checked = false;
-            } else if (selectedPackage.type === 'exhibition') {
-                // Exhibition package - enable both options
+                // Side event package - only allow individual registration
+                individualRadio.checked = true;
                 individualRadio.disabled = false;
-                groupRadio.disabled = false;
-                // Don't auto-select, let user choose
+                groupRadio.disabled = true;
+                groupRadio.checked = false;
+            } else if (selectedPackage.type === 'exhibition') {
+                // Exhibition package - only allow individual registration
+                individualRadio.checked = true;
+                individualRadio.disabled = false;
+                groupRadio.disabled = true;
+                groupRadio.checked = false;
             }
             
             // Trigger registration type change
@@ -406,6 +407,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
         }
+        
+        // Handle side events and exhibition packages differently - no checkout, just confirmation
+        if (selectedPackage && selectedPackage.type === 'group') {
+            // This is a side event package - show special message
+            showInfo('Side event registration will be confirmed via email. Payment will be processed after event approval.', 'Side Event Registration');
+        } else if (selectedPackage && selectedPackage.type === 'exhibition') {
+            // This is an exhibition package - show special message
+            showInfo('Exhibition registration will be confirmed via email. Payment will be processed after exhibition approval.', 'Exhibition Registration');
+        }
     });
 
     function updateCostEstimation(numPeople) {
@@ -417,23 +427,99 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        // Determine actual pricing based on nationality
-        let actualPrice = selectedPackage.price;
-        const nationality = $('#nationality').val();
-        if (nationality) {
-            const isAfrican = isAfricanNational(nationality);
-            if (isAfrican) {
-                actualPrice = 200; // African pricing
-            } else {
-                actualPrice = 400; // Non-African pricing
-            }
+        // Check if this is a side event or exhibition package
+        if (selectedPackage.type === 'group' || selectedPackage.type === 'exhibition') {
+            // For side events and exhibitions, use exact package price
+            const totalCost = selectedPackage.price;
+            costEstimation.innerHTML = `
+                <strong>Total: $${totalCost.toLocaleString()}</strong>
+                <br><small class="text-muted">${selectedPackage.type === 'group' ? 'Side Event' : 'Exhibition'} package price</small>
+            `;
+            return;
         }
         
-        const totalCost = actualPrice * numPeople;
-        costEstimation.innerHTML = `
-            <strong>${numPeople} people × $${actualPrice.toLocaleString()} = $${totalCost.toLocaleString()}</strong>
-            <br><small class="text-muted">${isAfricanNational(nationality) ? 'African' : 'Non-African'} pricing applies</small>
-        `;
+        // Calculate cost based on participant nationalities for regular packages
+        const costBreakdown = calculateGroupCost(numPeople);
+        
+        if (costBreakdown.hasParticipants) {
+            // Show detailed breakdown based on actual participant nationalities
+            costEstimation.innerHTML = `
+                <strong>Total: $${costBreakdown.totalCost.toLocaleString()}</strong>
+                <br><small class="text-muted">
+                    ${costBreakdown.africanCount} African × $200 = $${costBreakdown.africanCost.toLocaleString()}
+                    ${costBreakdown.nonAfricanCount > 0 ? `<br>${costBreakdown.nonAfricanCount} Non-African × $400 = $${costBreakdown.nonAfricanCost.toLocaleString()}` : ''}
+                </small>
+            `;
+        } else {
+            // Show estimated cost based on main registrant nationality
+            const nationality = $('#nationality').val();
+            const isAfrican = nationality ? isAfricanNational(nationality) : false;
+            const actualPrice = isAfrican ? 200 : 400;
+            const totalCost = actualPrice * numPeople;
+            
+            costEstimation.innerHTML = `
+                <strong>${numPeople} people × $${actualPrice.toLocaleString()} = $${totalCost.toLocaleString()}</strong>
+                <br><small class="text-muted">Estimated based on main registrant nationality</small>
+            `;
+        }
+    }
+
+    function calculateGroupCost(numPeople) {
+        const participantNationalities = document.querySelectorAll('.participant-nationality');
+        let africanCount = 0;
+        let nonAfricanCount = 0;
+        
+        // Count nationalities from participant forms
+        participantNationalities.forEach(select => {
+            const nationality = select.value;
+            if (nationality) {
+                if (isAfricanNational(nationality)) {
+                    africanCount++;
+                } else {
+                    nonAfricanCount++;
+                }
+            }
+        });
+        
+        // If we have participant data, use it
+        if (africanCount > 0 || nonAfricanCount > 0) {
+            const africanCost = africanCount * 200;
+            const nonAfricanCost = nonAfricanCount * 400;
+            const totalCost = africanCost + nonAfricanCost;
+            
+            return {
+                hasParticipants: true,
+                africanCount: africanCount,
+                nonAfricanCount: nonAfricanCount,
+                africanCost: africanCost,
+                nonAfricanCost: nonAfricanCost,
+                totalCost: totalCost
+            };
+        }
+        
+        // If no participant data yet, estimate based on main registrant
+        const nationality = $('#nationality').val();
+        const isAfrican = nationality ? isAfricanNational(nationality) : false;
+        
+        if (isAfrican) {
+            return {
+                hasParticipants: false,
+                africanCount: numPeople,
+                nonAfricanCount: 0,
+                africanCost: numPeople * 200,
+                nonAfricanCost: 0,
+                totalCost: numPeople * 200
+            };
+        } else {
+            return {
+                hasParticipants: false,
+                africanCount: 0,
+                nonAfricanCount: numPeople,
+                africanCost: 0,
+                nonAfricanCost: numPeople * 400,
+                totalCost: numPeople * 400
+            };
+        }
     }
 
     function updateParticipants(numPeople) {
@@ -542,6 +628,11 @@ document.addEventListener('DOMContentLoaded', function() {
             const registrationType = document.querySelector('input[name="registration_type"]:checked');
             if (registrationType && registrationType.value === 'group') {
                 checkGroupPricing();
+                // Update cost estimation based on participant nationalities
+                const numPeople = parseInt(numPeopleInput.value) || 0;
+                if (numPeople > 0) {
+                    updateCostEstimation(numPeople);
+                }
             }
         });
     }
@@ -612,7 +703,20 @@ document.addEventListener('DOMContentLoaded', function() {
         
         document.getElementById('summaryPeople').textContent = numPeople;
         
-        const totalAmount = actualPackage.price * numPeople;
+        // Calculate total amount based on package type
+        let totalAmount;
+        if (selectedPackage.type === 'group' || selectedPackage.type === 'exhibition') {
+            // For side events and exhibitions, use exact package price
+            totalAmount = selectedPackage.price;
+        } else if (registrationType.value === 'group') {
+            // For regular group registration, calculate based on participant nationalities
+            const costBreakdown = calculateGroupCost(numPeople);
+            totalAmount = costBreakdown.totalCost;
+        } else {
+            // For individual registration, use nationality-based pricing
+            totalAmount = actualPackage.price * numPeople;
+        }
+        
         document.getElementById('summaryTotal').textContent = '$' + totalAmount.toLocaleString('en-US', {minimumFractionDigits: 2});
     }
 

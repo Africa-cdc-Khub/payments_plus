@@ -56,15 +56,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $nationality = sanitizeInput($_POST['nationality']);
             $isAfrican = isAfricanNational($nationality);
             
-            // Get the correct package based on African status for individual registrations
-            if ($_POST['registration_type'] === 'individual') {
+            // Get the selected package
+            $package = getPackageById($_POST['package_id']);
+            
+            // Check if this is a side event package (group type but for side events)
+            $isSideEvent = ($package['type'] === 'group' && in_array($package['id'], [3, 4])); // Side event package IDs
+            
+            // Check if this is an exhibition package
+            $isExhibition = ($package['type'] === 'exhibition');
+            
+            if ($isSideEvent) {
+                // Side event - individual registration only, use exact package price
+                $totalAmount = $package['price']; // Use exact package price, not nationality-based
+                $registrationType = 'individual'; // Force individual for side events
+            } else if ($isExhibition) {
+                // Exhibition package - individual registration only, use exact package price
+                $totalAmount = $package['price']; // Use exact package price, not nationality-based
+                $registrationType = 'individual'; // Force individual for exhibition packages
+            } else if ($_POST['registration_type'] === 'individual') {
+                // Regular individual registration - use African/Non-African pricing
                 if ($isAfrican) {
                     $package = getPackageById(1); // African Nationals package
                 } else {
                     $package = getPackageById(2); // Non-African nationals package
                 }
                 $totalAmount = $package['price'];
+                $registrationType = 'individual';
             } else if ($_POST['registration_type'] === 'group' && isset($_POST['num_people'])) {
+                // Regular group registration
                 $numPeople = (int)$_POST['num_people'];
                 
                 // Check if any participants are non-African
@@ -86,13 +105,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
                 
                 $totalAmount = $package['price'] * $numPeople;
+                $registrationType = 'group';
+            } else {
+                // Default to selected package
+                $totalAmount = $package['price'];
+                $registrationType = $_POST['registration_type'];
             }
             
             // Create registration
             $registrationData = [
                 'user_id' => $user['id'],
                 'package_id' => $package['id'],
-                'registration_type' => $_POST['registration_type'],
+                'registration_type' => $registrationType,
                 'total_amount' => $totalAmount,
                 'currency' => 'USD',
                 'exhibition_description' => isset($_POST['exhibition_description']) ? sanitizeInput($_POST['exhibition_description']) : null
@@ -100,8 +124,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             $registrationId = createRegistration($registrationData);
             
-            // Handle group participants
-            if ($_POST['registration_type'] === 'group' && isset($_POST['participants'])) {
+            // Handle group participants (not for side events or exhibition packages)
+            if ($_POST['registration_type'] === 'group' && isset($_POST['participants']) && !$isSideEvent && !$isExhibition) {
                 $participants = [];
                 foreach ($_POST['participants'] as $participant) {
                     if (!empty($participant['first_name']) && !empty($participant['last_name']) && !empty($participant['email'])) {
@@ -121,7 +145,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             // Send registration emails
             $participants = [];
-            if ($_POST['registration_type'] === 'group' && isset($_POST['participants'])) {
+            if ($_POST['registration_type'] === 'group' && isset($_POST['participants']) && !$isSideEvent && !$isExhibition) {
                 foreach ($_POST['participants'] as $participant) {
                     if (!empty($participant['first_name']) && !empty($participant['last_name']) && !empty($participant['email'])) {
                         $participants[] = [
@@ -135,10 +159,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             }
             
-            if (sendRegistrationEmails($user, $registrationId, $package, $totalAmount, $participants)) {
-                $success = true;
+            if ($isSideEvent) {
+                // For side events, just send confirmation email (no payment processing)
+                if (sendSideEventConfirmationEmail($user, $registrationId, $package, $totalAmount)) {
+                    $success = true;
+                    $sideEventMessage = "Side event registration submitted successfully! You will receive a confirmation email. Payment will be processed after your event is approved.";
+                } else {
+                    $errors[] = "Registration created but failed to send confirmation email. Please contact support.";
+                }
+            } else if ($isExhibition) {
+                // For exhibition packages, just send confirmation email (no payment processing)
+                if (sendExhibitionConfirmationEmail($user, $registrationId, $package, $totalAmount)) {
+                    $success = true;
+                    $exhibitionMessage = "Exhibition registration submitted successfully! You will receive a confirmation email. Payment will be processed after your exhibition is approved.";
+                } else {
+                    $errors[] = "Registration created but failed to send confirmation email. Please contact support.";
+                }
             } else {
-                $errors[] = "Registration created but failed to send confirmation email. Please contact support.";
+                // For regular registrations, send normal registration emails
+                if (sendRegistrationEmails($user, $registrationId, $package, $totalAmount, $participants)) {
+                    $success = true;
+                } else {
+                    $errors[] = "Registration created but failed to queue confirmation email. Please contact support.";
+                }
             }
         } else {
             $errors[] = "Invalid package selected";
@@ -235,10 +278,10 @@ $exhibitionPackages = getPackagesByType('exhibition');
                     <?php endforeach; ?>
                 </div>
                 
-                <!-- Group Registration Row -->
+                <!-- side event Registration Row -->
                 <div class="row g-3">
                     <div class="col-12">
-                        <h4 class="text-center mb-3">Group Registration</h4>
+                        <h4 class="text-center mb-3">Side Events Registration</h4>
                     </div>
                     <?php foreach ($groupPackages as $package): ?>
                         <div class="col-6 col-md-6">
