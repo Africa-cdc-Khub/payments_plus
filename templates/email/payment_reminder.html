@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>{{CONFERENCE_SHORT_NAME}} - Payment Reminder</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #f8fafc;
+        }
+        .container {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #1a5632 0%, #0d4f1c 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header img {
+            max-height: 60px;
+            margin-bottom: 15px;
+        }
+        .content {
+            padding: 30px;
+        }
+        .reminder-box {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .payment-details {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .btn {
+            display: inline-block;
+            background: #1a5632;
+            color: white;
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        .btn:hover {
+            background: #0d4f1c;
+        }
+        .footer {
+            background: #e8f5e8;
+            padding: 20px;
+            text-align: center;
+            color: #666;
+        }
+        .urgent {
+            color: #dc2626;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <img src="{{EMAIL_LOGO_URL}}" alt="{{CONFERENCE_SHORT_NAME}}">
+            <h1>{{CONFERENCE_SHORT_NAME}}</h1>
+            <p>{{CONFERENCE_NAME}}</p>
+        </div>
+        
+        <div class="content">
+            <div class="reminder-box">
+                <h2 style="color: #dc2626; margin-top: 0;">⏰ Payment Reminder</h2>
+                <p>Dear {{user_name}},</p>
+                <p>This is a friendly reminder that your registration for <strong>{{CONFERENCE_SHORT_NAME}}</strong> is still pending payment.</p>
+            </div>
+            
+            <h3>Registration Details</h3>
+            <div class="payment-details">
+                <p><strong>Registration ID:</strong> #{{registration_id}}</p>
+                <p><strong>Package:</strong> {{package_name}}</p>
+                <p><strong>Amount Due:</strong> <span class="urgent">${{amount}}</span></p>
+                <p><strong>Conference:</strong> {{CONFERENCE_DATES}} at {{CONFERENCE_VENUE}}, {{CONFERENCE_LOCATION}}</p>
+            </div>
+            
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="{{payment_link}}" class="btn">Complete Payment Now</a>
+            </div>
+            
+            <div class="reminder-box">
+                <h3>Important Information</h3>
+                <ul>
+                    <li>Your registration will be confirmed once payment is received</li>
+                    <li>This payment link will expire in 7 days</li>
+                    <li>If you have already paid, please ignore this reminder</li>
+                    <li>Contact us if you need assistance with payment</li>
+                </ul>
+            </div>
+            
+            <p>If you have any questions or need assistance, please contact us at {{MAIL_FROM_ADDRESS}}</p>
+        </div>
+        
+        <div class="footer">
+            <p><strong>{{CONFERENCE_SHORT_NAME}} Team</strong></p>
+            <p>This is an automated reminder. Please do not reply to this email.</p>
+        </div>
+    </div>
+</body>
+</html>

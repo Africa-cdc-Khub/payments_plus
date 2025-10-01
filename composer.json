@@ -1,0 +1,20 @@
+{
+    "name": "cphia2025/registration-system",
+    "description": "CPHIA 2025 Registration and Payment System",
+    "type": "project",
+    "require": {
+        "php": ">=7.4",
+        "vlucas/phpdotenv": "^5.5",
+        "phpmailer/phpmailer": "^6.8"
+    },
+    "autoload": {
+        "psr-4": {
+            "Cphia2025\\": "src/"
+        }
+    },
+    "config": {
+        "optimize-autoloader": true
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}

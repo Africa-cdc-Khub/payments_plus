@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>{{CONFERENCE_SHORT_NAME}} - Daily Admin Reminder</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #f8fafc;
+        }
+        .container {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .content {
+            padding: 30px;
+        }
+        .alert-box {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .stats-box {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .btn {
+            display: inline-block;
+            background: #1a5632;
+            color: white;
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        .footer {
+            background: #e8f5e8;
+            padding: 20px;
+            text-align: center;
+            color: #666;
+        }
+        .urgent {
+            color: #dc2626;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Daily Admin Reminder</h1>
+            <p>{{CONFERENCE_SHORT_NAME}} Registration System</p>
+        </div>
+        
+        <div class="content">
+            <div class="alert-box">
+                <h2 style="color: #dc2626; margin-top: 0;">⚠️ Action Required</h2>
+                <p>Dear {{admin_name}},</p>
+                <p>You have <span class="urgent">{{pending_count}} pending registrations</span> that require attention.</p>
+            </div>
+            
+            <div class="stats-box">
+                <h3>Today's Summary</h3>
+                <ul>
+                    <li><strong>Pending Registrations:</strong> {{pending_count}}</li>
+                    <li><strong>Date:</strong> {{date('Y-m-d')}}</li>
+                    <li><strong>System Status:</strong> Active</li>
+                </ul>
+            </div>
+            
+            <h3>Recommended Actions</h3>
+            <ul>
+                <li>Review pending registrations in the admin panel</li>
+                <li>Follow up with registrants who haven't completed payment</li>
+                <li>Check for any technical issues with the registration system</li>
+                <li>Monitor email queue for failed deliveries</li>
+            </ul>
+            
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="{{APP_URL}}/admin" class="btn">Access Admin Panel</a>
+            </div>
+            
+            <p><strong>Note:</strong> This is an automated daily reminder. The system will continue to send payment reminders to registrants every 24 hours.</p>
+        </div>
+        
+        <div class="footer">
+            <p><strong>{{CONFERENCE_SHORT_NAME}} Registration System</strong></p>
+            <p>Automated Daily Report</p>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,253 +1,287 @@
-<div id="top"></div>
-<!--
-*** Thanks for checking out the Best-README-Template. If you have a suggestion
-*** that would make this better, please fork the repo and create a pull request
-*** or simply open an issue with the tag "enhancement".
-*** Don't forget to give the project a star!
-*** Thanks again! Now go create something AMAZING! :D
--->
+# CPHIA 2025 Registration System
 
+A comprehensive registration and payment system for the 4th International Conference on Public Health in Africa (CPHIA 2025).
 
+## Features
 
-<!-- PROJECT SHIELDS -->
-<!--
-*** I'm using markdown "reference style" links for readability.
-*** Reference links are enclosed in brackets [ ] instead of parentheses ( ).
-*** See the bottom of this document for the declaration of the reference variables
-*** for contributors-url, forks-url, etc. This is an optional, concise syntax you may use.
-*** https://www.markdownguide.org/basic-syntax/#reference-style-links
--->
-[![Contributors][contributors-shield]][contributors-url]
-[![Forks][forks-shield]][forks-url]
-[![Stargazers][stars-shield]][stars-url]
-[![Issues][issues-shield]][issues-url]
-[![MIT License][license-shield]][license-url]
-[![LinkedIn][linkedin-shield]][linkedin-url]
+- **Package Selection**: Individual, Group, and Exhibition registration packages
+- **Dynamic Registration**: Support for both individual and group registrations
+- **Payment Integration**: Secure payment processing with CyberSource
+- **Advanced Email System**: PHPMailer-powered notifications with HTML templates
+- **Admin Notifications**: Real-time alerts for registrations and payments
+- **Modern UI**: Beautiful, responsive design with Africa CDC branding
+- **Group Management**: Add multiple participants for group registrations
+- **Payment Tracking**: Complete transaction history and status tracking
+- **Email Templates**: Customizable HTML email templates
+- **Multi-recipient Support**: Send notifications to both users and admins
 
-
-
-<!-- PROJECT LOGO -->
-<br />
-<div align="center">
-  <a href="https://github.com/othneildrew/Best-README-Template">
-    <img src="images/logo.png" alt="Logo" width="80" height="80">
-  </a>
-
-  <h3 align="center">Best-README-Template</h3>
-
-  <p align="center">
-    An awesome README template to jumpstart your projects!
-    <br />
-    <a href="https://github.com/othneildrew/Best-README-Template"><strong>Explore the docs »</strong></a>
-    <br />
-    <br />
-    <a href="https://github.com/othneildrew/Best-README-Template">View Demo</a>
-    ·
-    <a href="https://github.com/othneildrew/Best-README-Template/issues">Report Bug</a>
-    ·
-    <a href="https://github.com/othneildrew/Best-README-Template/issues">Request Feature</a>
-  </p>
-</div>
-
-
-
-<!-- TABLE OF CONTENTS -->
-<details>
-  <summary>Table of Contents</summary>
-  <ol>
-    <li>
-      <a href="#about-the-project">About The Project</a>
-      <ul>
-        <li><a href="#built-with">Built With</a></li>
-      </ul>
-    </li>
-    <li>
-      <a href="#getting-started">Getting Started</a>
-      <ul>
-        <li><a href="#prerequisites">Prerequisites</a></li>
-        <li><a href="#installation">Installation</a></li>
-      </ul>
-    </li>
-    <li><a href="#usage">Usage</a></li>
-    <li><a href="#roadmap">Roadmap</a></li>
-    <li><a href="#contributing">Contributing</a></li>
-    <li><a href="#license">License</a></li>
-    <li><a href="#contact">Contact</a></li>
-    <li><a href="#acknowledgments">Acknowledgments</a></li>
-  </ol>
-</details>
-
-
-
-<!-- ABOUT THE PROJECT -->
-## About The Project
-
-[![Product Name Screen Shot][product-screenshot]](https://example.com)
-
-There are many great README templates available on GitHub; however, I didn't find one that really suited my needs so I created this enhanced one. I want to create a README template so amazing that it'll be the last one you ever need -- I think this is it.
-
-Here's why:
-* Your time should be focused on creating something amazing. A project that solves a problem and helps others
-* You shouldn't be doing the same tasks over and over like creating a README from scratch
-* You should implement DRY principles to the rest of your life :smile:
-
-Of course, no one template will serve all projects since your needs may be different. So I'll be adding more in the near future. You may also suggest changes by forking this repo and creating a pull request or opening an issue. Thanks to all the people have contributed to expanding this template!
-
-Use the `BLANK_README.md` to get started.
-
-<p align="right">(<a href="#top">back to top</a>)</p>
-
-
-
-### Built With
-
-This section should list any major frameworks/libraries used to bootstrap your project. Leave any add-ons/plugins for the acknowledgements section. Here are a few examples.
-
-* [Next.js](https://nextjs.org/)
-* [React.js](https://reactjs.org/)
-* [Vue.js](https://vuejs.org/)
-* [Angular](https://angular.io/)
-* [Svelte](https://svelte.dev/)
-* [Laravel](https://laravel.com)
-* [Bootstrap](https://getbootstrap.com)
-* [JQuery](https://jquery.com)
-
-<p align="right">(<a href="#top">back to top</a>)</p>
-
-
-
-<!-- GETTING STARTED -->
-## Getting Started
-
-This is an example of how you may give instructions on setting up your project locally.
-To get a local copy up and running follow these simple example steps.
+## Installation
 
 ### Prerequisites
+- PHP 7.4 or higher
+- MySQL 5.7 or higher
+- Web server (Apache/Nginx)
 
-This is an example of how to list things you need to use the software and how to install them.
-* npm
-  ```sh
-  npm install npm@latest -g
-  ```
+### Setup Steps
 
-### Installation
+1. **Clone/Download the project** to your web server directory
 
-_Below is an example of how you can instruct your audience on installing and setting up your app. This template doesn't rely on any external dependencies or services._
-
-1. Get a free API Key at [https://example.com](https://example.com)
-2. Clone the repo
-   ```sh
-   git clone https://github.com/your_username_/Project-Name.git
+2. **Install Dependencies**:
+   ```bash
+   composer install
    ```
-3. Install NPM packages
-   ```sh
-   npm install
-   ```
-4. Enter your API in `config.js`
-   ```js
-   const API_KEY = 'ENTER YOUR API';
-   ```
+   Or manually download `vlucas/phpdotenv` and place it in the `vendor` directory.
 
-<p align="right">(<a href="#top">back to top</a>)</p>
+3. **Configure Environment**:
+   - Copy `env.example` to `.env`
+   - Update the `.env` file with your actual configuration:
+     ```env
+     # Database Configuration
+     DB_HOST=localhost
+     DB_NAME=cphia_payments
+     DB_USER=root
+     DB_PASS=password
+     
+     # Payment Gateway
+     CYBERSOURCE_MERCHANT_ID=your_merchant_id
+     CYBERSOURCE_PROFILE_ID=your_profile_id
+     CYBERSOURCE_ACCESS_KEY=your_access_key
+     CYBERSOURCE_SECRET_KEY=your_secret_key
+     
+     # Email Configuration
+     MAIL_FROM_ADDRESS=noreply@cphia2025.com
+     MAIL_FROM_NAME="CPHIA 2025"
+     ```
 
+4. **Run Installation Script**:
+   - Visit `http://your-domain/install.php` for guided setup
+   - Or visit `http://your-domain/setup.php` for direct database setup
+   - This will create all necessary tables and insert package data
 
+5. **Configure Payment Gateway** (Optional):
+   - Update CyberSource credentials in the `.env` file
+   - Test payment processing in sandbox mode
 
-<!-- USAGE EXAMPLES -->
+## File Structure
+
+```
+payments_plus/
+├── index.php              # Main registration page
+├── checkout.php           # Payment checkout page
+├── response.php           # Payment response handler
+├── functions.php          # Core business logic
+├── db_connector.php       # Database connection
+├── migrations.php         # Database setup
+├── setup.php             # Initial setup script
+├── css/
+│   └── style.css         # Main stylesheet
+├── js/
+│   └── registration.js   # Registration form logic
+├── sa-sop/               # Payment gateway integration
+│   ├── config.php
+│   ├── payment_form.php
+│   └── ...
+└── images/               # Logo and assets
+```
+
 ## Usage
 
-Use this space to show useful examples of how a project can be used. Additional screenshots, code examples and demos work well in this space. You may also link to more resources.
+### Registration Process
 
-_For more examples, please refer to the [Documentation](https://example.com)_
+1. **Select Package**: Choose from Individual, Group, or Exhibition packages
+2. **Registration Type**: Select individual or group registration
+3. **Personal Information**: Fill in contact and address details
+4. **Group Participants**: For group registrations, add participant details
+5. **Payment**: Receive email with payment link or proceed directly to checkout
+6. **Confirmation**: Receive confirmation after successful payment
 
-<p align="right">(<a href="#top">back to top</a>)</p>
+### Package Types
 
+- **Individual Registration**: 
+  - African Nationals: $200
+  - Non-African Nationals: $400
 
+- **Group Registration**:
+  - Side Event Package 1: $6,000 (up to 10 people)
+  - Side Event Package 2: $10,000 (up to 20 people)
 
-<!-- ROADMAP -->
-## Roadmap
+- **Exhibition Packages**:
+  - Resilience Bronze: $2,500 (up to 5 people)
+  - Resilience Bronze Plus: $10,000 (up to 10 people)
+  - Peace Silver: $30,000 (up to 15 people)
+  - Ubuntu Gold: $50,000 (up to 25 people)
+  - Uhuru Platinum: $75,000 (up to 50 people)
 
-- [x] Add Changelog
-- [x] Add back to top links
-- [] Add Additional Templates w/ Examples
-- [] Add "components" document to easily copy & paste sections of the readme
-- [] Multi-language Support
-    - [] Chinese
-    - [] Spanish
+## Environment Variables
 
-See the [open issues](https://github.com/othneildrew/Best-README-Template/issues) for a full list of proposed features (and known issues).
+The system uses environment variables for configuration. All settings are defined in the `.env` file:
 
-<p align="right">(<a href="#top">back to top</a>)</p>
+### Database Configuration
+- `DB_HOST`: Database host (default: localhost)
+- `DB_NAME`: Database name (default: cphia_payments)
+- `DB_USER`: Database username (default: root)
+- `DB_PASS`: Database password (default: password)
+- `DB_CHARSET`: Database charset (default: utf8)
 
+### Payment Gateway (CyberSource)
+- `CYBERSOURCE_MERCHANT_ID`: Your CyberSource merchant ID
+- `CYBERSOURCE_PROFILE_ID`: Your CyberSource profile ID
+- `CYBERSOURCE_ACCESS_KEY`: Your CyberSource access key
+- `CYBERSOURCE_SECRET_KEY`: Your CyberSource secret key
+- `CYBERSOURCE_DF_ORG_ID`: Device fingerprint organization ID
+- `CYBERSOURCE_BASE_URL`: CyberSource base URL (sandbox/live)
 
+### Email Configuration
+- `MAIL_DRIVER`: Email driver (default: smtp)
+- `MAIL_HOST`: SMTP host (default: smtp.gmail.com)
+- `MAIL_PORT`: SMTP port (default: 587)
+- `MAIL_USERNAME`: SMTP username
+- `MAIL_PASSWORD`: SMTP password
+- `MAIL_ENCRYPTION`: Encryption type (default: tls)
+- `MAIL_FROM_ADDRESS`: From email address
+- `MAIL_FROM_NAME`: From name
+- `ADMIN_EMAIL`: Admin notification email address
+- `ADMIN_NAME`: Admin name for notifications
+- `ADMIN_NOTIFICATIONS`: Enable admin notifications (true/false)
+- `EMAIL_TEMPLATE_PATH`: Path to email templates
+- `EMAIL_LOGO_URL`: Logo URL for emails
 
-<!-- CONTRIBUTING -->
-## Contributing
+### Application Settings
+- `APP_NAME`: Application name
+- `APP_ENV`: Environment (local, production)
+- `APP_DEBUG`: Debug mode (true/false)
+- `APP_URL`: Application URL
+- `ENABLE_EMAIL_NOTIFICATIONS`: Enable email notifications
+- `ENABLE_PAYMENT_EMAILS`: Enable payment emails
 
-Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+### Conference Information
+- `CONFERENCE_NAME`: Full conference name
+- `CONFERENCE_SHORT_NAME`: Short conference name
+- `CONFERENCE_DATES`: Conference dates
+- `CONFERENCE_LOCATION`: Conference location
+- `CONFERENCE_VENUE`: Conference venue
 
-If you have a suggestion that would make this better, please fork the repo and create a pull request. You can also simply open an issue with the tag "enhancement".
-Don't forget to give the project a star! Thanks again!
+## Customization
 
-1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+### Styling
+- Modify `css/style.css` to change colors, fonts, and layout
+- Africa CDC color scheme is already implemented
+- Responsive design for mobile and desktop
 
-<p align="right">(<a href="#top">back to top</a>)</p>
+### Email Templates
+- Update email templates in `functions.php`
+- Configure SMTP settings in the `.env` file
 
+### Payment Gateway
+- Integrate with other payment processors
+- Modify `sa-sop/` directory for different gateways
+- Update environment variables for different payment providers
 
+## Security Features
 
-<!-- LICENSE -->
+- SQL injection protection with prepared statements
+- Input sanitization and validation
+- CSRF protection on forms
+- Secure session management
+- Payment data encryption
+
+## Database Schema
+
+- `packages`: Available registration packages
+- `users`: User account information
+- `registrations`: Registration records
+- `registration_participants`: Group participants
+- `payments`: Payment transaction records
+
+## API Endpoints
+
+- `index.php` - Main registration form
+- `checkout.php?registration_id=X` - Payment checkout
+- `checkout.php?token=X` - Payment via email link
+- `response.php` - Payment response handler
+
+## Email System
+
+### Email Notifications
+
+The system sends the following email notifications:
+
+1. **Registration Confirmation** (to user):
+   - Sent immediately after registration
+   - Includes registration details and next steps
+
+2. **Payment Link** (to user):
+   - Sent when user chooses to pay later
+   - Contains secure payment link
+
+3. **Payment Confirmation** (to user):
+   - Sent after successful payment
+   - Includes transaction details and conference information
+
+4. **Admin Registration Notification** (to admin):
+   - Sent for every new registration
+   - Includes all registration details
+
+5. **Admin Payment Notification** (to admin):
+   - Sent when payment is completed
+   - Includes payment and transaction details
+
+### Email Testing
+
+Use the built-in email testing tool:
+
+1. Visit `http://your-domain/test_email.php`
+2. Configure your email settings in `.env`
+3. Send test emails to verify functionality
+4. Preview email templates
+
+### Email Templates
+
+Email templates are located in `templates/email/`:
+- `registration_confirmation.html`
+- `payment_link.html`
+- `payment_confirmation.html`
+- `admin_registration_notification.html`
+- `admin_payment_notification.html`
+
+Templates use `{{variable}}` syntax for dynamic content.
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Database Connection Error**:
+   - Check database credentials in `.env` file
+   - Ensure MySQL service is running
+   - Verify database exists
+
+2. **Payment Processing Issues**:
+   - Check CyberSource configuration in `.env`
+   - Verify SSL certificate
+   - Test in sandbox mode first
+
+3. **Email Not Sending**:
+   - Configure SMTP settings in `.env`
+   - Use `test_email.php` to test email functionality
+   - Check Gmail App Passwords for Gmail SMTP
+   - Verify firewall settings for SMTP ports
+
+### Debug Mode
+
+Enable debug mode by adding to the top of PHP files:
+```php
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+```
+
+## Support
+
+For technical support or customization requests, please contact the development team.
+
 ## License
 
-Distributed under the MIT License. See `LICENSE.txt` for more information.
+This project is licensed under the MIT License.
 
-<p align="right">(<a href="#top">back to top</a>)</p>
+---
 
-
-
-<!-- CONTACT -->
-## Contact
-
-Your Name - [@your_twitter](https://twitter.com/your_username) - email@example.com
-
-Project Link: [https://github.com/your_username/repo_name](https://github.com/your_username/repo_name)
-
-<p align="right">(<a href="#top">back to top</a>)</p>
-
-
-
-<!-- ACKNOWLEDGMENTS -->
-## Acknowledgments
-
-Use this space to list resources you find helpful and would like to give credit to. I've included a few of my favorites to kick things off!
-
-* [Choose an Open Source License](https://choosealicense.com)
-* [GitHub Emoji Cheat Sheet](https://www.webpagefx.com/tools/emoji-cheat-sheet)
-* [Malven's Flexbox Cheatsheet](https://flexbox.malven.co/)
-* [Malven's Grid Cheatsheet](https://grid.malven.co/)
-* [Img Shields](https://shields.io)
-* [GitHub Pages](https://pages.github.com)
-* [Font Awesome](https://fontawesome.com)
-* [React Icons](https://react-icons.github.io/react-icons/search)
-
-<p align="right">(<a href="#top">back to top</a>)</p>
-
-
-
-<!-- MARKDOWN LINKS & IMAGES -->
-<!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
-[contributors-shield]: https://img.shields.io/github/contributors/othneildrew/Best-README-Template.svg?style=for-the-badge
-[contributors-url]: https://github.com/othneildrew/Best-README-Template/graphs/contributors
-[forks-shield]: https://img.shields.io/github/forks/othneildrew/Best-README-Template.svg?style=for-the-badge
-[forks-url]: https://github.com/othneildrew/Best-README-Template/network/members
-[stars-shield]: https://img.shields.io/github/stars/othneildrew/Best-README-Template.svg?style=for-the-badge
-[stars-url]: https://github.com/othneildrew/Best-README-Template/stargazers
-[issues-shield]: https://img.shields.io/github/issues/othneildrew/Best-README-Template.svg?style=for-the-badge
-[issues-url]: https://github.com/othneildrew/Best-README-Template/issues
-[license-shield]: https://img.shields.io/github/license/othneildrew/Best-README-Template.svg?style=for-the-badge
-[license-url]: https://github.com/othneildrew/Best-README-Template/blob/master/LICENSE.txt
-[linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
-[linkedin-url]: https://linkedin.com/in/othneildrew
-[product-screenshot]: images/screenshot.png
+**CPHIA 2025** - Moving towards self-reliance to achieve universal health coverage and health security in Africa
