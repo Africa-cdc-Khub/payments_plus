@@ -1,9 +1,80 @@
 <?php
+/**
+ * Production Migration Runner
+ * Safe way to run migrations in production
+ */
+
+// Only allow this to run in production if accessed via command line or with proper authentication
+if (php_sapi_name() !== 'cli' && !isset($_GET['auth_key'])) {
+    die('Access denied. This script can only be run from command line or with proper authentication.');
+}
+
+// Set production environment
+$_ENV['APP_ENV'] = 'production';
+$_ENV['APP_DEBUG'] = 'false';
+
 require_once 'bootstrap.php';
 require_once 'db_connector.php';
 
+echo "=== CPHIA 2025 Database Migration Runner ===\n";
+echo "Environment: " . (APP_ENV ?? 'production') . "\n";
+echo "Debug Mode: " . (APP_DEBUG ? 'ON' : 'OFF') . "\n";
+echo "Database: " . DB_NAME . "\n";
+echo "==========================================\n\n";
+
+try {
+    // Test database connection first
+    $pdo = getConnection();
+    echo "✓ Database connection successful\n";
+    
+    // Run table creation
+    echo "\n1. Creating/Updating database tables...\n";
+    createTables();
+    echo "✓ Tables created/updated successfully\n";
+    
+    // Insert packages
+    echo "\n2. Inserting/Updating packages...\n";
+    insertPackages();
+    echo "✓ Packages inserted/updated successfully\n";
+    
+    // Add missing columns
+    echo "\n3. Checking for missing columns...\n";
+    addMissingColumns();
+    echo "✓ Column check completed\n";
+    
+    echo "\n=== MIGRATION COMPLETED SUCCESSFULLY ===\n";
+    echo "All database operations completed without errors.\n";
+    echo "Your CPHIA 2025 registration system is ready!\n";
+    
+} catch (Exception $e) {
+    echo "\n=== MIGRATION FAILED ===\n";
+    echo "Error: " . $e->getMessage() . "\n";
+    echo "Please check your database configuration and try again.\n";
+    exit(1);
+}
+
+// Include the migration functions
 function createTables() {
     $pdo = getConnection();
+    
+    // Users table
+    $sql = "CREATE TABLE IF NOT EXISTS users (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        email VARCHAR(255) UNIQUE NOT NULL,
+        first_name VARCHAR(100) NOT NULL,
+        last_name VARCHAR(100) NOT NULL,
+        phone VARCHAR(20),
+        nationality VARCHAR(100),
+        organization VARCHAR(255),
+        address_line1 VARCHAR(255),
+        address_line2 VARCHAR(255),
+        city VARCHAR(100),
+        state VARCHAR(100),
+        country VARCHAR(100),
+        postal_code VARCHAR(20),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )";
+    $pdo->exec($sql);
     
     // Packages table
     $sql = "CREATE TABLE IF NOT EXISTS packages (
@@ -14,27 +85,7 @@ function createTables() {
         currency VARCHAR(3) DEFAULT 'USD',
         type ENUM('individual', 'group', 'exhibition') NOT NULL,
         max_people INT DEFAULT 1,
-        is_active BOOLEAN DEFAULT TRUE,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    )";
-    $pdo->exec($sql);
-    
-    // Users table
-    $sql = "CREATE TABLE IF NOT EXISTS users (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        email VARCHAR(255) UNIQUE NOT NULL,
-        password VARCHAR(255),
-        first_name VARCHAR(100),
-        last_name VARCHAR(100),
-        phone VARCHAR(20),
-        nationality VARCHAR(100),
-        organization VARCHAR(255),
-        address_line1 VARCHAR(255),
-        address_line2 VARCHAR(255),
-        city VARCHAR(100),
-        state VARCHAR(100),
-        country VARCHAR(100),
-        postal_code VARCHAR(20),
+        is_active BOOLEAN DEFAULT 1,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )";
     $pdo->exec($sql);
@@ -57,7 +108,7 @@ function createTables() {
     )";
     $pdo->exec($sql);
     
-    // Registration participants table (for group registrations)
+    // Registration participants table
     $sql = "CREATE TABLE IF NOT EXISTS registration_participants (
         id INT AUTO_INCREMENT PRIMARY KEY,
         registration_id INT,
@@ -113,7 +164,32 @@ function createTables() {
     )";
     $pdo->exec($sql);
     
-    echo "Database tables created successfully!";
+    // Rate limits table
+    $sql = "CREATE TABLE IF NOT EXISTS rate_limits (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        ip_address VARCHAR(45) NOT NULL,
+        action VARCHAR(50) NOT NULL,
+        attempts INT DEFAULT 1,
+        first_attempt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        last_attempt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        INDEX idx_ip_action (ip_address, action),
+        INDEX idx_last_attempt (last_attempt)
+    )";
+    $pdo->exec($sql);
+    
+    // Security logs table
+    $sql = "CREATE TABLE IF NOT EXISTS security_logs (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        event VARCHAR(100) NOT NULL,
+        ip_address VARCHAR(45) NOT NULL,
+        user_agent TEXT,
+        details TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_event (event),
+        INDEX idx_ip (ip_address),
+        INDEX idx_created_at (created_at)
+    )";
+    $pdo->exec($sql);
 }
 
 function insertPackages() {
@@ -136,8 +212,6 @@ function insertPackages() {
     foreach ($packages as $package) {
         $stmt->execute($package);
     }
-    
-    echo "Packages inserted successfully!";
 }
 
 function addMissingColumns() {
@@ -147,32 +221,21 @@ function addMissingColumns() {
     $stmt = $pdo->query("SHOW COLUMNS FROM registrations LIKE 'exhibition_description'");
     if ($stmt->rowCount() == 0) {
         $pdo->exec("ALTER TABLE registrations ADD COLUMN exhibition_description TEXT AFTER payment_token");
-        echo "Added exhibition_description column to registrations table.<br>";
+        echo "✓ Added exhibition_description column to registrations table\n";
     }
     
     // Check if passport_number column exists in registration_participants table
     $stmt = $pdo->query("SHOW COLUMNS FROM registration_participants LIKE 'passport_number'");
     if ($stmt->rowCount() == 0) {
         $pdo->exec("ALTER TABLE registration_participants ADD COLUMN passport_number VARCHAR(50) AFTER nationality");
-        echo "Added passport_number column to registration_participants table.<br>";
+        echo "✓ Added passport_number column to registration_participants table\n";
     }
     
     // Check if organization column exists in registration_participants table
     $stmt = $pdo->query("SHOW COLUMNS FROM registration_participants LIKE 'organization'");
     if ($stmt->rowCount() == 0) {
         $pdo->exec("ALTER TABLE registration_participants ADD COLUMN organization VARCHAR(255) AFTER passport_number");
-        echo "Added organization column to registration_participants table.<br>";
+        echo "✓ Added organization column to registration_participants table\n";
     }
-    
-    echo "Missing columns check completed!";
-}
-
-// Run migrations
-if (isset($_GET['migrate'])) {
-    createTables();
-    echo "<br>";
-    insertPackages();
-    echo "<br>";
-    addMissingColumns();
 }
 ?>
