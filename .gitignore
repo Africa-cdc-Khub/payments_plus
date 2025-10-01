@@ -46,3 +46,16 @@ build/
 
 # Sensitive configuration
 config.local.php
+
+# Email service credentials and examples with real credentials
+laravel-package/env_example.txt
+laravel_integration_example.php
+*_example.txt
+*example*.php
+*_credentials*
+*_secrets*
+
+# OAuth tokens and sensitive data
+oauth_tokens.json
+tokens.json
+*.token
