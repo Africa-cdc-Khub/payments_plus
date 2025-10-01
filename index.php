@@ -2,18 +2,49 @@
 require_once 'bootstrap.php';
 require_once 'functions.php';
 
+// Set security headers
+header('X-Content-Type-Options: nosniff');
+header('X-Frame-Options: DENY');
+header('X-XSS-Protection: 1; mode=block');
+header('Referrer-Policy: strict-origin-when-cross-origin');
+header('Content-Security-Policy: default-src \'self\'; script-src \'self\' \'unsafe-inline\' https://cdn.jsdelivr.net https://code.jquery.com https://cdnjs.cloudflare.com; style-src \'self\' \'unsafe-inline\' https://cdn.jsdelivr.net https://fonts.googleapis.com; font-src \'self\' https://fonts.gstatic.com; img-src \'self\' data:; connect-src \'self\';');
+
+// Start secure session
+if (session_status() === PHP_SESSION_NONE) {
+    ini_set('session.cookie_httponly', 1);
+    ini_set('session.cookie_secure', 1);
+    ini_set('session.use_strict_mode', 1);
+    session_start();
+}
+
+// Generate CSRF token if not exists
+if (!isset($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Verify CSRF token
+    if (!isset($_POST['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
+        $errors[] = "Invalid request. Please try again.";
+        logSecurityEvent('csrf_token_mismatch', 'Invalid CSRF token provided');
+    } else {
+        // Check rate limiting
+        $clientIp = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+        if (!checkRateLimit($clientIp, 'registration', 5, 3600)) {
+            $errors[] = "Too many registration attempts. Please try again later.";
+            logSecurityEvent('rate_limit_exceeded', 'Registration rate limit exceeded for IP: ' . $clientIp);
+        } else {
     $errors = [];
     $success = false;
     
-    // Validate required fields
-    if (empty($_POST['package_id'])) {
-        $errors[] = "Please select a package";
+    // Enhanced validation
+    if (empty($_POST['package_id']) || !validatePackageId($_POST['package_id'])) {
+        $errors[] = "Please select a valid package";
     }
     
-    if (empty($_POST['registration_type'])) {
-        $errors[] = "Please select registration type";
+    if (empty($_POST['registration_type']) || !validateRegistrationType($_POST['registration_type'])) {
+        $errors[] = "Please select a valid registration type";
     }
     
     if (empty($_POST['email']) || !validateEmail($_POST['email'])) {
@@ -26,6 +57,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     if (empty($_POST['last_name'])) {
         $errors[] = "Last name is required";
+    }
+    
+    if (!empty($_POST['nationality']) && !validateNationality($_POST['nationality'])) {
+        $errors[] = "Please select a valid nationality";
+    }
+    
+    if (!empty($_POST['phone']) && !validatePhoneNumber($_POST['phone'])) {
+        $errors[] = "Please enter a valid phone number";
+    }
+    
+    if (!empty($_POST['postal_code']) && !validatePostalCode($_POST['postal_code'])) {
+        $errors[] = "Please enter a valid postal code";
+    }
+    
+    if (!empty($_POST['passport_number']) && !validatePassportNumber($_POST['passport_number'])) {
+        $errors[] = "Please enter a valid passport number";
+    }
+    
+    if (!empty($_POST['organization']) && !validateOrganization($_POST['organization'])) {
+        $errors[] = "Please enter a valid organization name";
+    }
+    
+    if (!empty($_POST['exhibition_description']) && !validateExhibitionDescription($_POST['exhibition_description'])) {
+        $errors[] = "Please enter a valid exhibition description (10-1000 characters)";
     }
     
     if (empty($errors)) {
@@ -187,6 +242,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $errors[] = "Invalid package selected";
         }
     }
+        } // End rate limiting
+    } // End CSRF protection
 }
 
 // Get all packages
@@ -337,6 +394,7 @@ $exhibitionPackages = getPackagesByType('exhibition');
             
             <form id="registrationFormData" method="POST" class="registration-form">
                 <input type="hidden" name="package_id" id="selectedPackageId" required>
+                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token']); ?>">
 
                 <!-- Registration Type -->
                 <div class="card mb-4">

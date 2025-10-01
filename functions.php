@@ -12,7 +12,8 @@ use Cphia2025\EmailService;
 // Package functions
 function getAllPackages() {
     $pdo = getConnection();
-    $stmt = $pdo->query("SELECT * FROM packages WHERE is_active = 1 ORDER BY type, price");
+    $stmt = $pdo->prepare("SELECT * FROM packages WHERE is_active = 1 ORDER BY type, price");
+    $stmt->execute();
     return $stmt->fetchAll();
 }
 
@@ -332,6 +333,125 @@ function sanitizeInput($data) {
 
 function generateReferenceNumber() {
     return 'CPHIA' . date('Y') . str_pad(rand(1, 999999), 6, '0', STR_PAD_LEFT);
+}
+
+// Enhanced input validation functions
+function validatePackageId($id) {
+    return is_numeric($id) && $id > 0;
+}
+
+function validateRegistrationType($type) {
+    return in_array($type, ['individual', 'group']);
+}
+
+function validateNationality($nationality) {
+    // Check if nationality is in our allowed list
+    $allowedNationalities = [
+        'Algerian', 'Angolan', 'Beninese', 'Botswanan', 'Burkinabe', 'Burundian',
+        'Cameroonian', 'Cape Verdian', 'Central African', 'Chadian', 'Comoran',
+        'Congolese', 'Ivorian', 'Djibouti', 'Egyptian', 'Equatorial Guinean',
+        'Eritrean', 'Ethiopian', 'Gabonese', 'Gambian', 'Ghanaian', 'Guinean',
+        'Guinea-Bissauan', 'Kenyan', 'Lesotho', 'Liberian', 'Libyan', 'Malagasy',
+        'Malawian', 'Malian', 'Mauritanian', 'Mauritian', 'Moroccan', 'Mozambican',
+        'Namibian', 'Nigerien', 'Nigerian', 'Rwandan', 'Sao Tomean', 'Senegalese',
+        'Seychellois', 'Sierra Leonean', 'Somali', 'South African', 'South Sudanese',
+        'Sudanese', 'Swazi', 'Tanzanian', 'Togolese', 'Tunisian', 'Ugandan',
+        'Zambian', 'Zimbabwean', 'Motswana', 'Mosotho', 'American', 'British',
+        'Canadian', 'French', 'German', 'Italian', 'Spanish', 'Chinese', 'Japanese',
+        'Indian', 'Brazilian', 'Australian', 'Other'
+    ];
+    return in_array($nationality, $allowedNationalities);
+}
+
+function validatePhoneNumber($phone) {
+    // Allow international phone numbers with +, digits, spaces, hyphens, and parentheses
+    return preg_match('/^[\+]?[0-9\s\-\(\)]{7,20}$/', $phone);
+}
+
+function validatePostalCode($postalCode) {
+    // Allow alphanumeric postal codes with spaces and hyphens
+    return preg_match('/^[A-Za-z0-9\s\-]{3,10}$/', $postalCode);
+}
+
+function validatePassportNumber($passportNumber) {
+    // Allow alphanumeric passport numbers
+    return preg_match('/^[A-Za-z0-9]{6,20}$/', $passportNumber);
+}
+
+function validateOrganization($organization) {
+    // Allow letters, numbers, spaces, hyphens, and common punctuation
+    return preg_match('/^[A-Za-z0-9\s\-\.\,\&\(\)]{2,100}$/', $organization);
+}
+
+function validateExhibitionDescription($description) {
+    // Allow letters, numbers, spaces, and common punctuation
+    return preg_match('/^[A-Za-z0-9\s\-\.\,\!\?\:\;\(\)]{10,1000}$/', $description);
+}
+
+// Rate limiting functions
+function checkRateLimit($ip, $action = 'registration', $maxAttempts = 5, $timeWindow = 3600) {
+    $pdo = getConnection();
+    
+    // Create rate_limits table if it doesn't exist
+    $pdo->exec("CREATE TABLE IF NOT EXISTS rate_limits (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        ip_address VARCHAR(45) NOT NULL,
+        action VARCHAR(50) NOT NULL,
+        attempts INT DEFAULT 1,
+        first_attempt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        last_attempt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        INDEX idx_ip_action (ip_address, action),
+        INDEX idx_last_attempt (last_attempt)
+    )");
+    
+    // Clean old records (older than time window)
+    $pdo->prepare("DELETE FROM rate_limits WHERE last_attempt < DATE_SUB(NOW(), INTERVAL ? SECOND)")
+         ->execute([$timeWindow]);
+    
+    // Check current attempts
+    $stmt = $pdo->prepare("SELECT attempts FROM rate_limits WHERE ip_address = ? AND action = ?");
+    $stmt->execute([$ip, $action]);
+    $result = $stmt->fetch();
+    
+    if ($result) {
+        if ($result['attempts'] >= $maxAttempts) {
+            return false; // Rate limit exceeded
+        }
+        // Increment attempts
+        $pdo->prepare("UPDATE rate_limits SET attempts = attempts + 1, last_attempt = NOW() WHERE ip_address = ? AND action = ?")
+             ->execute([$ip, $action]);
+    } else {
+        // First attempt
+        $pdo->prepare("INSERT INTO rate_limits (ip_address, action) VALUES (?, ?)")
+             ->execute([$ip, $action]);
+    }
+    
+    return true; // Within rate limit
+}
+
+function logSecurityEvent($event, $details = '') {
+    $pdo = getConnection();
+    
+    // Create security_logs table if it doesn't exist
+    $pdo->exec("CREATE TABLE IF NOT EXISTS security_logs (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        event VARCHAR(100) NOT NULL,
+        ip_address VARCHAR(45) NOT NULL,
+        user_agent TEXT,
+        details TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_event (event),
+        INDEX idx_ip (ip_address),
+        INDEX idx_created_at (created_at)
+    )");
+    
+    $stmt = $pdo->prepare("INSERT INTO security_logs (event, ip_address, user_agent, details) VALUES (?, ?, ?, ?)");
+    $stmt->execute([
+        $event,
+        $_SERVER['REMOTE_ADDR'] ?? 'unknown',
+        $_SERVER['HTTP_USER_AGENT'] ?? 'unknown',
+        $details
+    ]);
 }
 
 // Function to check if a nationality is African
