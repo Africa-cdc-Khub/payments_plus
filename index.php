@@ -31,7 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         // Check rate limiting
         $clientIp = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
-        if (!checkRateLimit($clientIp, 'registration', 5, 3600)) {
+        if (!checkRateLimit($clientIp, 'registration', 20, 3600)) {
             $errors[] = "Too many registration attempts. Please try again later.";
             logSecurityEvent('rate_limit_exceeded', 'Registration rate limit exceeded for IP: ' . $clientIp);
         } else {
@@ -134,26 +134,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Get the selected package
             $package = getPackageById($_POST['package_id']);
             
-            // Check if this is a side event package (group type but for side events)
-            $isSideEvent = ($package['type'] === 'group' && in_array($package['id'], [3, 4])); // Side event package IDs
-            
-            // Check if this is an exhibition package
-            $isExhibition = ($package['type'] === 'exhibition');
-            
-            if ($isSideEvent) {
-                // Side event - individual registration only, use exact package price
-                $totalAmount = $package['price']; // Use exact package price, not nationality-based
-                $registrationType = 'individual'; // Force individual for side events
-            } else if ($isExhibition) {
-                // Exhibition package - individual registration only, use exact package price
-                $totalAmount = $package['price']; // Use exact package price, not nationality-based
-                $registrationType = 'individual'; // Force individual for exhibition packages
+             // Check if this is a side event package
+             $isSideEvent = ($package['type'] === 'side_event');
+             
+             // Check if this is an exhibition package
+             $isExhibition = ($package['type'] === 'exhibition');
+             
+             if ($isSideEvent) {
+                 // Side event - individual registration only, use exact package price
+                 $totalAmount = $package['price']; // Use exact package price, not nationality-based
+                 $registrationType = 'side_event'; // Use side_event registration type
+             } else if ($isExhibition) {
+                 // Exhibition package - individual registration only, use exact package price
+                 $totalAmount = $package['price']; // Use exact package price, not nationality-based
+                 $registrationType = 'exhibition'; // Use exhibition registration type
             } else if ($_POST['registration_type'] === 'individual') {
                 // Regular individual registration - use African/Non-African pricing
                 if ($isAfrican) {
-                    $package = getPackageById(1); // African Nationals package
+                    $package = getPackageById(19); // African Nationals package
                 } else {
-                    $package = getPackageById(2); // Non-African nationals package
+                    $package = getPackageById(20); // Non-African nationals package
                 }
                 $totalAmount = $package['price'];
                 $registrationType = 'individual';
@@ -174,9 +174,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
                 // Use non-African pricing if any participant is non-African
                 if ($hasNonAfricanParticipants || !$isAfrican) {
-                    $package = getPackageById(2); // Non-African nationals package
+                    $package = getPackageById(20); // Non-African nationals package
                 } else {
-                    $package = getPackageById(1); // African Nationals package
+                    $package = getPackageById(19); // African Nationals package
                 }
                 
                 $totalAmount = $package['price'] * $numPeople;
@@ -269,7 +269,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 // Get all packages
 $packages = getAllPackages();
 $individualPackages = getPackagesByType('individual');
-$groupPackages = getPackagesByType('group');
+$sideEventPackages = getPackagesByType('side_event');
 $exhibitionPackages = getPackagesByType('exhibition');
 
 // Check if user has existing registrations (for display purposes)
@@ -412,44 +412,9 @@ if (isset($_GET['email']) && validateEmail($_GET['email'])) {
                     <?php endforeach; ?>
                 </div>
                 
-                <!-- side event Registration Row -->
-                <div class="row g-3">
-                    <div class="col-12">
-                        <h4 class="text-center mb-3">Side Events Registration</h4>
-                    </div>
-                    <?php foreach ($groupPackages as $package): ?>
-                        <div class="col-6 col-md-6">
-                            <div class="card package-card h-100" data-package-id="<?php echo $package['id']; ?>" data-type="group">
-                                <div class="card-body d-flex flex-column p-3 text-center">
-                                    <h5 class="card-title mb-3"><?php echo htmlspecialchars($package['name']); ?></h5>
-                                    <div class="package-price h4 text-success mb-3"><?php echo formatCurrency($package['price']); ?></div>
-                                    <button type="button" class="btn btn-primary btn-lg select-package mt-auto">Select Package</button>
-                                </div>
-                            </div>
-                        </div>
-                    <?php endforeach; ?>
-                </div>
+         
             </div>
 
-            <!-- Exhibition Packages -->
-            <div class="package-category">
-                <div class="row g-3">
-                    <div class="col-12">
-                        <h3 class="text-center">Exhibition Packages</h3>
-                    </div>
-                    <?php foreach ($exhibitionPackages as $package): ?>
-                        <div class="col-md-6 col-lg-3">
-                            <div class="card package-card h-100" data-package-id="<?php echo $package['id']; ?>" data-type="exhibition">
-                                <div class="card-body d-flex flex-column p-3 text-center">
-                                    <h5 class="card-title mb-3"><?php echo htmlspecialchars($package['name']); ?></h5>
-                                    <div class="package-price h4 text-success mb-3"><?php echo formatCurrency($package['price']); ?></div>
-                                    <button type="button" class="btn btn-primary btn-lg select-package mt-auto">Select Package</button>
-                                </div>
-                            </div>
-                        </div>
-                    <?php endforeach; ?>
-                </div>
-            </div>
         </div>
 
         <!-- Registration Form (Hidden Initially) -->

@@ -143,7 +143,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 individualRadio.disabled = false;
                 groupRadio.disabled = false;
                 groupRadio.checked = false;
-            } else if (selectedPackage.type === 'group') {
+            } else if (selectedPackage.type === 'side_event') {
                 // Side event package - only allow individual registration
                 individualRadio.checked = true;
                 individualRadio.disabled = false;
@@ -411,7 +411,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         // Handle side events and exhibition packages differently - no checkout, just confirmation
-        if (selectedPackage && selectedPackage.type === 'group') {
+        if (selectedPackage && selectedPackage.type === 'side_event') {
             // This is a side event package - show special message
             showInfo('Side event registration will be confirmed via email. Payment will be processed after event approval.', 'Side Event Registration');
         } else if (selectedPackage && selectedPackage.type === 'exhibition') {
@@ -430,12 +430,12 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         // Check if this is a side event or exhibition package
-        if (selectedPackage.type === 'group' || selectedPackage.type === 'exhibition') {
+        if (selectedPackage.type === 'side_event' || selectedPackage.type === 'exhibition') {
             // For side events and exhibitions, use exact package price
             const totalCost = selectedPackage.price;
             costEstimation.innerHTML = `
                 <strong>Total: $${totalCost.toLocaleString()}</strong>
-                <br><small class="text-muted">${selectedPackage.type === 'group' ? 'Side Event' : 'Exhibition'} package price</small>
+                <br><small class="text-muted">${selectedPackage.type === 'side_event' ? 'Side Event' : 'Exhibition'} package price</small>
             `;
             return;
         }
@@ -707,7 +707,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Calculate total amount based on package type
         let totalAmount;
-        if (selectedPackage.type === 'group' || selectedPackage.type === 'exhibition') {
+        if (selectedPackage.type === 'side_event' || selectedPackage.type === 'exhibition') {
             // For side events and exhibitions, use exact package price
             totalAmount = selectedPackage.price;
         } else if (registrationType.value === 'group') {

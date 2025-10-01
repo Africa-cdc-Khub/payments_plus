@@ -46,15 +46,22 @@ define('CYBERSOURCE_SECRET_KEY', $_ENV['CYBERSOURCE_SECRET_KEY'] ?? 'caa42c9a602
 define('CYBERSOURCE_DF_ORG_ID', $_ENV['CYBERSOURCE_DF_ORG_ID'] ?? '1snn5n9w');
 define('CYBERSOURCE_BASE_URL', $_ENV['CYBERSOURCE_BASE_URL'] ?? 'https://testsecureacceptance.cybersource.com/silent');
 
-// Email configuration
-define('MAIL_DRIVER', $_ENV['MAIL_DRIVER'] ?? 'smtp');
-define('MAIL_HOST', $_ENV['MAIL_HOST'] ?? 'smtp.gmail.com');
+// Email configuration - MS Exchange OAuth
+define('MAIL_DRIVER', $_ENV['MAIL_DRIVER'] ?? 'exchange_oauth');
+define('MAIL_HOST', $_ENV['MAIL_HOST'] ?? 'smtp.office365.com');
 define('MAIL_PORT', $_ENV['MAIL_PORT'] ?? '587');
 define('MAIL_USERNAME', $_ENV['MAIL_USERNAME'] ?? '');
 define('MAIL_PASSWORD', $_ENV['MAIL_PASSWORD'] ?? '');
-define('MAIL_ENCRYPTION', $_ENV['MAIL_ENCRYPTION'] ?? 'tls');
+define('MAIL_ENCRYPTION', $_ENV['MAIL_ENCRYPTION'] ?? 'PHPMailer::ENCRYPTION_STARTTLS');
 define('MAIL_FROM_ADDRESS', $_ENV['MAIL_FROM_ADDRESS'] ?? 'noreply@cphia2025.com');
 define('MAIL_FROM_NAME', $_ENV['MAIL_FROM_NAME'] ?? 'CPHIA 2025');
+
+// MS Exchange OAuth Configuration
+define('EXCHANGE_TENANT_ID', $_ENV['EXCHANGE_TENANT_ID'] ?? '');
+define('EXCHANGE_CLIENT_ID', $_ENV['EXCHANGE_CLIENT_ID'] ?? '');
+define('EXCHANGE_CLIENT_SECRET', $_ENV['EXCHANGE_CLIENT_SECRET'] ?? '');
+define('EXCHANGE_REDIRECT_URI', $_ENV['EXCHANGE_REDIRECT_URI'] ?? 'http://localhost:8000/oauth/callback');
+define('EXCHANGE_SCOPE', $_ENV['EXCHANGE_SCOPE'] ?? 'https://graph.microsoft.com/Mail.Send');
 
 // Admin email configuration
 define('ADMIN_EMAIL', $_ENV['ADMIN_EMAIL'] ?? 'admin@cphia2025.com');

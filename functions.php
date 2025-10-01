@@ -391,6 +391,10 @@ function validateExhibitionDescription($description) {
 
 // Rate limiting functions
 function checkRateLimit($ip, $action = 'registration', $maxAttempts = 5, $timeWindow = 3600) {
+    // Skip rate limiting in development mode
+    if (defined('APP_DEBUG') && APP_DEBUG && $ip === '::1') {
+        return true;
+    }
     $pdo = getConnection();
     
     // Create rate_limits table if it doesn't exist

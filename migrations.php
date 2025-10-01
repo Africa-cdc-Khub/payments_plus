@@ -119,11 +119,18 @@ function createTables() {
 function insertPackages() {
     $pdo = getConnection();
     
+    // Check if packages already exist
+    $existingCount = $pdo->query("SELECT COUNT(*) FROM packages")->fetchColumn();
+    if ($existingCount > 0) {
+        echo "Packages already exist ($existingCount found). Skipping insertion.<br>";
+        return;
+    }
+    
     $packages = [
         ['African Nationals', 'Registration for African nationals attending CPHIA 2025', 200.00, 'USD', 'individual', 1],
         ['Non African nationals', 'Registration for non-African nationals attending CPHIA 2025', 400.00, 'USD', 'individual', 1],
-        ['Side event package 1', 'Side event package for organizations', 6000.00, 'USD', 'group', 10],
-        ['Side event package 2', 'Premium side event package for organizations', 10000.00, 'USD', 'group', 20],
+        ['Side event package 1', 'Side event package for organizations', 6000.00, 'USD', 'side_event', 10],
+        ['Side event package 2', 'Premium side event package for organizations', 10000.00, 'USD', 'side_event', 20],
         ['Exhibition Resilience Bronze', 'Bronze level exhibition package', 2500.00, 'USD', 'exhibition', 5],
         ['Resilience Bronze Plus', 'Bronze Plus exhibition package', 10000.00, 'USD', 'exhibition', 10],
         ['Peace Silver', 'Silver level exhibition package', 30000.00, 'USD', 'exhibition', 15],
@@ -132,12 +139,20 @@ function insertPackages() {
     ];
     
     $stmt = $pdo->prepare("INSERT INTO packages (name, description, price, currency, type, max_people) VALUES (?, ?, ?, ?, ?, ?)");
-    
+    $inserted = 0;
     foreach ($packages as $package) {
-        $stmt->execute($package);
+        try {
+            $stmt->execute($package);
+            $inserted++;
+        } catch (PDOException $e) {
+            if ($e->getCode() == 23000) { // Duplicate entry
+                echo "Package '{$package[0]}' already exists, skipping.<br>";
+            } else {
+                throw $e;
+            }
+        }
     }
-    
-    echo "Packages inserted successfully!";
+    echo "Packages inserted successfully! ($inserted packages added)<br>";
 }
 
 function addMissingColumns() {
