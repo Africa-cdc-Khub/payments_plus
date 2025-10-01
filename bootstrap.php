@@ -97,6 +97,11 @@ define('ALLOWED_FILE_TYPES', $_ENV['ALLOWED_FILE_TYPES'] ?? 'jpg,jpeg,png,pdf,do
 define('RATE_LIMIT_REQUESTS', $_ENV['RATE_LIMIT_REQUESTS'] ?? '100');
 define('RATE_LIMIT_WINDOW', $_ENV['RATE_LIMIT_WINDOW'] ?? '60');
 
+// reCAPTCHA Configuration
+define('RECAPTCHA_SITE_KEY', $_ENV['RECAPTCHA_SITE_KEY'] ?? '');
+define('RECAPTCHA_SECRET_KEY', $_ENV['RECAPTCHA_SECRET_KEY'] ?? '');
+define('RECAPTCHA_ENABLED', filter_var($_ENV['RECAPTCHA_ENABLED'] ?? 'true', FILTER_VALIDATE_BOOLEAN));
+
 // Set error reporting based on environment
 if (APP_DEBUG) {
     error_reporting(E_ALL);

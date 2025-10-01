@@ -7,7 +7,7 @@ header('X-Content-Type-Options: nosniff');
 header('X-Frame-Options: DENY');
 header('X-XSS-Protection: 1; mode=block');
 header('Referrer-Policy: strict-origin-when-cross-origin');
-header('Content-Security-Policy: default-src \'self\'; script-src \'self\' \'unsafe-inline\' https://cdn.jsdelivr.net https://code.jquery.com https://cdnjs.cloudflare.com; style-src \'self\' \'unsafe-inline\' https://cdn.jsdelivr.net https://fonts.googleapis.com; font-src \'self\' https://fonts.gstatic.com; img-src \'self\' data:; connect-src \'self\';');
+header('Content-Security-Policy: default-src \'self\'; script-src \'self\' \'unsafe-inline\' https://cdn.jsdelivr.net https://code.jquery.com https://cdnjs.cloudflare.com https://www.google.com https://www.gstatic.com; style-src \'self\' \'unsafe-inline\' https://cdn.jsdelivr.net https://fonts.googleapis.com; font-src \'self\' https://fonts.gstatic.com; img-src \'self\' data: https://www.google.com; connect-src \'self\' https://www.google.com; frame-src \'self\' https://www.google.com;');
 
 // Start secure session
 if (session_status() === PHP_SESSION_NONE) {
@@ -81,6 +81,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     if (!empty($_POST['exhibition_description']) && !validateExhibitionDescription($_POST['exhibition_description'])) {
         $errors[] = "Please enter a valid exhibition description (10-1000 characters)";
+    }
+    
+    // Validate reCAPTCHA if enabled
+    if (isRecaptchaEnabled()) {
+        if (empty($_POST['g-recaptcha-response'])) {
+            $errors[] = "Please complete the reCAPTCHA verification";
+        } elseif (!validateRecaptcha($_POST['g-recaptcha-response'], RECAPTCHA_SECRET_KEY)) {
+            $errors[] = "reCAPTCHA verification failed. Please try again.";
+            logSecurityEvent('recaptcha_failed', 'reCAPTCHA verification failed for IP: ' . $clientIp);
+        }
     }
     
     if (empty($errors)) {
@@ -431,7 +441,7 @@ $exhibitionPackages = getPackagesByType('exhibition');
                     <div class="card-body">
                         <div class="row">
                             <div class="col-md-6">
-                                <label for="numPeople" class="form-label">How many people are you registering?</label>
+                                <label for="numPeople" class="form-label">How many additional people are you registering (inlcuding yourself)?</label>
                                 <input type="number" class="form-control form-control-lg" name="num_people" id="numPeople" min="1" placeholder="Enter number of people" style="font-size: 1.5rem; font-weight: bold;">
                                 <div class="form-text">This will automatically add/remove participant fields below for easy cost estimation.</div>
                             </div>
@@ -630,6 +640,18 @@ $exhibitionPackages = getPackagesByType('exhibition');
                     </div>
                 </div>
 
+                <!-- reCAPTCHA -->
+                <?php if (isRecaptchaEnabled()): ?>
+                <div class="card mb-4">
+                    <div class="card-body text-center">
+                        <div class="g-recaptcha" data-sitekey="<?php echo htmlspecialchars(RECAPTCHA_SITE_KEY); ?>"></div>
+                        <small class="text-muted mt-2 d-block">
+                            Please complete the reCAPTCHA verification to proceed with registration.
+                        </small>
+                    </div>
+                </div>
+                <?php endif; ?>
+
                 <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                     <button type="submit" class="btn btn-primary btn-lg">Register & Continue to Payment</button>
                 </div>
@@ -645,6 +667,8 @@ $exhibitionPackages = getPackagesByType('exhibition');
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <!-- Lobibox JS -->
     <script src="https://cdn.jsdelivr.net/npm/lobibox@1.2.7/dist/js/lobibox.min.js"></script>
+    <!-- reCAPTCHA JS -->
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     <!-- Custom JS -->
     <script src="js/registration.js"></script>
 </body>

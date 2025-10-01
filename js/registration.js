@@ -408,6 +408,16 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
         
+        // Validate reCAPTCHA if enabled
+        const recaptchaResponse = document.querySelector('[name="g-recaptcha-response"]');
+        if (recaptchaResponse) {
+            if (!recaptchaResponse.value) {
+                e.preventDefault();
+                showError('Please complete the reCAPTCHA verification', 'reCAPTCHA Required');
+                return;
+            }
+        }
+        
         // Handle side events and exhibition packages differently - no checkout, just confirmation
         if (selectedPackage && selectedPackage.type === 'group') {
             // This is a side event package - show special message

@@ -454,6 +454,42 @@ function logSecurityEvent($event, $details = '') {
     ]);
 }
 
+// reCAPTCHA validation functions
+function validateRecaptcha($response, $secretKey) {
+    if (empty($response)) {
+        return false;
+    }
+    
+    $url = 'https://www.google.com/recaptcha/api/siteverify';
+    $data = [
+        'secret' => $secretKey,
+        'response' => $response,
+        'remoteip' => $_SERVER['REMOTE_ADDR'] ?? ''
+    ];
+    
+    $options = [
+        'http' => [
+            'header' => "Content-type: application/x-www-form-urlencoded\r\n",
+            'method' => 'POST',
+            'content' => http_build_query($data)
+        ]
+    ];
+    
+    $context = stream_context_create($options);
+    $result = file_get_contents($url, false, $context);
+    
+    if ($result === FALSE) {
+        return false;
+    }
+    
+    $resultJson = json_decode($result, true);
+    return isset($resultJson['success']) && $resultJson['success'] === true;
+}
+
+function isRecaptchaEnabled() {
+    return RECAPTCHA_ENABLED && !empty(RECAPTCHA_SITE_KEY) && !empty(RECAPTCHA_SECRET_KEY);
+}
+
 // Function to check if a nationality is African
 function isAfricanNational($nationality) {
     $africanNationalities = [
