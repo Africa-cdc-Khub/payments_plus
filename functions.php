@@ -65,12 +65,13 @@ function getOrCreateUser($data) {
 // Registration functions
 function createRegistration($data) {
     $pdo = getConnection();
-    $sql = "INSERT INTO registrations (user_id, package_id, registration_type, total_amount, currency, exhibition_description) 
-            VALUES (?, ?, ?, ?, ?, ?)";
+    $sql = "INSERT INTO registrations (user_id, package_id, registration_type, total_amount, currency, exhibition_description, payment_status) 
+            VALUES (?, ?, ?, ?, ?, ?, ?)";
     $stmt = $pdo->prepare($sql);
     $stmt->execute([
         $data['user_id'], $data['package_id'], $data['registration_type'], 
-        $data['total_amount'], $data['currency'], $data['exhibition_description'] ?? null
+        $data['total_amount'], $data['currency'], $data['exhibition_description'] ?? null,
+        'pending' // All new registrations start with pending payment status
     ]);
     return $pdo->lastInsertId();
 }
@@ -142,7 +143,14 @@ function formatCurrency($amount, $currency = 'USD') {
 }
 
 function generatePaymentToken($registrationId) {
-    return base64_encode($registrationId . '_' . time() . '_' . rand(1000, 9999));
+    $token = base64_encode($registrationId . '_' . time() . '_' . rand(1000, 9999));
+    
+    // Store the token in the database
+    $pdo = getConnection();
+    $stmt = $pdo->prepare("UPDATE registrations SET payment_token = ? WHERE id = ?");
+    $stmt->execute([$token, $registrationId]);
+    
+    return $token;
 }
 
 // Email notification functions using EmailQueue
@@ -152,6 +160,15 @@ function sendRegistrationEmails($user, $registrationId, $package, $amount, $part
 
     // Queue registration confirmation to user
     $userName = $user['first_name'] . ' ' . $user['last_name'];
+    
+    // Generate payment link for pending payments
+    $paymentLink = '';
+    $paymentStatus = 'pending'; // All new registrations start as pending
+    if ($paymentStatus === 'pending') {
+        $paymentToken = generatePaymentToken($registrationId);
+        $paymentLink = rtrim(APP_URL, '/') . "/checkout_payment.php?registration_id=" . $registrationId . "&token=" . $paymentToken;
+    }
+    
     $templateData = [
         'user_name' => $userName,
         'registration_id' => $registrationId,
@@ -163,7 +180,9 @@ function sendRegistrationEmails($user, $registrationId, $package, $amount, $part
         'conference_dates' => CONFERENCE_DATES,
         'conference_location' => CONFERENCE_LOCATION,
         'conference_venue' => CONFERENCE_VENUE,
-        'logo_url' => EMAIL_LOGO_URL
+        'logo_url' => EMAIL_LOGO_URL,
+        'payment_link' => $paymentLink,
+        'payment_status' => $paymentStatus
     ];
 
     $result = $emailQueue->addToQueue(

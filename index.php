@@ -353,6 +353,50 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
             <div class="alert alert-success">
                 <h3>Registration Successful!</h3>
                 <p>Thank you for registering for CPHIA 2025. A payment link has been sent to your email address.</p>
+                
+                <?php if (isset($registrationId) && !$isSideEvent && !$isExhibition): ?>
+                    <div class="mt-4">
+                        <h5>Complete Your Registration</h5>
+                        <p class="mb-3">Choose how you'd like to complete your payment:</p>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="card h-100">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-credit-card fa-3x text-success mb-3"></i>
+                                        <h6 class="card-title">Pay Now</h6>
+                                        <p class="card-text small">Complete your payment immediately to finalize your registration.</p>
+                                        <a href="registration_lookup.php?action=pay&id=<?php echo $registrationId; ?>" class="btn btn-success">
+                                            <i class="fas fa-credit-card me-2"></i>Pay Now
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <div class="card h-100">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-envelope fa-3x text-primary mb-3"></i>
+                                        <h6 class="card-title">Pay Later</h6>
+                                        <p class="card-text small">We'll send you a payment link via email so you can pay when convenient.</p>
+                                        <button onclick="sendPaymentLink(<?php echo $registrationId; ?>)" class="btn btn-outline-primary">
+                                            <i class="fas fa-envelope me-2"></i>Send Payment Link
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-3 text-center">
+                            <p class="small text-muted mb-2">
+                                Registration ID: #<?php echo $registrationId; ?>
+                            </p>
+                            <a href="registration_lookup.php" class="btn btn-outline-secondary btn-sm">
+                                <i class="fas fa-list me-1"></i>View All My Registrations
+                            </a>
+                        </div>
+                    </div>
+                <?php endif; ?>
             </div>
         <?php endif; ?>
 
@@ -795,6 +839,66 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
     <!-- Pass form data to JavaScript for restoration -->
     <script>
         window.formData = <?php echo json_encode($formData); ?>;
+        
+        // Function to send payment link via email
+        function sendPaymentLink(registrationId) {
+            const button = event.target;
+            const originalText = button.innerHTML;
+            
+            // Show loading state
+            button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Sending...';
+            button.disabled = true;
+            
+            // Send AJAX request
+            fetch('send_payment_link.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    registration_id: registrationId
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Show success message
+                    button.innerHTML = '<i class="fas fa-check me-2"></i>Payment Link Sent!';
+                    button.classList.remove('btn-outline-primary');
+                    button.classList.add('btn-success');
+                    
+                    // Show success alert
+                    showAlert('Payment link sent successfully! Check your email.', 'success');
+                } else {
+                    // Show error message
+                    button.innerHTML = originalText;
+                    button.disabled = false;
+                    showAlert('Failed to send payment link. Please try again.', 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                button.innerHTML = originalText;
+                button.disabled = false;
+                showAlert('An error occurred. Please try again.', 'danger');
+            });
+        }
+        
+        // Function to show alerts
+        function showAlert(message, type) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            
+            // Insert after the success message
+            const successAlert = document.querySelector('.alert-success');
+            if (successAlert) {
+                successAlert.parentNode.insertBefore(alertDiv, successAlert.nextSibling);
+            }
+        }
     </script>
 </body>
 </html>

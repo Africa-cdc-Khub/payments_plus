@@ -36,10 +36,23 @@
         
         <h3>What's Next?</h3>
         <ul>
-            <li>You will receive a payment link shortly to complete your registration</li>
+            <li>Complete your payment to finalize your registration</li>
             <li>Conference materials will be sent closer to the event date</li>
             <li>Check your email for regular updates about the conference</li>
         </ul>
+        
+        {{#payment_link}}
+        <div class="details" style="text-align: center; margin: 30px 0;">
+            <h3>Complete Your Payment</h3>
+            <p>Click the button below to complete your payment and finalize your registration:</p>
+            <a href="{{payment_link}}" style="display: inline-block; background: #063218; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; margin: 10px 0;">
+                Complete Payment - ${{amount}}
+            </a>
+            <p style="font-size: 12px; color: #666; margin-top: 10px;">
+                Or copy and paste this link: {{payment_link}}
+            </p>
+        </div>
+        {{/payment_link}}
         
         <p>If you have any questions, please don't hesitate to contact us at <a href="mailto:{{mail_from_address}}">{{mail_from_address}}</a></p>
     </div>
