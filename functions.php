@@ -218,7 +218,7 @@ function sendPaymentLinkEmail($user, $registrationId, $amount) {
     $emailQueue = new \Cphia2025\EmailQueue();
     $paymentToken = generatePaymentToken($registrationId);
     $baseUrl = APP_URL . dirname($_SERVER['PHP_SELF']);
-    $paymentLink = $baseUrl . "/checkout.php?token=" . $paymentToken;
+    $paymentLink = $baseUrl . "/checkout_payment.php?registration_id=" . $registrationId . "&token=" . $paymentToken;
 
     $userName = $user['first_name'] . ' ' . $user['last_name'];
     

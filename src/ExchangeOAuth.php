@@ -14,17 +14,19 @@ class ExchangeOAuth
     private $clientSecret;
     private $redirectUri;
     private $scope;
+    private $authMethod;
     private $accessToken;
     private $refreshToken;
     private $tokenExpiresAt;
 
-    public function __construct()
+    public function __construct($tenantId = null, $clientId = null, $clientSecret = null, $redirectUri = null, $scope = null, $authMethod = null)
     {
-        $this->tenantId = EXCHANGE_TENANT_ID;
-        $this->clientId = EXCHANGE_CLIENT_ID;
-        $this->clientSecret = EXCHANGE_CLIENT_SECRET;
-        $this->redirectUri = EXCHANGE_REDIRECT_URI;
-        $this->scope = EXCHANGE_SCOPE;
+        $this->tenantId = $tenantId ?: EXCHANGE_TENANT_ID;
+        $this->clientId = $clientId ?: EXCHANGE_CLIENT_ID;
+        $this->clientSecret = $clientSecret ?: EXCHANGE_CLIENT_SECRET;
+        $this->redirectUri = $redirectUri ?: EXCHANGE_REDIRECT_URI;
+        $this->scope = $scope ?: EXCHANGE_SCOPE;
+        $this->authMethod = $authMethod ?: (defined('EXCHANGE_AUTH_METHOD') ? EXCHANGE_AUTH_METHOD : 'client_credentials');
         
         // Load stored tokens from database
         $this->loadStoredTokens();
@@ -90,6 +92,35 @@ class ExchangeOAuth
     }
 
     /**
+     * Get access token using client credentials flow
+     */
+    public function getClientCredentialsToken()
+    {
+        $tokenUrl = 'https://login.microsoftonline.com/' . $this->tenantId . '/oauth2/v2.0/token';
+        
+        $data = [
+            'client_id' => $this->clientId,
+            'client_secret' => $this->clientSecret,
+            'scope' => $this->scope,
+            'grant_type' => 'client_credentials'
+        ];
+
+        $response = $this->makeTokenRequest($tokenUrl, $data);
+        
+        if (isset($response['access_token'])) {
+            $this->accessToken = $response['access_token'];
+            $this->tokenExpiry = time() + ($response['expires_in'] ?? 3600);
+            
+            // Store tokens
+            $this->storeTokens();
+            
+            return $this->accessToken;
+        }
+        
+        throw new \Exception('Failed to get client credentials token: ' . ($response['error_description'] ?? 'Unknown error'));
+    }
+
+    /**
      * Refresh access token using refresh token
      */
     public function refreshAccessToken()
@@ -134,12 +165,20 @@ class ExchangeOAuth
     public function getValidAccessToken()
     {
         if (empty($this->accessToken)) {
-            throw new \Exception('No access token available. Please complete OAuth flow.');
+            if ($this->authMethod === 'client_credentials') {
+                return $this->getClientCredentialsToken();
+            } else {
+                throw new \Exception('No access token available. Please complete OAuth flow.');
+            }
         }
 
         // Check if token is expired or will expire in the next 5 minutes
         if ($this->tokenExpiresAt <= (time() + 300)) {
-            $this->refreshAccessToken();
+            if ($this->authMethod === 'client_credentials') {
+                return $this->getClientCredentialsToken();
+            } else {
+                $this->refreshAccessToken();
+            }
         }
 
         return $this->accessToken;
@@ -169,7 +208,9 @@ class ExchangeOAuth
             ]
         ];
 
-        $url = 'https://graph.microsoft.com/v1.0/me/sendMail';
+        // For client credentials flow, we need to use a specific user's mailbox
+        // This requires the application to have been granted permission to send as that user
+        $url = 'https://graph.microsoft.com/v1.0/users/' . $this->getFromEmail() . '/sendMail';
         
         $response = $this->makeHttpRequest($url, 'POST', $emailData, [
             'Authorization: Bearer ' . $accessToken,
@@ -177,6 +218,14 @@ class ExchangeOAuth
         ]);
 
         return isset($response['id']) || empty($response);
+    }
+
+    /**
+     * Get the from email address for sending
+     */
+    private function getFromEmail()
+    {
+        return defined('MAIL_FROM_ADDRESS') ? MAIL_FROM_ADDRESS : 'noreply@cphia2025.com';
     }
 
     /**
@@ -325,5 +374,13 @@ class ExchangeOAuth
         }
         
         return $decodedResponse ?: $response;
+    }
+
+    /**
+     * Make token request (wrapper for makeHttpRequest)
+     */
+    private function makeTokenRequest($url, $data)
+    {
+        return $this->makeHttpRequest($url, 'POST', $data);
     }
 }
