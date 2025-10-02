@@ -44,6 +44,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['search_registrations'
     }
 }
 
+// Handle payment action
+if (isset($_GET['action']) && $_GET['action'] === 'pay' && isset($_GET['id']) && is_numeric($_GET['id'])) {
+    $registrationId = (int)$_GET['id'];
+    $registration = getRegistrationById($registrationId);
+    
+    if ($registration && $registration['payment_status'] === 'pending') {
+        // Generate payment token and redirect to payment page
+        $paymentToken = generatePaymentToken($registrationId);
+        $paymentUrl = APP_URL . "/checkout_payment.php?registration_id=" . $registrationId . "&token=" . $paymentToken;
+        header("Location: " . $paymentUrl);
+        exit;
+    } else {
+        $error = "Registration not found or payment not required.";
+    }
+}
+
 // Handle registration details request
 $registrationDetails = null;
 $participants = [];

@@ -98,7 +98,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Check for duplicate registration using event date
         $duplicateCheck = checkDuplicateRegistration($_POST['email'], $_POST['package_id'], CONFERENCE_DATES);
         if ($duplicateCheck['is_duplicate']) {
-            $errors[] = getDuplicateRegistrationMessage($duplicateCheck);
+            $duplicateMessage = getDuplicateRegistrationMessage($duplicateCheck);
+            $duplicateRegistration = $duplicateCheck['registration'];
+            
+            // Set a special flag for duplicate registration
+            $isDuplicateRegistration = true;
+            $duplicateRegistrationId = $duplicateRegistration['id'];
+            $duplicateRegistrationStatus = $duplicateRegistration['status'];
+            
+            // Don't add to errors array - we'll handle this specially
             logSecurityEvent('duplicate_registration_attempt', 'Duplicate registration attempt for email: ' . $_POST['email'] . ', package: ' . $_POST['package_id'] . ', event: ' . CONFERENCE_DATES);
         }
     }
@@ -348,8 +356,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
             </div>
         <?php endif; ?>
 
-        <?php if (!empty($errors)): ?>
-            <div class="alert alert-error">
+        <?php if (isset($isDuplicateRegistration) && $isDuplicateRegistration): ?>
+            <div class="alert alert-warning">
+                <div class="d-flex align-items-start">
+                    <div class="me-3">
+                        <i class="fas fa-exclamation-triangle fa-2x text-warning"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                        <h4 class="alert-heading">Duplicate Registration Detected</h4>
+                        <p class="mb-3"><?php echo $duplicateMessage; ?></p>
+                        
+                        <div class="d-flex flex-wrap gap-2">
+                            <a href="registration_lookup.php" class="btn btn-primary">
+                                <i class="fas fa-eye me-2"></i>View My Registrations
+                            </a>
+                            
+                            <?php if ($duplicateRegistrationStatus === 'pending'): ?>
+                                <a href="registration_lookup.php?action=pay&id=<?php echo $duplicateRegistrationId; ?>" class="btn btn-success">
+                                    <i class="fas fa-credit-card me-2"></i>Complete Payment
+                                </a>
+                            <?php endif; ?>
+                            
+                            <a href="mailto:support@cphia2025.com?subject=Registration%20Inquiry&body=Registration%20ID:%20%23<?php echo $duplicateRegistrationId; ?>" class="btn btn-outline-secondary">
+                                <i class="fas fa-envelope me-2"></i>Contact Support
+                            </a>
+                        </div>
+                        
+                        <hr class="my-3">
+                        <small class="text-muted">
+                            <strong>Need help?</strong> If you believe this is an error or need to make changes to your registration, 
+                            please contact our support team with your registration ID: <strong>#<?php echo $duplicateRegistrationId; ?></strong>
+                        </small>
+                    </div>
+                </div>
+            </div>
+        <?php elseif (!empty($errors)): ?>
+            <div class="alert alert-danger">
                 <h3>Please correct the following errors:</h3>
                 <ul>
                     <?php foreach ($errors as $error): ?>
@@ -385,15 +427,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                             <div class="card-body p-3">
                                 <div class="d-flex justify-content-between align-items-start mb-2">
                                     <h6 class="card-title mb-0"><?php echo htmlspecialchars($registration['package_name']); ?></h6>
-                                    <span class="badge bg-<?php echo $registration['status'] == 'paid' ? 'success' : ($registration['status'] == 'pending' ? 'warning' : 'secondary'); ?>">
-                                        <?php echo ucfirst($registration['status']); ?>
-                                    </span>
+                                    <div class="d-flex flex-column align-items-end">
+                                        <?php if ($registration['payment_status'] === 'completed'): ?>
+                                            <span class="badge bg-success mb-1">
+                                                <i class="fas fa-check-circle me-1"></i>Paid
+                                            </span>
+                                        <?php else: ?>
+                                            <span class="badge bg-warning mb-1">
+                                                <i class="fas fa-clock me-1"></i>Pending Payment
+                                            </span>
+                                        <?php endif; ?>
+                                        <small class="text-muted"><?php echo ucfirst($registration['status']); ?></small>
+                                    </div>
                                 </div>
                                 <div class="text-muted small">
                                     <div>Registration ID: #<?php echo $registration['id']; ?></div>
                                     <div>Date: <?php echo date('M j, Y', strtotime($registration['created_at'])); ?></div>
                                     <div>Amount: <?php echo formatCurrency($registration['total_amount'], $registration['currency']); ?></div>
                                 </div>
+                                
+                                <?php if ($registration['payment_status'] !== 'completed'): ?>
+                                    <div class="mt-3">
+                                        <a href="registration_lookup.php?action=pay&id=<?php echo $registration['id']; ?>" class="btn btn-sm btn-success">
+                                            <i class="fas fa-credit-card me-1"></i>Complete Payment
+                                        </a>
+                                        <a href="registration_lookup.php?view=<?php echo $registration['id']; ?>" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-eye me-1"></i>View Details
+                                        </a>
+                                    </div>
+                                <?php endif; ?>
                             </div>
                         </div>
                     </div>
@@ -402,7 +464,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                 <div class="mt-3">
                     <small class="text-muted">
                         <i class="fas fa-info-circle me-1"></i>
-                        If you try to register for the same package again, you will receive a duplicate registration warning.
+                        <strong>Registration Policy:</strong> You can register multiple times for different packages. 
+                        Only <strong>paid registrations</strong> are considered confirmed for the conference. 
+                        Unpaid registrations can be modified or cancelled.
                     </small>
                     <div class="mt-2">
                         <a href="registration_lookup.php" class="btn btn-sm btn-outline-primary">

@@ -41,8 +41,8 @@ function createUser($data) {
     return $stmt->execute([
         $data['email'], $data['first_name'], $data['last_name'], 
         $data['phone'], $data['nationality'], $data['organization'],
-        $data['address_line1'], $data['address_line2'], $data['city'], 
-        $data['state'], $data['country'], $data['postal_code']
+        $data['address_line1'], $data['address_line2'] ?? '', $data['city'], 
+        $data['state'] ?? '', $data['country'], $data['postal_code']
     ]);
 }
 
@@ -508,6 +508,14 @@ function parseEventDate($eventDate) {
         'm/d/Y',           // 10/22/2025
     ];
     
+    // Handle range format like "22-25 October 2025" by taking the first date
+    if (preg_match('/^(\d+)-(\d+) (\w+) (\d+)$/', $eventDate, $matches)) {
+        $day = $matches[1];
+        $month = $matches[3];
+        $year = $matches[4];
+        $eventDate = "$day $month $year"; // Convert to "22 October 2025"
+    }
+    
     foreach ($formats as $format) {
         $parsed = DateTime::createFromFormat($format, $eventDate);
         if ($parsed !== false) {
@@ -562,6 +570,7 @@ function checkDuplicateRegistration($email, $packageId, $eventDate = null) {
         JOIN users u ON r.user_id = u.id
         WHERE u.email = ? 
         AND r.package_id = ? 
+        AND r.payment_status = 'completed'
         AND r.created_at >= ? 
         AND r.created_at <= ?
         ORDER BY r.created_at DESC
@@ -595,7 +604,7 @@ function getRegistrationHistory($email, $eventDate = null) {
     $eventRange = getEventDateRange($eventDate);
     
     $stmt = $pdo->prepare("
-        SELECT r.id, r.status, r.created_at, r.total_amount, r.currency, 
+        SELECT r.id, r.status, r.payment_status, r.created_at, r.total_amount, r.currency, 
                p.name as package_name, p.type as package_type,
                u.first_name, u.last_name
         FROM registrations r
@@ -604,7 +613,7 @@ function getRegistrationHistory($email, $eventDate = null) {
         WHERE u.email = ? 
         AND r.created_at >= ? 
         AND r.created_at <= ?
-        ORDER BY r.created_at DESC
+        ORDER BY r.payment_status DESC, r.created_at DESC
     ");
     
     $stmt->execute([$email, $eventRange['start'], $eventRange['end']]);
@@ -620,7 +629,7 @@ function getRegistrationHistoryByEmailAndPhone($email, $phone, $eventDate = null
     $eventRange = getEventDateRange($eventDate);
     
     $stmt = $pdo->prepare("
-        SELECT r.id, r.status, r.created_at, r.total_amount, r.currency, r.registration_type,
+        SELECT r.id, r.status, r.payment_status, r.created_at, r.total_amount, r.currency, r.registration_type,
                p.name as package_name, p.type as package_type,
                u.first_name, u.last_name, u.email, u.phone, u.nationality, u.organization
         FROM registrations r
@@ -630,7 +639,7 @@ function getRegistrationHistoryByEmailAndPhone($email, $phone, $eventDate = null
         AND u.phone = ?
         AND r.created_at >= ? 
         AND r.created_at <= ?
-        ORDER BY r.created_at DESC
+        ORDER BY r.payment_status DESC, r.created_at DESC
     ");
     
     $stmt->execute([$email, $phone, $eventRange['start'], $eventRange['end']]);
@@ -672,9 +681,7 @@ function getDuplicateRegistrationMessage($duplicateData) {
     $statusText = $statusMessages[$status] ?? 'exists';
     
     return "You have already registered for the <strong>{$packageName}</strong> package for <strong>{$eventDate}</strong>. " .
-           "Your previous registration (ID: #{$registration['id']}) {$statusText} and was created on {$createdAt}. " .
-           "<a href='registration_lookup.php' class='btn btn-sm btn-outline-primary ms-2'>View All My Registrations</a> " .
-           "If you need to make changes or have questions, please contact our support team.";
+           "Your previous registration (ID: #{$registration['id']}) {$statusText} and was created on {$createdAt}.";
 }
 
 // Function to check if a nationality is African
