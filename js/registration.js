@@ -203,11 +203,17 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function populateNationalitySelect() {
+        // Get the current selected value before clearing
+        const currentValue = nationalitySelect.value;
+        
         nationalitySelect.innerHTML = '<option value="">Select Nationality</option>';
         countries.forEach(country => {
             const option = document.createElement('option');
             option.value = country.nationality;
             option.textContent = country.nationality;
+            if (country.nationality === currentValue) {
+                option.selected = true;
+            }
             nationalitySelect.appendChild(option);
         });
         
@@ -723,6 +729,95 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // removeParticipant function removed - participants are now automatically managed
+    
+    // Restore form data on page load (for error handling)
+    function restoreFormData() {
+        // Check if we have form data to restore (from PHP)
+        const formData = window.formData || {};
+        
+        if (Object.keys(formData).length > 0) {
+            console.log('Restoring form data:', formData);
+            
+            // Restore basic fields
+            if (formData.first_name) document.getElementById('first_name').value = formData.first_name;
+            if (formData.last_name) document.getElementById('last_name').value = formData.last_name;
+            if (formData.email) document.getElementById('email').value = formData.email;
+            if (formData.phone) document.getElementById('phone').value = formData.phone;
+            if (formData.organization) document.getElementById('organization').value = formData.organization;
+            if (formData.position) document.getElementById('position').value = formData.position;
+            if (formData.passport_number) document.getElementById('passport_number').value = formData.passport_number;
+            if (formData.address_line1) document.getElementById('address_line1').value = formData.address_line1;
+            if (formData.address_line2) document.getElementById('address_line2').value = formData.address_line2;
+            if (formData.city) document.getElementById('city').value = formData.city;
+            if (formData.state) document.getElementById('state').value = formData.state;
+            if (formData.country) document.getElementById('country').value = formData.country;
+            if (formData.postal_code) document.getElementById('postal_code').value = formData.postal_code;
+            if (formData.exhibition_description) document.getElementById('exhibition_description').value = formData.exhibition_description;
+            
+            // Restore registration type
+            if (formData.registration_type) {
+                const registrationTypeRadio = document.querySelector(`input[name="registration_type"][value="${formData.registration_type}"]`);
+                if (registrationTypeRadio) {
+                    registrationTypeRadio.checked = true;
+                    handleRegistrationTypeChange();
+                }
+            }
+            
+            // Restore package selection
+            if (formData.package_id) {
+                const packageCard = document.querySelector(`[data-package-id="${formData.package_id}"]`);
+                if (packageCard) {
+                    selectPackage(packageCard);
+                }
+            }
+            
+            // Restore number of people for group registration
+            if (formData.num_people && formData.registration_type === 'group') {
+                document.getElementById('numPeople').value = formData.num_people;
+                updateParticipants();
+            }
+            
+            // Restore nationality after countries are loaded
+            if (formData.nationality) {
+                // Wait for countries to load, then set nationality
+                const checkNationality = () => {
+                    if (countries.length > 0) {
+                        document.getElementById('nationality').value = formData.nationality;
+                        // Trigger Select2 update
+                        $('#nationality').trigger('change');
+                    } else {
+                        setTimeout(checkNationality, 100);
+                    }
+                };
+                checkNationality();
+            }
+            
+            // Restore participants data
+            if (formData.participants && Array.isArray(formData.participants)) {
+                formData.participants.forEach((participant, index) => {
+                    if (index > 0) { // First participant is the main form
+                        addParticipant();
+                        const participantContainer = document.querySelector(`[data-participant-index="${index}"]`);
+                        if (participantContainer) {
+                            if (participant.title) participantContainer.querySelector('input[name*="[title]"]').value = participant.title;
+                            if (participant.first_name) participantContainer.querySelector('input[name*="[first_name]"]').value = participant.first_name;
+                            if (participant.last_name) participantContainer.querySelector('input[name*="[last_name]"]').value = participant.last_name;
+                            if (participant.email) participantContainer.querySelector('input[name*="[email]"]').value = participant.email;
+                            if (participant.nationality) participantContainer.querySelector('select[name*="[nationality]"]').value = participant.nationality;
+                            if (participant.passport_number) participantContainer.querySelector('input[name*="[passport_number]"]').value = participant.passport_number;
+                            if (participant.organization) participantContainer.querySelector('input[name*="[organization]"]').value = participant.organization;
+                        }
+                    }
+                });
+            }
+            
+            // Update summary
+            updateSummary();
+        }
+    }
+    
+    // Call restore function after a short delay to ensure everything is loaded
+    setTimeout(restoreFormData, 200);
     
     }, 100); // End of setTimeout
 }); // End of DOMContentLoaded

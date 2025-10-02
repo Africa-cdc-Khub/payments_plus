@@ -279,6 +279,30 @@ if (isset($_GET['email']) && validateEmail($_GET['email'])) {
     $userEmail = sanitizeInput($_GET['email']);
     $registrationHistory = getRegistrationHistory($userEmail, CONFERENCE_DATES);
 }
+
+// Preserve form data on errors
+$formData = [];
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
+    $formData = [
+        'package_id' => $_POST['package_id'] ?? '',
+        'registration_type' => $_POST['registration_type'] ?? '',
+        'email' => $_POST['email'] ?? '',
+        'first_name' => $_POST['first_name'] ?? '',
+        'last_name' => $_POST['last_name'] ?? '',
+        'phone' => $_POST['phone'] ?? '',
+        'nationality' => $_POST['nationality'] ?? '',
+        'organization' => $_POST['organization'] ?? '',
+        'address_line1' => $_POST['address_line1'] ?? '',
+        'address_line2' => $_POST['address_line2'] ?? '',
+        'city' => $_POST['city'] ?? '',
+        'state' => $_POST['state'] ?? '',
+        'country' => $_POST['country'] ?? '',
+        'postal_code' => $_POST['postal_code'] ?? '',
+        'num_people' => $_POST['num_people'] ?? '',
+        'exhibition_description' => $_POST['exhibition_description'] ?? '',
+        'participants' => $_POST['participants'] ?? []
+    ];
+}
 ?>
 
 <!DOCTYPE html>
@@ -447,7 +471,7 @@ if (isset($_GET['email']) && validateEmail($_GET['email'])) {
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="registration_type" value="individual" id="individual" required>
+                                    <input class="form-check-input" type="radio" name="registration_type" value="individual" id="individual" <?php echo (($formData['registration_type'] ?? '') === 'individual') ? 'checked' : ''; ?> required>
                                     <label class="form-check-label" for="individual">
                                         Individual Registration
                                     </label>
@@ -455,7 +479,7 @@ if (isset($_GET['email']) && validateEmail($_GET['email'])) {
                             </div>
                             <div class="col-md-6">
                                 <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="registration_type" value="group" id="group" required>
+                                    <input class="form-check-input" type="radio" name="registration_type" value="group" id="group" <?php echo (($formData['registration_type'] ?? '') === 'group') ? 'checked' : ''; ?> required>
                                     <label class="form-check-label" for="group">
                                         Group Registration
                                     </label>
@@ -474,7 +498,7 @@ if (isset($_GET['email']) && validateEmail($_GET['email'])) {
                         <div class="row">
                             <div class="col-md-6">
                                 <label for="numPeople" class="form-label">How many additional people are you registering (inlcuding yourself)?</label>
-                                <input type="number" class="form-control form-control-lg" name="num_people" id="numPeople" min="1" placeholder="Enter number of people" style="font-size: 1.5rem; font-weight: bold;">
+                                <input type="number" class="form-control form-control-lg" name="num_people" id="numPeople" min="1" placeholder="Enter number of people" value="<?php echo htmlspecialchars($formData['num_people'] ?? ''); ?>" style="font-size: 1.5rem; font-weight: bold;">
                                 <div class="form-text">This will automatically add/remove participant fields below for easy cost estimation.</div>
                             </div>
                             <div class="col-md-6">
@@ -496,21 +520,21 @@ if (isset($_GET['email']) && validateEmail($_GET['email'])) {
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="first_name" class="form-label">First Name *</label>
-                                <input type="text" class="form-control" name="first_name" id="first_name" required>
+                                <input type="text" class="form-control" name="first_name" id="first_name" value="<?php echo htmlspecialchars($formData['first_name'] ?? ''); ?>" required>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label for="last_name" class="form-label">Last Name *</label>
-                                <input type="text" class="form-control" name="last_name" id="last_name" required>
+                                <input type="text" class="form-control" name="last_name" id="last_name" value="<?php echo htmlspecialchars($formData['last_name'] ?? ''); ?>" required>
                             </div>
                         </div>
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="email" class="form-label">Email Address *</label>
-                                <input type="email" class="form-control" name="email" id="email" required>
+                                <input type="email" class="form-control" name="email" id="email" value="<?php echo htmlspecialchars($formData['email'] ?? ''); ?>" required>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label for="phone" class="form-label">Phone Number</label>
-                                <input type="tel" class="form-control" name="phone" id="phone">
+                                <input type="tel" class="form-control" name="phone" id="phone" value="<?php echo htmlspecialchars($formData['phone'] ?? ''); ?>">
                             </div>
                         </div>
                         <div class="row">
@@ -522,18 +546,18 @@ if (isset($_GET['email']) && validateEmail($_GET['email'])) {
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label for="passport_number" class="form-label">Passport Number</label>
-                                <input type="text" class="form-control" name="passport_number" id="passport_number">
+                                <input type="text" class="form-control" name="passport_number" id="passport_number" value="<?php echo htmlspecialchars($formData['passport_number'] ?? ''); ?>">
                                 <div class="form-text">Optional - for international participants</div>
                             </div>
                         </div>
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="organization" class="form-label">Organization *</label>
-                                <input type="text" class="form-control" name="organization" id="organization" required>
+                                <input type="text" class="form-control" name="organization" id="organization" value="<?php echo htmlspecialchars($formData['organization'] ?? ''); ?>" required>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label for="position" class="form-label">Position/Title</label>
-                                <input type="text" class="form-control" name="position" id="position">
+                                <input type="text" class="form-control" name="position" id="position" value="<?php echo htmlspecialchars($formData['position'] ?? ''); ?>">
                             </div>
                         </div>
                     </div>
@@ -547,30 +571,30 @@ if (isset($_GET['email']) && validateEmail($_GET['email'])) {
                     <div class="card-body">
                         <div class="mb-3">
                             <label for="address_line1" class="form-label">Address Line 1</label>
-                            <input type="text" class="form-control" name="address_line1" id="address_line1">
+                            <input type="text" class="form-control" name="address_line1" id="address_line1" value="<?php echo htmlspecialchars($formData['address_line1'] ?? ''); ?>">
                         </div>
                         <div class="mb-3">
                             <label for="address_line2" class="form-label">Address Line 2</label>
-                            <input type="text" class="form-control" name="address_line2" id="address_line2">
+                            <input type="text" class="form-control" name="address_line2" id="address_line2" value="<?php echo htmlspecialchars($formData['address_line2'] ?? ''); ?>">
                         </div>
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="city" class="form-label">City</label>
-                                <input type="text" class="form-control" name="city" id="city">
+                                <input type="text" class="form-control" name="city" id="city" value="<?php echo htmlspecialchars($formData['city'] ?? ''); ?>">
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label for="state" class="form-label">State/Province</label>
-                                <input type="text" class="form-control" name="state" id="state">
+                                <input type="text" class="form-control" name="state" id="state" value="<?php echo htmlspecialchars($formData['state'] ?? ''); ?>">
                             </div>
                         </div>
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="country" class="form-label">Country</label>
-                                <input type="text" class="form-control" name="country" id="country">
+                                <input type="text" class="form-control" name="country" id="country" value="<?php echo htmlspecialchars($formData['country'] ?? ''); ?>">
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label for="postal_code" class="form-label">Postal Code</label>
-                                <input type="text" class="form-control" name="postal_code" id="postal_code">
+                                <input type="text" class="form-control" name="postal_code" id="postal_code" value="<?php echo htmlspecialchars($formData['postal_code'] ?? ''); ?>">
                             </div>
                         </div>
                     </div>
@@ -584,7 +608,7 @@ if (isset($_GET['email']) && validateEmail($_GET['email'])) {
                     <div class="card-body">
                         <div class="mb-3">
                             <label for="exhibition_description" class="form-label">Description of What You Will Exhibit (Optional)</label>
-                            <textarea class="form-control" name="exhibition_description" id="exhibition_description" rows="4" placeholder="Please describe what you plan to exhibit at the conference... (optional)"></textarea>
+                            <textarea class="form-control" name="exhibition_description" id="exhibition_description" rows="4" placeholder="Please describe what you plan to exhibit at the conference... (optional)"><?php echo htmlspecialchars($formData['exhibition_description'] ?? ''); ?></textarea>
                             <div class="form-text">Provide a detailed description of your exhibition, including products, services, or information you will showcase. This field is optional.</div>
                         </div>
                     </div>
@@ -703,5 +727,10 @@ if (isset($_GET['email']) && validateEmail($_GET['email'])) {
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     <!-- Custom JS -->
     <script src="js/registration.js"></script>
+    
+    <!-- Pass form data to JavaScript for restoration -->
+    <script>
+        window.formData = <?php echo json_encode($formData); ?>;
+    </script>
 </body>
 </html>
