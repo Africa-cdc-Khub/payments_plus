@@ -331,6 +331,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
     <!-- Custom CSS -->
     <link rel="stylesheet" href="css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Full width overrides */
+        body {
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        .container {
+            max-width: none !important;
+            width: 100% !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+        .header {
+            margin: 0 !important;
+            padding: var(--spacing-8) 0 !important;
+            width: 100% !important;
+        }
+        .header-content {
+            max-width: none !important;
+            width: 100% !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+        .header-text h1 {
+            font-size: var(--font-size-3xl) !important;
+        }
+        .header-text h2 {
+            font-size: var(--font-size-5xl) !important;
+        }
+        .conference-dates {
+            font-size: var(--font-size-xl) !important;
+        }
+        .package-selection-container,
+        .registration-container {
+            max-width: none !important;
+            width: 100% !important;
+            padding: var(--spacing-6) !important;
+        }
+    </style>
 </head>
 <body>
     <div class="container">

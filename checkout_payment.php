@@ -104,10 +104,30 @@ $signature = sign($paymentData);
     <link rel="stylesheet" href="css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        .container {
+            max-width: none !important;
+            width: 100% !important;
+            padding: 0 !important;
+        }
+        .header-content {
+            max-width: none !important;
+            width: 100% !important;
+            padding: 0 var(--spacing-6) !important;
+        }
+        .header-text h1 {
+            font-size: var(--font-size-3xl) !important;
+        }
+        .header-text h2 {
+            font-size: var(--font-size-5xl) !important;
+        }
+        .conference-dates {
+            font-size: var(--font-size-xl) !important;
+        }
         .payment-container {
-            max-width: 1200px;
+            width: 100%;
             margin: 0 auto;
             padding: var(--spacing-6);
+            background: var(--light-gray);
         }
         .payment-card {
             background: var(--white);
@@ -115,6 +135,7 @@ $signature = sign($paymentData);
             box-shadow: 0 15px 40px rgba(0,0,0,0.1);
             overflow: hidden;
             border: 1px solid var(--light-gray);
+            width: 100%;
         }
         .payment-header-section {
             background: linear-gradient(135deg, var(--primary-green) 0%, var(--dark-green) 100%);
@@ -221,7 +242,6 @@ $signature = sign($paymentData);
             border-radius: var(--radius-md);
             padding: var(--spacing-5) var(--spacing-5);
             font-size: var(--font-size-lg);
-            transition: all 0.3s ease;
             height: 56px;
         }
         .form-control:focus {
@@ -274,15 +294,9 @@ $signature = sign($paymentData);
             font-weight: 600;
             color: var(--white);
             width: 100%;
-            transition: all 0.3s ease;
             box-shadow: 0 4px 15px rgba(26, 86, 50, 0.3);
             margin-top: var(--spacing-8);
             height: 60px;
-        }
-        .btn-pay:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(26, 86, 50, 0.4);
-            background: linear-gradient(135deg, var(--primary-green) 0%, var(--dark-green) 100%);
         }
         .cybersource-branding {
             text-align: center;
@@ -323,10 +337,6 @@ $signature = sign($paymentData);
             align-items: center;
             gap: var(--spacing-2);
             margin-bottom: var(--spacing-5);
-            transition: color 0.3s ease;
-        }
-        .back-link:hover {
-            color: var(--primary-green);
         }
         .amount-highlight {
             font-size: var(--font-size-2xl);
@@ -367,13 +377,14 @@ $signature = sign($paymentData);
                 </div>
             </div>
         </header>
+    </div> <!-- Close container div -->
 
-        <div class="payment-container">
-            <a href="registration_lookup.php" class="back-link">
-                <i class="fas fa-arrow-left"></i> Back to Registrations
-            </a>
-            
-            <div class="payment-card">
+    <div class="payment-container">
+        <a href="registration_lookup.php" class="back-link">
+            <i class="fas fa-arrow-left"></i> Back to Registrations
+        </a>
+        
+        <div class="payment-card">
                 <div class="payment-header-section">
                     <h3><i class="fas fa-credit-card me-2"></i>Complete Payment</h3>
                     <p>Secure payment processing</p>
@@ -498,7 +509,6 @@ $signature = sign($paymentData);
             </div>
         </div>
     </div>
-    </div> <!-- Close container div -->
 
     <!-- Device Fingerprinting -->
     <div style="display: none;">
