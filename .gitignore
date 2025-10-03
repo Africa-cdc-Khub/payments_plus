@@ -39,6 +39,7 @@ node_modules/
 # Build files
 dist/
 build/
+db/
 
 # Database
 *.sql
