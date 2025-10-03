@@ -65,7 +65,7 @@ if (!empty($unpaidRegistrations)) {
             }
             
             echo "\n4. Testing Payment URL Generation...\n";
-            $paymentUrl = APP_URL . "/checkout_payment.php?registration_id=$registrationId&token=$paymentToken";
+            $paymentUrl = APP_URL . "/sa-wm/payment_confirm.php?registration_id=$registrationId&token=$paymentToken";
             echo "   ✅ Payment URL: $paymentUrl\n";
             
             echo "\n5. Testing Payment Page Access...\n";
@@ -74,7 +74,7 @@ if (!empty($unpaidRegistrations)) {
             
             ob_start();
             try {
-                include 'checkout_payment.php';
+                include 'sa-wm/payment_confirm.php';
                 $output = ob_get_clean();
                 
                 if (strpos($output, 'Invalid payment link') === false) {
@@ -120,6 +120,6 @@ echo "\n🔗 Test URLs for Manual Testing:\n";
 echo "1. Registration Lookup: " . APP_URL . "/registration_lookup.php\n";
 echo "   - Use email: $testEmail\n";
 echo "   - Use phone: $testPhone\n";
-echo "2. Payment Page: " . APP_URL . "/checkout_payment.php?registration_id=$registrationId&token=$paymentToken\n";
+echo "2. Payment Page: " . APP_URL . "/sa-wm/payment_confirm.php?registration_id=$registrationId&token=$paymentToken\n";
 
 echo "\n✨ Both registration lookup and payment functionality are working correctly!\n";

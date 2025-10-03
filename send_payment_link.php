@@ -42,7 +42,7 @@ try {
     
     // Generate payment token
     $paymentToken = generatePaymentToken($registrationId);
-    $paymentLink = rtrim(APP_URL, '/') . "/checkout_payment.php?registration_id=" . $registrationId . "&token=" . $paymentToken;
+    $paymentLink = rtrim(APP_URL, '/') . "/sa-wm/payment_confirm.php?registration_id=" . $registrationId . "&token=" . $paymentToken;
     
     // Prepare email data
     $user = [

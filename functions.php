@@ -166,7 +166,7 @@ function sendRegistrationEmails($user, $registrationId, $package, $amount, $part
     $paymentStatus = 'pending'; // All new registrations start as pending
     if ($paymentStatus === 'pending') {
         $paymentToken = generatePaymentToken($registrationId);
-        $paymentLink = rtrim(APP_URL, '/') . "/checkout_payment.php?registration_id=" . $registrationId . "&token=" . $paymentToken;
+        $paymentLink = rtrim(APP_URL, '/') . "/sa-wm/payment_confirm.php?registration_id=" . $registrationId . "&token=" . $paymentToken;
     }
     
     $templateData = [
@@ -237,7 +237,7 @@ function sendPaymentLinkEmail($user, $registrationId, $amount) {
     $emailQueue = new \Cphia2025\EmailQueue();
     $paymentToken = generatePaymentToken($registrationId);
     $baseUrl = APP_URL . dirname($_SERVER['PHP_SELF']);
-    $paymentLink = $baseUrl . "/checkout_payment.php?registration_id=" . $registrationId . "&token=" . $paymentToken;
+    $paymentLink = $baseUrl . "/sa-wm/payment_confirm.php?registration_id=" . $registrationId . "&token=" . $paymentToken;
 
     $userName = $user['first_name'] . ' ' . $user['last_name'];
     

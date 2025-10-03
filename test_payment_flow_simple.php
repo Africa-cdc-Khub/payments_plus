@@ -44,7 +44,7 @@ if (!empty($unpaidRegistrations)) {
     if ($testRegistration && $testRegistration['payment_status'] === 'pending') {
         echo "   ✅ Registration is pending payment\n";
         $testPaymentToken = generatePaymentToken($testRegistrationId);
-        $testPaymentUrl = APP_URL . "/checkout_payment.php?registration_id=$testRegistrationId&token=$testPaymentToken";
+        $testPaymentUrl = APP_URL . "/sa-wm/payment_confirm.php?registration_id=$testRegistrationId&token=$testPaymentToken";
         echo "   ✅ Payment URL generated: $testPaymentUrl\n";
         
         // Test if we can simulate the payment page load
@@ -55,7 +55,7 @@ if (!empty($unpaidRegistrations)) {
         // Capture any output
         ob_start();
         try {
-            include 'checkout_payment.php';
+            include 'sa-wm/payment_confirm.php';
             $output = ob_get_clean();
             echo "   ✅ Payment page loaded successfully\n";
             echo "   - Output length: " . strlen($output) . " characters\n";
