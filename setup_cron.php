@@ -1,93 +1,76 @@
 <?php
 /**
  * Cron Setup Script
- * This script helps set up the cron jobs for email processing
+ * This script helps set up cron jobs for the email queue system
  */
 
-require_once 'bootstrap.php';
+$currentDir = __DIR__;
+$phpPath = '/usr/bin/php'; // Default PHP path, adjust if needed
 
-echo "<h1>CPHIA 2025 Email System - Cron Setup</h1>";
+echo "=== CPHIA 2025 Email Queue Cron Setup ===\n\n";
 
-// Check if we can create the email queue table
-try {
-    require_once 'migrations.php';
-    createTables();
-    echo "<p style='color: green;'>✅ Email queue table created successfully!</p>";
-} catch (Exception $e) {
-    echo "<p style='color: red;'>❌ Error creating email queue table: " . $e->getMessage() . "</p>";
-}
-
-echo "<h2>Cron Job Configuration</h2>";
-echo "<p>Add the following cron jobs to your server:</p>";
-
-$projectPath = __DIR__;
-$phpPath = PHP_BINARY;
-
-echo "<h3>1. Email Processor (Every 5 minutes)</h3>";
-echo "<pre style='background: #f5f5f5; padding: 10px; border-radius: 5px;'>";
-echo "*/5 * * * * $phpPath $projectPath/process_emails.php >> $projectPath/logs/cron.log 2>&1";
-echo "</pre>";
-
-echo "<h3>2. Daily Reminders (Every 24 hours at 9 AM)</h3>";
-echo "<pre style='background: #f5f5f5; padding: 10px; border-radius: 5px;'>";
-echo "0 9 * * * $phpPath $projectPath/daily_reminders.php >> $projectPath/logs/cron.log 2>&1";
-echo "</pre>";
-
-echo "<h3>3. Clean Old Emails (Every Sunday at 2 AM)</h3>";
-echo "<pre style='background: #f5f5f5; padding: 10px; border-radius: 5px;'>";
-echo "0 2 * * 0 $phpPath $projectPath/cleanup_emails.php >> $projectPath/logs/cron.log 2>&1";
-echo "</pre>";
-
-echo "<h2>Manual Testing</h2>";
-echo "<p>You can test the email system manually:</p>";
-echo "<ul>";
-echo "<li><a href='test_email_queue.php'>Test Email Queue</a></li>";
-echo "<li><a href='email_stats.php'>View Email Statistics</a></li>";
-echo "<li><a href='process_emails.php'>Process Emails Now</a></li>";
-echo "</ul>";
-
-echo "<h2>Log Files</h2>";
-echo "<p>Check the following log files for debugging:</p>";
-echo "<ul>";
-echo "<li><code>$projectPath/logs/email_processor.log</code> - Email processing logs</li>";
-echo "<li><code>$projectPath/logs/daily_reminders.log</code> - Daily reminder logs</li>";
-echo "<li><code>$projectPath/logs/cron.log</code> - General cron logs</li>";
-echo "</ul>";
-
-echo "<h2>Email Queue Status</h2>";
-
-try {
-    $emailQueue = new \Cphia2025\EmailQueue();
-    $stats = $emailQueue->getStats();
-    
-    if (empty($stats)) {
-        echo "<p>No email statistics available yet.</p>";
-    } else {
-        echo "<table border='1' cellpadding='10' cellspacing='0' style='border-collapse: collapse; width: 100%;'>";
-        echo "<tr style='background: #f8f9fa;'><th>Status</th><th>Type</th><th>Date</th><th>Count</th></tr>";
-        foreach ($stats as $stat) {
-            echo "<tr>";
-            echo "<td>{$stat['status']}</td>";
-            echo "<td>{$stat['email_type']}</td>";
-            echo "<td>{$stat['date']}</td>";
-            echo "<td>{$stat['count']}</td>";
-            echo "</tr>";
-        }
-        echo "</table>";
+// Check if PHP is available
+if (!file_exists($phpPath)) {
+    // Try to find PHP
+    $phpPath = trim(shell_exec('which php'));
+    if (empty($phpPath)) {
+        echo "❌ PHP not found. Please install PHP or update the path in this script.\n";
+        exit(1);
     }
-} catch (Exception $e) {
-    echo "<p style='color: red;'>Error loading email statistics: " . $e->getMessage() . "</p>";
 }
 
-echo "<h2>Next Steps</h2>";
-echo "<ol>";
-echo "<li>Set up the cron jobs on your server</li>";
-echo "<li>Test the email system with a registration</li>";
-echo "<li>Monitor the log files for any issues</li>";
-echo "<li>Configure your SMTP settings in the .env file</li>";
-echo "</ol>";
+echo "✅ PHP found: $phpPath\n";
+echo "✅ Project directory: $currentDir\n\n";
 
-echo "<p style='margin-top: 30px; padding: 15px; background: #d1ecf1; border-radius: 8px;'>";
-echo "<strong>Note:</strong> Make sure your web server has write permissions to the logs directory.";
-echo "</p>";
-?>
+// Create cron entries
+$cronEntries = [
+    "# CPHIA 2025 Email Queue System",
+    "# Process email queue every 5 minutes",
+    "*/5 * * * * cd $currentDir && $phpPath process_email_queue.php >> logs/email_queue.log 2>&1",
+    "",
+    "# Daily reminders at 9 AM",
+    "0 9 * * * cd $currentDir && $phpPath daily_reminders.php >> logs/daily_reminders.log 2>&1",
+    "",
+    "# Clean up old logs weekly (keep last 30 days)",
+    "0 2 * * 0 find $currentDir/logs -name \"*.log\" -mtime +30 -delete"
+];
+
+echo "Cron jobs to install:\n";
+echo "====================\n";
+foreach ($cronEntries as $entry) {
+    echo $entry . "\n";
+}
+echo "\n";
+
+// Create logs directory
+if (!is_dir($currentDir . '/logs')) {
+    mkdir($currentDir . '/logs', 0755, true);
+    echo "✅ Created logs directory\n";
+} else {
+    echo "✅ Logs directory exists\n";
+}
+
+echo "\nTo install these cron jobs:\n";
+echo "1. Run: crontab -e\n";
+echo "2. Add the above cron entries\n";
+echo "3. Save and exit\n\n";
+
+echo "Or run this command to add them automatically:\n";
+echo "(crontab -l 2>/dev/null; echo \"" . implode('\n', $cronEntries) . "\") | crontab -\n\n";
+
+echo "Manual testing commands:\n";
+echo "=======================\n";
+echo "Test email queue:     php manage_email_queue.php test\n";
+echo "Process emails:       php manage_email_queue.php process\n";
+echo "Show statistics:      php manage_email_queue.php stats\n";
+echo "Monitor queue:        php monitor_email_queue.php\n";
+echo "Reset failed emails:  php manage_email_queue.php reset\n";
+echo "Clear old emails:     php manage_email_queue.php clear\n\n";
+
+echo "Log files:\n";
+echo "==========\n";
+echo "Email queue log:      logs/email_queue.log\n";
+echo "Daily reminders log:  logs/daily_reminders.log\n";
+echo "Process queue log:    logs/process_email_queue.log\n\n";
+
+echo "Setup complete! 🎉\n";
