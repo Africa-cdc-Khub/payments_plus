@@ -114,7 +114,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             selectedPackage = {
                 id: card.dataset.packageId,
-                name: card.querySelector('h5, h6').textContent,
+                name: card.dataset.packageName || card.querySelector('h5, h6').textContent,
                 price: price,
                 type: card.dataset.type,
                 maxPeople: card.querySelector('.package-max') ? 
@@ -211,7 +211,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Filter countries based on selected package
         const filteredCountries = selectedPackage ? 
-            filterCountriesByPackage(selectedPackage.id) : 
+            filterCountriesByPackage(selectedPackage.id, selectedPackage.name) : 
             countries;
         
         nationalitySelect.innerHTML = '<option value="">Select Nationality</option>';
@@ -268,16 +268,16 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Function to filter countries based on package type
-    function filterCountriesByPackage(packageId) {
-        if (!countries || countries.length === 0) return;
+    function filterCountriesByPackage(packageId, packageName) {
+        if (!countries || countries.length === 0) return countries;
         
         let filteredCountries = countries;
         
-        // Package ID 19 is African Nationals, 20 is Non-African Nationals
-        if (packageId == 19) {
+        // Check package name for African/Non-African filtering
+        if (packageName && packageName.toLowerCase().includes('african nationals')) {
             // African Nationals package - show only African countries
             filteredCountries = countries.filter(country => isAfricanNational(country.nationality));
-        } else if (packageId == 20) {
+        } else if (packageName && packageName.toLowerCase().includes('non african')) {
             // Non-African Nationals package - show only non-African countries
             filteredCountries = countries.filter(country => !isAfricanNational(country.nationality));
         }
@@ -648,7 +648,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <label class="form-label">Nationality *</label>
                         <select name="participants[${participantCount - 1}][nationality]" class="form-select participant-nationality" required>
                             <option value="">Select Nationality</option>
-                            ${(selectedPackage ? filterCountriesByPackage(selectedPackage.id) : countries).map(country => `<option value="${country.nationality}">${country.nationality}</option>`).join('')}
+                            ${(selectedPackage ? filterCountriesByPackage(selectedPackage.id, selectedPackage.name) : countries).map(country => `<option value="${country.nationality}">${country.nationality}</option>`).join('')}
                         </select>
                     </div>
                     <div class="col-md-6 mb-3">

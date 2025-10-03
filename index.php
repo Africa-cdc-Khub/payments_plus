@@ -575,11 +575,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                     </div>
                     <?php foreach ($individualPackages as $package): ?>
                         <div class="col-6 col-md-6">
-                            <div class="card package-card h-100" data-package-id="<?php echo $package['id']; ?>" data-type="individual">
+                            <div class="card package-card h-100" data-package-id="<?php echo $package['id']; ?>" data-type="<?php echo $package['type']; ?>" data-package-name="<?php echo htmlspecialchars($package['name']); ?>">
                                 <div class="card-body d-flex flex-column p-3 text-center">
                                     <h5 class="card-title mb-3"><?php echo htmlspecialchars($package['name']); ?></h5>
                                     <div class="package-price h4 text-success mb-3"><?php echo formatCurrency($package['price']); ?></div>
-                                    <div class="badge bg-info mb-3"><?php echo $package['id'] == 1 ? 'African Nationals' : 'Non-African Nationals'; ?></div>
+                                    <div class="badge bg-info mb-3"><?php echo $package['id'] == 19 ? 'African Nationals' : ($package['id'] == 20 ? 'Non-African Nationals' : 'Individual Package'); ?></div>
                                     <button type="button" class="btn btn-primary btn-lg select-package mt-auto">Select Package</button>
                                 </div>
                             </div>
