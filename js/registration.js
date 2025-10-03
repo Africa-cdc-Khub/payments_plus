@@ -168,7 +168,6 @@ document.addEventListener('DOMContentLoaded', function() {
             // Repopulate nationality select with filtered countries
             // Ensure countries are loaded first
             if (countries.length === 0) {
-                console.log('Countries not loaded yet, loading...');
                 loadCountries();
             } else {
                 populateNationalitySelect();
@@ -191,12 +190,10 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function loadCountries() {
-        console.log('Loading countries...');
         fetch('data/countries.json')
             .then(response => response.json())
             .then(data => {
                 countries = data;
-                console.log('Countries loaded:', countries.length);
                 // Only populate if no package is selected yet
                 if (!selectedPackage) {
                     populateNationalitySelect();
@@ -220,16 +217,10 @@ document.addEventListener('DOMContentLoaded', function() {
         // Get the current selected value before clearing
         const currentValue = nationalitySelect.value;
         
-        console.log('populateNationalitySelect called');
-        console.log('selectedPackage:', selectedPackage);
-        
         // Filter countries based on selected package
         const filteredCountries = selectedPackage ? 
             filterCountriesByPackage(selectedPackage.id, selectedPackage.name) : 
             countries;
-        
-        console.log('filteredCountries count:', filteredCountries.length);
-        console.log('First few countries:', filteredCountries.slice(0, 5).map(c => c.nationality));
         
         nationalitySelect.innerHTML = '<option value="">Select Nationality</option>';
         filteredCountries.forEach(country => {
@@ -295,23 +286,13 @@ document.addEventListener('DOMContentLoaded', function() {
         
         let filteredCountries = countries;
         
-        console.log('filterCountriesByPackage called with:', packageId, packageName);
-        console.log('Package name check:', packageName ? packageName.toLowerCase() : 'null');
-        console.log('Contains african nationals:', packageName ? packageName.toLowerCase().includes('african nationals') : false);
-        
         // Check package name for African/Non-African filtering
         if (packageName && packageName.toLowerCase().includes('african nationals')) {
             // African Nationals package - show only African countries
-            console.log('Filtering for African Nationals');
             filteredCountries = countries.filter(country => isAfricanNational(country.nationality));
-            console.log('African countries found:', filteredCountries.length);
         } else if (packageName && packageName.toLowerCase().includes('non african')) {
             // Non-African Nationals package - show only non-African countries
-            console.log('Filtering for Non-African Nationals');
             filteredCountries = countries.filter(country => !isAfricanNational(country.nationality));
-            console.log('Non-African countries found:', filteredCountries.length);
-        } else {
-            console.log('No filtering applied - showing all countries');
         }
         // For other packages (side events, exhibitions), show all countries
         
@@ -561,6 +542,16 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         
+        // Add the main registrant to the count
+        const mainNationality = $('#nationality').val();
+        if (mainNationality) {
+            if (isAfricanNational(mainNationality)) {
+                africanCount++;
+            } else {
+                nonAfricanCount++;
+            }
+        }
+        
         // If we have participant data, use it
         if (africanCount > 0 || nonAfricanCount > 0) {
             const africanCost = africanCount * 200;
@@ -610,25 +601,27 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
+        // Subtract 1 because the focal person is already captured in the main form
+        const participantsNeeded = Math.max(0, numPeople - 1);
         const currentCount = participantsContainer.querySelectorAll('.participant-card').length;
         
-        if (numPeople > currentCount) {
+        if (participantsNeeded > currentCount) {
             // Add participants (max 10 for UI)
-            const formsToAdd = Math.min(numPeople, 10) - currentCount;
+            const formsToAdd = Math.min(participantsNeeded, 10) - currentCount;
             for (let i = 0; i < formsToAdd; i++) {
                 addParticipantForm();
             }
             
-            if (numPeople > 10) {
-                showInfo(`You can add details for up to 10 participants now. The remaining ${numPeople - 10} participants can be added later via email.`, 'Participant Details');
+            if (participantsNeeded > 10) {
+                showInfo(`You can add details for up to 10 additional participants now. The remaining ${participantsNeeded - 10} participants can be added later via email.`, 'Participant Details');
             }
-        } else if (numPeople < currentCount) {
+        } else if (participantsNeeded < currentCount) {
             // Remove participants
             const participants = participantsContainer.querySelectorAll('.participant-card');
-            for (let i = currentCount - 1; i >= numPeople; i--) {
+            for (let i = currentCount - 1; i >= participantsNeeded; i--) {
                 participants[i].remove();
             }
-            participantCount = Math.min(participantCount, numPeople);
+            participantCount = Math.min(participantCount, participantsNeeded);
         }
     }
 
@@ -638,7 +631,7 @@ document.addEventListener('DOMContentLoaded', function() {
         participantDiv.className = 'card mb-3 participant-card';
         participantDiv.innerHTML = `
             <div class="card-header">
-                <h6 class="mb-0">Participant ${participantCount}</h6>
+                <h6 class="mb-0">Additional Participant ${participantCount}</h6>
             </div>
             <div class="card-body">
                 <div class="row">

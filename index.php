@@ -783,7 +783,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                 <!-- Group Participants (for group registration) -->
                 <div class="card mb-4" id="participantsSection" style="display: none;">
                     <div class="card-header">
-                        <h5 class="mb-0">Group Participants (Optional)</h5>
+                        <h5 class="mb-0">Additional Group Participants (Optional)</h5>
                     </div>
                     <div class="card-body">
                         <div class="mb-3">
@@ -797,9 +797,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                         </div>
                         
                         <div id="participantsDetails" style="display: none;">
-                            <p class="text-muted">Please provide details for each participant in your group</p>
+                            <p class="text-muted">Please provide details for additional participants in your group (excluding yourself)</p>
                             <div id="participantsContainer">
-                                <!-- Participants will be added automatically based on number of people -->
+                                <!-- Additional participants will be added automatically based on number of people -->
                             </div>
                         </div>
                     </div>
