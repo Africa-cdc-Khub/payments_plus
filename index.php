@@ -715,9 +715,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                         </div>
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label for="passport_file" class="form-label">Passport Copy (PDF)</label>
-                                <input type="file" class="form-control" name="passport_file" id="passport_file" accept=".pdf" value="<?php echo htmlspecialchars($formData['passport_file'] ?? ''); ?>">
-                                <div class="form-text">Upload a clear copy of your passport (PDF format, max 5MB)</div>
+                                <label for="passport_file" class="form-label">Passport Copy (PDF/Image)</label>
+                                <input type="file" class="form-control" name="passport_file" id="passport_file" accept=".pdf,.jpg,.jpeg,.png,.gif,.bmp,.tiff,.webp" value="<?php echo htmlspecialchars($formData['passport_file'] ?? ''); ?>">
+                                <div class="form-text">Upload a clear copy of your passport (PDF or image format, max 5MB)</div>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Do you require a visa to enter South Africa? *</label>

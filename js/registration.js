@@ -304,19 +304,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const nationality = $('#nationality').val();
         if (!nationality || !selectedPackage) return;
         
-        const isAfrican = isAfricanNational(nationality);
         const registrationType = document.querySelector('input[name="registration_type"]:checked');
         
-        if (registrationType && registrationType.value === 'individual') {
-            // Update package selection based on African status
-            if (isAfrican) {
-                // Show African pricing
-                showInfo('You are eligible for African Nationals pricing ($200)', 'Pricing Update');
-            } else {
-                // Show Non-African pricing
-                showInfo('Non-African Nationals pricing applies ($400)', 'Pricing Update');
-            }
-        } else if (registrationType && registrationType.value === 'group') {
+        if (registrationType && registrationType.value === 'group') {
             // Check all participant nationalities for group pricing
             checkGroupPricing();
         }
@@ -668,9 +658,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label class="form-label">Passport Copy (PDF)</label>
-                        <input type="file" class="form-control" name="participants[${participantCount - 1}][passport_file]" accept=".pdf">
-                        <div class="form-text small">Upload passport copy (PDF, max 5MB)</div>
+                        <label class="form-label">Passport Copy (PDF/Image)</label>
+                        <input type="file" class="form-control" name="participants[${participantCount - 1}][passport_file]" accept=".pdf,.jpg,.jpeg,.png,.gif,.bmp,.tiff,.webp">
+                        <div class="form-text small">Upload passport copy (PDF or image format, max 5MB)</div>
                     </div>
                     <div class="col-md-6 mb-3">
                         <label class="form-label">Requires visa to enter South Africa? *</label>
