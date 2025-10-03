@@ -72,8 +72,8 @@ function handleFileUpload($file, $uploadDir = 'uploads/passports/') {
 function createUser($data) {
     $pdo = getConnection();
     $sql = "INSERT INTO users (email, title, first_name, last_name, phone, nationality, passport_number, 
-            passport_file, requires_visa, organization, position, address_line1, city, state, country) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            passport_file, requires_visa, organization, position, address_line1, address_line2, city, state, country, postal_code) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     $stmt = $pdo->prepare($sql);
     
     // Convert requires_visa from yes/no to 1/0
@@ -86,8 +86,8 @@ function createUser($data) {
         $data['email'], $data['title'] ?? '', $data['first_name'], $data['last_name'], 
         $data['phone'], $data['nationality'], $data['passport_number'] ?? '', 
         $data['passport_file'] ?? '', $requiresVisa, $data['organization'],
-        $data['position'] ?? '', $data['address_line1'], $data['city'], 
-        $data['state'] ?? '', $data['country']
+        $data['position'] ?? '', $data['address_line1'], $data['address_line2'] ?? '', 
+        $data['city'], $data['state'] ?? '', $data['country'], $data['postal_code'] ?? ''
     ]);
     return $pdo->lastInsertId();
 }
