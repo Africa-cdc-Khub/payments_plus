@@ -673,10 +673,17 @@ document.addEventListener('DOMContentLoaded', function() {
                         <div class="form-text small">Upload passport copy (PDF, max 5MB)</div>
                     </div>
                     <div class="col-md-6 mb-3">
-                        <div class="form-check mt-4">
-                            <input class="form-check-input" type="checkbox" name="participants[${participantCount - 1}][requires_visa]" value="1">
+                        <label class="form-label">Requires visa to enter South Africa? *</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="participants[${participantCount - 1}][requires_visa]" value="1">
                             <label class="form-check-label">
-                                Requires visa to enter South Africa?
+                                Yes
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="participants[${participantCount - 1}][requires_visa]" value="0">
+                            <label class="form-check-label">
+                                No
                             </label>
                         </div>
                     </div>
@@ -828,7 +835,13 @@ document.addEventListener('DOMContentLoaded', function() {
             if (formData.position) document.getElementById('position').value = formData.position;
             if (formData.passport_number) document.getElementById('passport_number').value = formData.passport_number;
             if (formData.passport_file) document.getElementById('passport_file').value = formData.passport_file;
-            if (formData.requires_visa) document.getElementById('requires_visa').checked = true;
+            if (formData.requires_visa) {
+                if (formData.requires_visa === '1') {
+                    document.getElementById('visa_yes').checked = true;
+                } else if (formData.requires_visa === '0') {
+                    document.getElementById('visa_no').checked = true;
+                }
+            }
             if (formData.address_line1) document.getElementById('address_line1').value = formData.address_line1;
             if (formData.address_line2) document.getElementById('address_line2').value = formData.address_line2;
             if (formData.city) document.getElementById('city').value = formData.city;
@@ -889,7 +902,10 @@ document.addEventListener('DOMContentLoaded', function() {
                             if (participant.nationality) participantContainer.querySelector('select[name*="[nationality]"]').value = participant.nationality;
                             if (participant.passport_number) participantContainer.querySelector('input[name*="[passport_number]"]').value = participant.passport_number;
                             if (participant.passport_file) participantContainer.querySelector('input[name*="[passport_file]"]').value = participant.passport_file;
-                            if (participant.requires_visa) participantContainer.querySelector('input[name*="[requires_visa]"]').checked = true;
+                            if (participant.requires_visa) {
+                                const visaRadio = participantContainer.querySelector(`input[name*="[requires_visa]"][value="${participant.requires_visa}"]`);
+                                if (visaRadio) visaRadio.checked = true;
+                            }
                             if (participant.organization) participantContainer.querySelector('input[name*="[organization]"]').value = participant.organization;
                             if (participant.position) participantContainer.querySelector('input[name*="[position]"]').value = participant.position;
                         }

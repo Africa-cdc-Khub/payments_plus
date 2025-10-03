@@ -302,7 +302,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
         'nationality' => $_POST['nationality'] ?? '',
         'passport_number' => $_POST['passport_number'] ?? '',
         'passport_file' => $_POST['passport_file'] ?? '',
-        'requires_visa' => isset($_POST['requires_visa']) ? '1' : '',
+        'requires_visa' => $_POST['requires_visa'] ?? '',
         'organization' => $_POST['organization'] ?? '',
         'position' => $_POST['position'] ?? '',
         'address_line1' => $_POST['address_line1'] ?? '',
@@ -720,10 +720,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                                 <div class="form-text">Upload a clear copy of your passport (PDF format, max 5MB)</div>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <div class="form-check mt-4">
-                                    <input class="form-check-input" type="checkbox" name="requires_visa" id="requires_visa" value="1" <?php echo isset($formData['requires_visa']) ? 'checked' : ''; ?>>
-                                    <label class="form-check-label" for="requires_visa">
-                                        Do you require a visa to enter South Africa?
+                                <label class="form-label">Do you require a visa to enter South Africa? *</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="requires_visa" id="visa_yes" value="1" <?php echo (($formData['requires_visa'] ?? '') === '1') ? 'checked' : ''; ?>>
+                                    <label class="form-check-label" for="visa_yes">
+                                        Yes
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="requires_visa" id="visa_no" value="0" <?php echo (($formData['requires_visa'] ?? '') === '0') ? 'checked' : ''; ?>>
+                                    <label class="form-check-label" for="visa_no">
+                                        No
                                     </label>
                                 </div>
                             </div>
