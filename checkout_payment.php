@@ -125,7 +125,7 @@ $signature = sign($paymentData);
         }
         .payment-container {
             width: 100%;
-            margin: 0 auto;
+            margin: 0;
             padding: var(--spacing-6);
             background: var(--light-gray);
         }
@@ -136,6 +136,7 @@ $signature = sign($paymentData);
             overflow: hidden;
             border: 1px solid var(--light-gray);
             width: 100%;
+            margin: 0;
         }
         .payment-header-section {
             background: linear-gradient(135deg, var(--primary-green) 0%, var(--dark-green) 100%);
@@ -155,36 +156,64 @@ $signature = sign($paymentData);
             font-size: var(--font-size-sm);
         }
         .payment-content {
-            display: grid;
-            grid-template-columns: 1.2fr 0.8fr;
-            gap: 0;
-            min-height: 700px;
+            min-height: 800px;
+            width: 100%;
+            display: flex;
+        }
+        .payment-form {
+            padding: var(--spacing-10);
+            background: var(--white);
+            height: 100%;
+            width: 50%;
+            display: flex;
+            flex-direction: column;
         }
         .participant-info {
             background: var(--light-gray);
-            padding: var(--spacing-6);
-            border-right: 1px solid #e9ecef;
+            padding: var(--spacing-10);
+            border-left: 1px solid #e9ecef;
+            height: 100%;
+            width: 50%;
+            display: flex;
+            flex-direction: column;
+        }
+        @media (max-width: 991.98px) {
+            .payment-content {
+                flex-direction: column;
+            }
+            .payment-form {
+                width: 100%;
+            }
+            .participant-info {
+                width: 100%;
+                border-left: none;
+                border-top: 1px solid #e9ecef;
+                margin-top: var(--spacing-4);
+            }
         }
         .participant-info h4 {
             color: var(--primary-green);
             font-weight: 600;
-            margin-bottom: var(--spacing-6);
-            font-size: var(--font-size-xl);
+            margin-bottom: var(--spacing-8);
+            font-size: var(--font-size-2xl);
             display: flex;
             align-items: center;
-            gap: var(--spacing-3);
+            gap: var(--spacing-4);
+            width: 100%;
         }
         .participant-details {
             background: var(--white);
             border-radius: var(--radius-md);
             padding: var(--spacing-6);
             box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            width: 100%;
+            flex: 1;
         }
         .detail-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: var(--spacing-4) 0;
+            padding: var(--spacing-6) 0;
             border-bottom: 1px solid #f1f3f4;
         }
         .detail-item:last-child {
@@ -200,25 +229,28 @@ $signature = sign($paymentData);
         .detail-label {
             font-weight: 500;
             color: var(--dark-gray);
-            font-size: var(--font-size-sm);
+            font-size: var(--font-size-base);
         }
         .detail-value {
             font-weight: 600;
             color: var(--dark-gray);
             text-align: right;
+            font-size: var(--font-size-lg);
         }
         .payment-form {
             padding: var(--spacing-10);
             background: var(--white);
+            flex: 1;
         }
         .payment-form h4 {
             color: var(--primary-green);
             font-weight: 600;
-            margin-bottom: var(--spacing-8);
-            font-size: var(--font-size-xl);
+            margin-bottom: var(--spacing-10);
+            font-size: var(--font-size-2xl);
             display: flex;
             align-items: center;
-            gap: var(--spacing-3);
+            gap: var(--spacing-4);
+            width: 100%;
         }
         .form-label {
             font-weight: 600;
@@ -228,21 +260,23 @@ $signature = sign($paymentData);
         .form-row {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: var(--spacing-6);
-            margin-bottom: var(--spacing-6);
+            gap: var(--spacing-8);
+            margin-bottom: var(--spacing-8);
+            width: 100%;
         }
         .form-row.single {
             grid-template-columns: 1fr;
         }
         .form-group {
-            margin-bottom: var(--spacing-6);
+            margin-bottom: var(--spacing-8);
+            width: 100%;
         }
         .form-control {
             border: 2px solid #e9ecef;
             border-radius: var(--radius-md);
-            padding: var(--spacing-5) var(--spacing-5);
-            font-size: var(--font-size-lg);
-            height: 56px;
+            padding: var(--spacing-6) var(--spacing-6);
+            font-size: var(--font-size-xl);
+            height: 64px;
         }
         .form-control:focus {
             border-color: var(--primary-green);
@@ -255,20 +289,20 @@ $signature = sign($paymentData);
         }
         .card-icons {
             display: flex;
-            gap: var(--spacing-4);
-            margin-top: var(--spacing-4);
+            gap: var(--spacing-6);
+            margin-top: var(--spacing-6);
             justify-content: center;
         }
         .card-icon {
-            width: 60px;
-            height: 38px;
+            width: 80px;
+            height: 50px;
             background: var(--white);
             border: 1px solid #dee2e6;
             border-radius: var(--radius-sm);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: var(--font-size-sm);
+            font-size: var(--font-size-base);
             color: var(--medium-gray);
             font-weight: 600;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
@@ -289,14 +323,14 @@ $signature = sign($paymentData);
             background: linear-gradient(135deg, var(--secondary-green) 0%, var(--primary-green) 100%);
             border: none;
             border-radius: var(--radius-md);
-            padding: var(--spacing-6) var(--spacing-8);
-            font-size: var(--font-size-xl);
+            padding: var(--spacing-8) var(--spacing-10);
+            font-size: var(--font-size-2xl);
             font-weight: 600;
             color: var(--white);
             width: 100%;
             box-shadow: 0 4px 15px rgba(26, 86, 50, 0.3);
-            margin-top: var(--spacing-8);
-            height: 60px;
+            margin-top: var(--spacing-10);
+            height: 72px;
         }
         .cybersource-branding {
             text-align: center;
@@ -344,20 +378,37 @@ $signature = sign($paymentData);
             color: var(--primary-green);
         }
         
-        /* Responsive Design */
+        /* Mobile Responsive Design */
         @media (max-width: 768px) {
-            .payment-content {
-                grid-template-columns: 1fr;
+            .payment-container {
+                padding: var(--spacing-3);
+            }
+            .payment-form {
+                padding: var(--spacing-4);
             }
             .participant-info {
-                border-right: none;
-                border-bottom: 1px solid #e9ecef;
+                padding: var(--spacing-4);
             }
             .form-row {
                 grid-template-columns: 1fr;
+                gap: var(--spacing-4);
             }
-            .payment-container {
-                padding: var(--spacing-4);
+            .form-control {
+                height: 48px;
+                font-size: var(--font-size-base);
+            }
+            .btn-pay {
+                height: 52px;
+                font-size: var(--font-size-lg);
+                padding: var(--spacing-4) var(--spacing-6);
+            }
+            .card-icons {
+                gap: var(--spacing-2);
+            }
+            .card-icon {
+                width: 45px;
+                height: 28px;
+                font-size: var(--font-size-xs);
             }
         }
     </style>
@@ -385,10 +436,6 @@ $signature = sign($paymentData);
         </a>
         
         <div class="payment-card">
-                <div class="payment-header-section">
-                    <h3><i class="fas fa-credit-card me-2"></i>Complete Payment</h3>
-                    <p>Secure payment processing</p>
-                </div>
                 
                 <div class="payment-content">
                     <!-- Left Side: Payment Form -->
