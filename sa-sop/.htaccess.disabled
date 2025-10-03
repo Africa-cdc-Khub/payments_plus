@@ -1,6 +1,5 @@
 # Disable directory browsing
 Options -Indexes
-
 # Custom error pages
 ErrorDocument 403 /403.html
 
@@ -15,11 +14,6 @@ ErrorDocument 403 /403.html
 </Files>
 
 # Prevent access to sensitive files
-<FilesMatch "\.(log|txt|md|json|env|ini|conf|sql)$">
+<FilesMatch "\.(log|txt|md|json|env|ini|conf)$">
     Require all denied
 </FilesMatch>
-
-# Protect migration files
-<Directory "migrations">
-    Require all denied
-</Directory>

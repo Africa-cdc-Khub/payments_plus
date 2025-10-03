@@ -1,5 +1,7 @@
 # Disable directory browsing
 Options -Indexes
+# Custom error pages
+ErrorDocument 403 /403.html
 
 # Deny access to all files
 <Files "*">

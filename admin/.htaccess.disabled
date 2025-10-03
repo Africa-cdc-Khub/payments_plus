@@ -1,6 +1,9 @@
 # Disable directory browsing
 Options -Indexes
 
+# Custom error pages
+ErrorDocument 403 /403.html
+
 # Deny access to all files except PHP files
 <Files "*">
     Require all denied
@@ -12,6 +15,11 @@ Options -Indexes
 </Files>
 
 # Prevent access to sensitive files
-<FilesMatch "\.(log|txt|md|json|env|ini|conf)$">
+<FilesMatch "\.(log|txt|md|json|env|ini|conf|sql)$">
     Require all denied
 </FilesMatch>
+
+# Protect migration files
+<Directory "migrations">
+    Require all denied
+</Directory>

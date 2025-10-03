@@ -1,37 +1,96 @@
 # Disable directory browsing
-Options -Indexes
+# Options -Indexes
 
-# Prevent access to sensitive files
-<FilesMatch "\.(env|ini|conf|log|sql|md|txt|json|lock|key|pem|crt)$">
-    Require all denied
-</FilesMatch>
+# # Enable mod_rewrite
+# <IfModule mod_rewrite.c>
+#     RewriteEngine On
 
-# Protect database connector (but allow bootstrap and functions for includes)
-<Files "db_connector.php">
-    Require all denied
-</Files>
+#     # Set base directory (uncomment & adjust if app is in a subfolder)
+#     # RewriteBase /payments_plus/
 
-# Protect test and debug files
-<FilesMatch "^(test_|debug_|check_).*\.php$">
-    Require all denied
-</FilesMatch>
+#     # Redirect Trailing Slashes...
+#     RewriteCond %{REQUEST_FILENAME} !-d
+#     RewriteRule ^(.*)/$ /$1 [L,R=301]
 
-# Protect migration and setup files
-<FilesMatch "^(migrations|setup|install|run_migrations).*\.php$">
-    Require all denied
-</FilesMatch>
+#     # Remove index.php from URLs (if needed)
+#     RewriteCond %{REQUEST_FILENAME} !-f
+#     RewriteCond %{REQUEST_FILENAME} !-d
+#     RewriteRule ^(.*)$ index.php/$1 [L]
 
-# Protect vendor directory
-<Directory "vendor">
-    Require all denied
-</Directory>
+#     # Prevent direct access to system & application directories
+#     RewriteRule ^(vendor|logs|tokens|src|admin/migrations)/ - [F,L]
 
-# Protect composer files
-<Files "composer.*">
-    Require all denied
-</Files>
+#     # Protect .env and other sensitive files
+#     RewriteRule (^|/)\.env - [F,L]
+#     RewriteRule (^|/)\.htaccess - [F,L]
+#     RewriteRule (^|/)\.git - [F,L]
 
-# Prevent access to hidden files
-<FilesMatch "^\.">
-    Require all denied
-</FilesMatch>
+#     # Block access to sensitive file types
+#     RewriteRule \.(env|ini|conf|log|sql|md|txt|json|lock|key|pem|crt)$ - [F,L]
+
+#     # Block access to test and debug files
+#     RewriteRule ^(test_|debug_|check_).*\.php$ - [F,L]
+
+#     # Block access to migration and setup files
+#     RewriteRule ^(migrations|setup|install|run_migrations).*\.php$ - [F,L]
+
+#     # Block access to composer files
+#     RewriteRule ^composer\.(json|lock)$ - [F,L]
+
+#     # Ensure Authorization header is passed correctly
+#     RewriteCond %{HTTP:Authorization} . 
+#     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+# </IfModule>
+
+# <IfModule !mod_rewrite.c>
+#     # Fallback if mod_rewrite is not available
+#     ErrorDocument 404 index.php
+#     ErrorDocument 403 /403.html
+# </IfModule>
+
+# # Disable server signature for security
+# ServerSignature Off
+
+# # Security headers
+# <IfModule mod_headers.c>
+#     Header always set X-Content-Type-Options nosniff
+#     Header always set X-Frame-Options DENY
+#     Header always set X-XSS-Protection "1; mode=block"
+#     Header always set Referrer-Policy "strict-origin-when-cross-origin"
+#     Header always set X-Permitted-Cross-Domain-Policies "none"
+# </IfModule>
+
+# # Prevent access to sensitive files (fallback)
+# <FilesMatch "\.(env|ini|conf|log|sql|md|txt|json|lock|key|pem|crt)$">
+#     Require all denied
+# </FilesMatch>
+
+# # Protect database connector
+# <Files "db_connector.php">
+#     Require all denied
+# </Files>
+
+# # Protect test and debug files
+# <FilesMatch "^(test_|debug_|check_).*\.php$">
+#     Require all denied
+# </FilesMatch>
+
+# # Protect migration and setup files
+# <FilesMatch "^(migrations|setup|install|run_migrations).*\.php$">
+#     Require all denied
+# </FilesMatch>
+
+# # Protect vendor directory
+# <Directory "vendor">
+#     Require all denied
+# </Directory>
+
+# # Protect composer files
+# <Files "composer.*">
+#     Require all denied
+# </Files>
+
+# # Prevent access to hidden files
+# <FilesMatch "^\.">
+#     Require all denied
+# </FilesMatch>
