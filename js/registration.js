@@ -370,9 +370,15 @@ document.addEventListener('DOMContentLoaded', function() {
         addParticipantsNowCheckbox.addEventListener('change', function() {
             if (this.checked) {
                 participantsDetails.style.display = 'block';
-                // Add initial participant form if none exist
-                if (participantCount === 0) {
-                    addParticipantForm();
+                // Auto-add participant forms based on number of people
+                const numPeople = parseInt(numPeopleInput.value) || 0;
+                if (numPeople > 0) {
+                    updateParticipants(numPeople);
+                } else {
+                    // Add initial participant form if no number specified
+                    if (participantCount === 0) {
+                        addParticipantForm();
+                    }
                 }
             } else {
                 participantsDetails.style.display = 'none';
@@ -393,6 +399,13 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Automatically add/remove participant fields
             updateParticipants(numPeople);
+            
+            // Auto-check the "Add participants now" checkbox if number > 0
+            if (numPeople > 0 && addParticipantsNowCheckbox) {
+                addParticipantsNowCheckbox.checked = true;
+                participantsDetails.style.display = 'block';
+            }
+            
             updateSummary();
         });
     }
