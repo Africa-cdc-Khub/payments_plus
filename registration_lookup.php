@@ -44,6 +44,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['search_registrations'
     }
 }
 
+// Handle payment action
+if (isset($_GET['action']) && $_GET['action'] === 'pay' && isset($_GET['id']) && is_numeric($_GET['id'])) {
+    $registrationId = (int)$_GET['id'];
+    $registration = getRegistrationById($registrationId);
+    
+    if ($registration && $registration['payment_status'] === 'pending') {
+        // Generate payment token and redirect to payment page
+        $paymentToken = generatePaymentToken($registrationId);
+        $paymentUrl = rtrim(APP_URL, '/') . "/checkout_payment.php?registration_id=" . $registrationId . "&token=" . $paymentToken;
+        header("Location: " . $paymentUrl);
+        exit;
+    } else {
+        $error = "Registration not found or payment not required.";
+    }
+}
+
 // Handle registration details request
 $registrationDetails = null;
 $participants = [];
@@ -160,10 +176,32 @@ if (isset($_GET['view']) && is_numeric($_GET['view'])) {
                                             <div><strong>Type:</strong> <?php echo ucfirst($registration['registration_type']); ?></div>
                                             <div><strong>Date:</strong> <?php echo date('M j, Y \a\t g:i A', strtotime($registration['created_at'])); ?></div>
                                             <div><strong>Amount:</strong> <?php echo formatCurrency($registration['total_amount'], $registration['currency']); ?></div>
+                                            <div><strong>Payment Status:</strong> 
+                                                <?php 
+                                                $paymentStatus = $registration['payment_status'] ?? '';
+                                                if ($paymentStatus === 'completed'): ?>
+                                                    <span class="badge bg-success">Paid</span>
+                                                <?php else: ?>
+                                                    <span class="badge bg-warning">Pending Payment</span>
+                                                <?php endif; ?>
+                                            </div>
                                         </div>
-                                        <a href="?view=<?php echo $registration['id']; ?>" class="btn btn-outline-primary btn-sm">
-                                            <i class="fas fa-eye me-1"></i>View Details
-                                        </a>
+                                        <div class="d-flex gap-2">
+                                            <a href="?view=<?php echo $registration['id']; ?>" class="btn btn-outline-primary btn-sm">
+                                                <i class="fas fa-eye me-1"></i>View Details
+                                            </a>
+                                            <?php 
+                                            // Debug: Log payment status for troubleshooting
+                                            if ($registration['id'] == 20) {
+                                                error_log("Registration #20 payment_status: " . ($registration['payment_status'] ?? 'NULL') . " (type: " . gettype($registration['payment_status']) . ")");
+                                            }
+                                            
+                                            if (($registration['payment_status'] ?? '') !== 'completed'): ?>
+                                                <a href="?action=pay&id=<?php echo $registration['id']; ?>" class="btn btn-success btn-sm">
+                                                    <i class="fas fa-credit-card me-1"></i>Complete Payment
+                                                </a>
+                                            <?php endif; ?>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

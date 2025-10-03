@@ -98,7 +98,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Check for duplicate registration using event date
         $duplicateCheck = checkDuplicateRegistration($_POST['email'], $_POST['package_id'], CONFERENCE_DATES);
         if ($duplicateCheck['is_duplicate']) {
-            $errors[] = getDuplicateRegistrationMessage($duplicateCheck);
+            $duplicateMessage = getDuplicateRegistrationMessage($duplicateCheck);
+            $duplicateRegistration = $duplicateCheck['registration'];
+            
+            // Set a special flag for duplicate registration
+            $isDuplicateRegistration = true;
+            $duplicateRegistrationId = $duplicateRegistration['id'];
+            $duplicateRegistrationStatus = $duplicateRegistration['status'];
+            
+            // Don't add to errors array - we'll handle this specially
             logSecurityEvent('duplicate_registration_attempt', 'Duplicate registration attempt for email: ' . $_POST['email'] . ', package: ' . $_POST['package_id'] . ', event: ' . CONFERENCE_DATES);
         }
     }
@@ -279,6 +287,30 @@ if (isset($_GET['email']) && validateEmail($_GET['email'])) {
     $userEmail = sanitizeInput($_GET['email']);
     $registrationHistory = getRegistrationHistory($userEmail, CONFERENCE_DATES);
 }
+
+// Preserve form data on errors
+$formData = [];
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
+    $formData = [
+        'package_id' => $_POST['package_id'] ?? '',
+        'registration_type' => $_POST['registration_type'] ?? '',
+        'email' => $_POST['email'] ?? '',
+        'first_name' => $_POST['first_name'] ?? '',
+        'last_name' => $_POST['last_name'] ?? '',
+        'phone' => $_POST['phone'] ?? '',
+        'nationality' => $_POST['nationality'] ?? '',
+        'organization' => $_POST['organization'] ?? '',
+        'address_line1' => $_POST['address_line1'] ?? '',
+        'address_line2' => $_POST['address_line2'] ?? '',
+        'city' => $_POST['city'] ?? '',
+        'state' => $_POST['state'] ?? '',
+        'country' => $_POST['country'] ?? '',
+        'postal_code' => $_POST['postal_code'] ?? '',
+        'num_people' => $_POST['num_people'] ?? '',
+        'exhibition_description' => $_POST['exhibition_description'] ?? '',
+        'participants' => $_POST['participants'] ?? []
+    ];
+}
 ?>
 
 <!DOCTYPE html>
@@ -299,6 +331,45 @@ if (isset($_GET['email']) && validateEmail($_GET['email'])) {
     <!-- Custom CSS -->
     <link rel="stylesheet" href="css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Full width overrides */
+        body {
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        .container {
+            max-width: none !important;
+            width: 100% !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+        .header {
+            margin: 0 !important;
+            padding: var(--spacing-8) 0 !important;
+            width: 100% !important;
+        }
+        .header-content {
+            max-width: none !important;
+            width: 100% !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+        .header-text h1 {
+            font-size: var(--font-size-3xl) !important;
+        }
+        .header-text h2 {
+            font-size: var(--font-size-5xl) !important;
+        }
+        .conference-dates {
+            font-size: var(--font-size-xl) !important;
+        }
+        .package-selection-container,
+        .registration-container {
+            max-width: none !important;
+            width: 100% !important;
+            padding: var(--spacing-6) !important;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -321,11 +392,89 @@ if (isset($_GET['email']) && validateEmail($_GET['email'])) {
             <div class="alert alert-success">
                 <h3>Registration Successful!</h3>
                 <p>Thank you for registering for CPHIA 2025. A payment link has been sent to your email address.</p>
+                
+                <?php if (isset($registrationId) && !$isSideEvent && !$isExhibition): ?>
+                    <div class="mt-4">
+                        <h5>Complete Your Registration</h5>
+                        <p class="mb-3">Choose how you'd like to complete your payment:</p>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="card h-100">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-credit-card fa-3x text-success mb-3"></i>
+                                        <h6 class="card-title">Pay Now</h6>
+                                        <p class="card-text small">Complete your payment immediately to finalize your registration.</p>
+                                        <a href="registration_lookup.php?action=pay&id=<?php echo $registrationId; ?>" class="btn btn-success">
+                                            <i class="fas fa-credit-card me-2"></i>Pay Now
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <div class="card h-100">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-envelope fa-3x text-primary mb-3"></i>
+                                        <h6 class="card-title">Pay Later</h6>
+                                        <p class="card-text small">We'll send you a payment link via email so you can pay when convenient.</p>
+                                        <button onclick="sendPaymentLink(<?php echo $registrationId; ?>)" class="btn btn-outline-primary">
+                                            <i class="fas fa-envelope me-2"></i>Send Payment Link
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-3 text-center">
+                            <p class="small text-muted mb-2">
+                                Registration ID: #<?php echo $registrationId; ?>
+                            </p>
+                            <a href="registration_lookup.php" class="btn btn-outline-secondary btn-sm">
+                                <i class="fas fa-list me-1"></i>View All My Registrations
+                            </a>
+                        </div>
+                    </div>
+                <?php endif; ?>
             </div>
         <?php endif; ?>
 
-        <?php if (!empty($errors)): ?>
-            <div class="alert alert-error">
+        <?php if (isset($isDuplicateRegistration) && $isDuplicateRegistration): ?>
+            <div class="alert alert-warning">
+                <div class="d-flex align-items-start">
+                    <div class="me-3">
+                        <i class="fas fa-exclamation-triangle fa-2x text-warning"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                        <h4 class="alert-heading">Duplicate Registration Detected</h4>
+                        <p class="mb-3"><?php echo $duplicateMessage; ?></p>
+                        
+                        <div class="d-flex flex-wrap gap-2">
+                            <a href="registration_lookup.php" class="btn btn-primary">
+                                <i class="fas fa-eye me-2"></i>View My Registrations
+                            </a>
+                            
+                            <?php if ($duplicateRegistrationStatus === 'pending'): ?>
+                                <a href="registration_lookup.php?action=pay&id=<?php echo $duplicateRegistrationId; ?>" class="btn btn-success">
+                                    <i class="fas fa-credit-card me-2"></i>Complete Payment
+                                </a>
+                            <?php endif; ?>
+                            
+                            <a href="mailto:support@cphia2025.com?subject=Registration%20Inquiry&body=Registration%20ID:%20%23<?php echo $duplicateRegistrationId; ?>" class="btn btn-outline-secondary">
+                                <i class="fas fa-envelope me-2"></i>Contact Support
+                            </a>
+                        </div>
+                        
+                        <hr class="my-3">
+                        <small class="text-muted">
+                            <strong>Need help?</strong> If you believe this is an error or need to make changes to your registration, 
+                            please contact our support team with your registration ID: <strong>#<?php echo $duplicateRegistrationId; ?></strong>
+                        </small>
+                    </div>
+                </div>
+            </div>
+        <?php elseif (!empty($errors)): ?>
+            <div class="alert alert-danger">
                 <h3>Please correct the following errors:</h3>
                 <ul>
                     <?php foreach ($errors as $error): ?>
@@ -361,15 +510,35 @@ if (isset($_GET['email']) && validateEmail($_GET['email'])) {
                             <div class="card-body p-3">
                                 <div class="d-flex justify-content-between align-items-start mb-2">
                                     <h6 class="card-title mb-0"><?php echo htmlspecialchars($registration['package_name']); ?></h6>
-                                    <span class="badge bg-<?php echo $registration['status'] == 'paid' ? 'success' : ($registration['status'] == 'pending' ? 'warning' : 'secondary'); ?>">
-                                        <?php echo ucfirst($registration['status']); ?>
-                                    </span>
+                                    <div class="d-flex flex-column align-items-end">
+                                        <?php if ($registration['payment_status'] === 'completed'): ?>
+                                            <span class="badge bg-success mb-1">
+                                                <i class="fas fa-check-circle me-1"></i>Paid
+                                            </span>
+                                        <?php else: ?>
+                                            <span class="badge bg-warning mb-1">
+                                                <i class="fas fa-clock me-1"></i>Pending Payment
+                                            </span>
+                                        <?php endif; ?>
+                                        <small class="text-muted"><?php echo ucfirst($registration['status']); ?></small>
+                                    </div>
                                 </div>
                                 <div class="text-muted small">
                                     <div>Registration ID: #<?php echo $registration['id']; ?></div>
                                     <div>Date: <?php echo date('M j, Y', strtotime($registration['created_at'])); ?></div>
                                     <div>Amount: <?php echo formatCurrency($registration['total_amount'], $registration['currency']); ?></div>
                                 </div>
+                                
+                                <?php if ($registration['payment_status'] !== 'completed'): ?>
+                                    <div class="mt-3">
+                                        <a href="registration_lookup.php?action=pay&id=<?php echo $registration['id']; ?>" class="btn btn-sm btn-success">
+                                            <i class="fas fa-credit-card me-1"></i>Complete Payment
+                                        </a>
+                                        <a href="registration_lookup.php?view=<?php echo $registration['id']; ?>" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-eye me-1"></i>View Details
+                                        </a>
+                                    </div>
+                                <?php endif; ?>
                             </div>
                         </div>
                     </div>
@@ -378,7 +547,9 @@ if (isset($_GET['email']) && validateEmail($_GET['email'])) {
                 <div class="mt-3">
                     <small class="text-muted">
                         <i class="fas fa-info-circle me-1"></i>
-                        If you try to register for the same package again, you will receive a duplicate registration warning.
+                        <strong>Registration Policy:</strong> You can register multiple times for different packages. 
+                        Only <strong>paid registrations</strong> are considered confirmed for the conference. 
+                        Unpaid registrations can be modified or cancelled.
                     </small>
                     <div class="mt-2">
                         <a href="registration_lookup.php" class="btn btn-sm btn-outline-primary">
@@ -447,7 +618,7 @@ if (isset($_GET['email']) && validateEmail($_GET['email'])) {
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="registration_type" value="individual" id="individual" required>
+                                    <input class="form-check-input" type="radio" name="registration_type" value="individual" id="individual" <?php echo (($formData['registration_type'] ?? '') === 'individual') ? 'checked' : ''; ?> required>
                                     <label class="form-check-label" for="individual">
                                         Individual Registration
                                     </label>
@@ -455,7 +626,7 @@ if (isset($_GET['email']) && validateEmail($_GET['email'])) {
                             </div>
                             <div class="col-md-6">
                                 <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="registration_type" value="group" id="group" required>
+                                    <input class="form-check-input" type="radio" name="registration_type" value="group" id="group" <?php echo (($formData['registration_type'] ?? '') === 'group') ? 'checked' : ''; ?> required>
                                     <label class="form-check-label" for="group">
                                         Group Registration
                                     </label>
@@ -474,7 +645,7 @@ if (isset($_GET['email']) && validateEmail($_GET['email'])) {
                         <div class="row">
                             <div class="col-md-6">
                                 <label for="numPeople" class="form-label">How many additional people are you registering (inlcuding yourself)?</label>
-                                <input type="number" class="form-control form-control-lg" name="num_people" id="numPeople" min="1" placeholder="Enter number of people" style="font-size: 1.5rem; font-weight: bold;">
+                                <input type="number" class="form-control form-control-lg" name="num_people" id="numPeople" min="1" placeholder="Enter number of people" value="<?php echo htmlspecialchars($formData['num_people'] ?? ''); ?>" style="font-size: 1.5rem; font-weight: bold;">
                                 <div class="form-text">This will automatically add/remove participant fields below for easy cost estimation.</div>
                             </div>
                             <div class="col-md-6">
@@ -496,21 +667,21 @@ if (isset($_GET['email']) && validateEmail($_GET['email'])) {
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="first_name" class="form-label">First Name *</label>
-                                <input type="text" class="form-control" name="first_name" id="first_name" required>
+                                <input type="text" class="form-control" name="first_name" id="first_name" value="<?php echo htmlspecialchars($formData['first_name'] ?? ''); ?>" required>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label for="last_name" class="form-label">Last Name *</label>
-                                <input type="text" class="form-control" name="last_name" id="last_name" required>
+                                <input type="text" class="form-control" name="last_name" id="last_name" value="<?php echo htmlspecialchars($formData['last_name'] ?? ''); ?>" required>
                             </div>
                         </div>
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="email" class="form-label">Email Address *</label>
-                                <input type="email" class="form-control" name="email" id="email" required>
+                                <input type="email" class="form-control" name="email" id="email" value="<?php echo htmlspecialchars($formData['email'] ?? ''); ?>" required>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label for="phone" class="form-label">Phone Number</label>
-                                <input type="tel" class="form-control" name="phone" id="phone">
+                                <input type="tel" class="form-control" name="phone" id="phone" value="<?php echo htmlspecialchars($formData['phone'] ?? ''); ?>">
                             </div>
                         </div>
                         <div class="row">
@@ -522,18 +693,18 @@ if (isset($_GET['email']) && validateEmail($_GET['email'])) {
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label for="passport_number" class="form-label">Passport Number</label>
-                                <input type="text" class="form-control" name="passport_number" id="passport_number">
+                                <input type="text" class="form-control" name="passport_number" id="passport_number" value="<?php echo htmlspecialchars($formData['passport_number'] ?? ''); ?>">
                                 <div class="form-text">Optional - for international participants</div>
                             </div>
                         </div>
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="organization" class="form-label">Organization *</label>
-                                <input type="text" class="form-control" name="organization" id="organization" required>
+                                <input type="text" class="form-control" name="organization" id="organization" value="<?php echo htmlspecialchars($formData['organization'] ?? ''); ?>" required>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label for="position" class="form-label">Position/Title</label>
-                                <input type="text" class="form-control" name="position" id="position">
+                                <input type="text" class="form-control" name="position" id="position" value="<?php echo htmlspecialchars($formData['position'] ?? ''); ?>">
                             </div>
                         </div>
                     </div>
@@ -547,30 +718,30 @@ if (isset($_GET['email']) && validateEmail($_GET['email'])) {
                     <div class="card-body">
                         <div class="mb-3">
                             <label for="address_line1" class="form-label">Address Line 1</label>
-                            <input type="text" class="form-control" name="address_line1" id="address_line1">
+                            <input type="text" class="form-control" name="address_line1" id="address_line1" value="<?php echo htmlspecialchars($formData['address_line1'] ?? ''); ?>">
                         </div>
                         <div class="mb-3">
                             <label for="address_line2" class="form-label">Address Line 2</label>
-                            <input type="text" class="form-control" name="address_line2" id="address_line2">
+                            <input type="text" class="form-control" name="address_line2" id="address_line2" value="<?php echo htmlspecialchars($formData['address_line2'] ?? ''); ?>">
                         </div>
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="city" class="form-label">City</label>
-                                <input type="text" class="form-control" name="city" id="city">
+                                <input type="text" class="form-control" name="city" id="city" value="<?php echo htmlspecialchars($formData['city'] ?? ''); ?>">
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label for="state" class="form-label">State/Province</label>
-                                <input type="text" class="form-control" name="state" id="state">
+                                <input type="text" class="form-control" name="state" id="state" value="<?php echo htmlspecialchars($formData['state'] ?? ''); ?>">
                             </div>
                         </div>
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="country" class="form-label">Country</label>
-                                <input type="text" class="form-control" name="country" id="country">
+                                <input type="text" class="form-control" name="country" id="country" value="<?php echo htmlspecialchars($formData['country'] ?? ''); ?>">
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label for="postal_code" class="form-label">Postal Code</label>
-                                <input type="text" class="form-control" name="postal_code" id="postal_code">
+                                <input type="text" class="form-control" name="postal_code" id="postal_code" value="<?php echo htmlspecialchars($formData['postal_code'] ?? ''); ?>">
                             </div>
                         </div>
                     </div>
@@ -584,7 +755,7 @@ if (isset($_GET['email']) && validateEmail($_GET['email'])) {
                     <div class="card-body">
                         <div class="mb-3">
                             <label for="exhibition_description" class="form-label">Description of What You Will Exhibit (Optional)</label>
-                            <textarea class="form-control" name="exhibition_description" id="exhibition_description" rows="4" placeholder="Please describe what you plan to exhibit at the conference... (optional)"></textarea>
+                            <textarea class="form-control" name="exhibition_description" id="exhibition_description" rows="4" placeholder="Please describe what you plan to exhibit at the conference... (optional)"><?php echo htmlspecialchars($formData['exhibition_description'] ?? ''); ?></textarea>
                             <div class="form-text">Provide a detailed description of your exhibition, including products, services, or information you will showcase. This field is optional.</div>
                         </div>
                     </div>
@@ -703,5 +874,70 @@ if (isset($_GET['email']) && validateEmail($_GET['email'])) {
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     <!-- Custom JS -->
     <script src="js/registration.js"></script>
+    
+    <!-- Pass form data to JavaScript for restoration -->
+    <script>
+        window.formData = <?php echo json_encode($formData); ?>;
+        
+        // Function to send payment link via email
+        function sendPaymentLink(registrationId) {
+            const button = event.target;
+            const originalText = button.innerHTML;
+            
+            // Show loading state
+            button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Sending...';
+            button.disabled = true;
+            
+            // Send AJAX request
+            fetch('send_payment_link.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    registration_id: registrationId
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Show success message
+                    button.innerHTML = '<i class="fas fa-check me-2"></i>Payment Link Sent!';
+                    button.classList.remove('btn-outline-primary');
+                    button.classList.add('btn-success');
+                    
+                    // Show success alert
+                    showAlert('Payment link sent successfully! Check your email.', 'success');
+                } else {
+                    // Show error message
+                    button.innerHTML = originalText;
+                    button.disabled = false;
+                    showAlert('Failed to send payment link. Please try again.', 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                button.innerHTML = originalText;
+                button.disabled = false;
+                showAlert('An error occurred. Please try again.', 'danger');
+            });
+        }
+        
+        // Function to show alerts
+        function showAlert(message, type) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            
+            // Insert after the success message
+            const successAlert = document.querySelector('.alert-success');
+            if (successAlert) {
+                successAlert.parentNode.insertBefore(alertDiv, successAlert.nextSibling);
+            }
+        }
+    </script>
 </body>
 </html>
