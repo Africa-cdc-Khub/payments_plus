@@ -164,6 +164,9 @@ document.addEventListener('DOMContentLoaded', function() {
             } else if (groupRadio.checked) {
                 groupRadio.dispatchEvent(event);
             }
+            
+            // Repopulate nationality select with filtered countries
+            populateNationalitySelect();
         } catch (error) {
             console.error('Error in selectPackage:', error);
         }
@@ -206,8 +209,13 @@ document.addEventListener('DOMContentLoaded', function() {
         // Get the current selected value before clearing
         const currentValue = nationalitySelect.value;
         
+        // Filter countries based on selected package
+        const filteredCountries = selectedPackage ? 
+            filterCountriesByPackage(selectedPackage.id) : 
+            countries;
+        
         nationalitySelect.innerHTML = '<option value="">Select Nationality</option>';
-        countries.forEach(country => {
+        filteredCountries.forEach(country => {
             const option = document.createElement('option');
             option.value = country.nationality;
             option.textContent = country.nationality;
@@ -257,6 +265,25 @@ document.addEventListener('DOMContentLoaded', function() {
         ];
         
         return africanNationalities.includes(nationality);
+    }
+
+    // Function to filter countries based on package type
+    function filterCountriesByPackage(packageId) {
+        if (!countries || countries.length === 0) return;
+        
+        let filteredCountries = countries;
+        
+        // Package ID 19 is African Nationals, 20 is Non-African Nationals
+        if (packageId == 19) {
+            // African Nationals package - show only African countries
+            filteredCountries = countries.filter(country => isAfricanNational(country.nationality));
+        } else if (packageId == 20) {
+            // Non-African Nationals package - show only non-African countries
+            filteredCountries = countries.filter(country => !isAfricanNational(country.nationality));
+        }
+        // For other packages (side events, exhibitions), show all countries
+        
+        return filteredCountries;
     }
 
     // Function to update pricing based on nationality
@@ -603,10 +630,25 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
                 <div class="row">
                     <div class="col-md-6 mb-3">
+                        <label class="form-label">Passport Copy (PDF)</label>
+                        <input type="file" class="form-control" name="participants[${participantCount - 1}][passport_file]" accept=".pdf">
+                        <div class="form-text small">Upload passport copy (PDF, max 5MB)</div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="form-check mt-4">
+                            <input class="form-check-input" type="checkbox" name="participants[${participantCount - 1}][requires_visa]" value="1">
+                            <label class="form-check-label">
+                                Requires visa to enter Ghana?
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
                         <label class="form-label">Nationality *</label>
                         <select name="participants[${participantCount - 1}][nationality]" class="form-select participant-nationality" required>
                             <option value="">Select Nationality</option>
-                            ${countries.map(country => `<option value="${country.nationality}">${country.nationality}</option>`).join('')}
+                            ${(selectedPackage ? filterCountriesByPackage(selectedPackage.id) : countries).map(country => `<option value="${country.nationality}">${country.nationality}</option>`).join('')}
                         </select>
                     </div>
                     <div class="col-md-6 mb-3">
@@ -746,6 +788,8 @@ document.addEventListener('DOMContentLoaded', function() {
             if (formData.organization) document.getElementById('organization').value = formData.organization;
             if (formData.position) document.getElementById('position').value = formData.position;
             if (formData.passport_number) document.getElementById('passport_number').value = formData.passport_number;
+            if (formData.passport_file) document.getElementById('passport_file').value = formData.passport_file;
+            if (formData.requires_visa) document.getElementById('requires_visa').checked = true;
             if (formData.address_line1) document.getElementById('address_line1').value = formData.address_line1;
             if (formData.address_line2) document.getElementById('address_line2').value = formData.address_line2;
             if (formData.city) document.getElementById('city').value = formData.city;
@@ -805,7 +849,10 @@ document.addEventListener('DOMContentLoaded', function() {
                             if (participant.email) participantContainer.querySelector('input[name*="[email]"]').value = participant.email;
                             if (participant.nationality) participantContainer.querySelector('select[name*="[nationality]"]').value = participant.nationality;
                             if (participant.passport_number) participantContainer.querySelector('input[name*="[passport_number]"]').value = participant.passport_number;
+                            if (participant.passport_file) participantContainer.querySelector('input[name*="[passport_file]"]').value = participant.passport_file;
+                            if (participant.requires_visa) participantContainer.querySelector('input[name*="[requires_visa]"]').checked = true;
                             if (participant.organization) participantContainer.querySelector('input[name*="[organization]"]').value = participant.organization;
+                            if (participant.position) participantContainer.querySelector('input[name*="[position]"]').value = participant.position;
                         }
                     }
                 });

@@ -299,7 +299,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
         'last_name' => $_POST['last_name'] ?? '',
         'phone' => $_POST['phone'] ?? '',
         'nationality' => $_POST['nationality'] ?? '',
+        'passport_number' => $_POST['passport_number'] ?? '',
+        'passport_file' => $_POST['passport_file'] ?? '',
+        'requires_visa' => isset($_POST['requires_visa']) ? '1' : '',
         'organization' => $_POST['organization'] ?? '',
+        'position' => $_POST['position'] ?? '',
         'address_line1' => $_POST['address_line1'] ?? '',
         'address_line2' => $_POST['address_line2'] ?? '',
         'city' => $_POST['city'] ?? '',
@@ -605,7 +609,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                 </div>
             </div>
             
-            <form id="registrationFormData" method="POST" class="registration-form">
+            <form id="registrationFormData" method="POST" class="registration-form" enctype="multipart/form-data">
                 <input type="hidden" name="package_id" id="selectedPackageId" required>
                 <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token']); ?>">
 
@@ -695,6 +699,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                                 <label for="passport_number" class="form-label">Passport Number</label>
                                 <input type="text" class="form-control" name="passport_number" id="passport_number" value="<?php echo htmlspecialchars($formData['passport_number'] ?? ''); ?>">
                                 <div class="form-text">Optional - for international participants</div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="passport_file" class="form-label">Passport Copy (PDF)</label>
+                                <input type="file" class="form-control" name="passport_file" id="passport_file" accept=".pdf" value="<?php echo htmlspecialchars($formData['passport_file'] ?? ''); ?>">
+                                <div class="form-text">Upload a clear copy of your passport (PDF format, max 5MB)</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check mt-4">
+                                    <input class="form-check-input" type="checkbox" name="requires_visa" id="requires_visa" value="1" <?php echo isset($formData['requires_visa']) ? 'checked' : ''; ?>>
+                                    <label class="form-check-label" for="requires_visa">
+                                        Do you require a visa to enter Ghana?
+                                    </label>
+                                </div>
                             </div>
                         </div>
                         <div class="row">
