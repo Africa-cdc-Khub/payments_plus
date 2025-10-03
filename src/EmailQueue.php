@@ -40,9 +40,31 @@ class EmailQueue
     public function addToQueue($toEmail, $toName, $subject, $templateName, $templateData, $emailType, $priority = 5)
     {
         try {
-            // For now, send emails immediately instead of queuing
-            // This maintains compatibility while using the existing EmailService
-            return $this->sendEmailImmediately($toEmail, $toName, $subject, $templateName, $templateData, $emailType);
+            // Add email to queue instead of sending immediately
+            $stmt = $this->pdo->prepare("
+                INSERT INTO email_queue 
+                (to_email, to_name, subject, template_name, template_data, email_type, priority, status, attempts, max_attempts, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', 0, 3, NOW(), NOW())
+            ");
+            
+            $result = $stmt->execute([
+                $toEmail,
+                $toName,
+                $subject,
+                $templateName,
+                json_encode($templateData),
+                $emailType,
+                $priority
+            ]);
+            
+            if ($result) {
+                $emailId = $this->pdo->lastInsertId();
+                error_log("Email queued successfully - ID: $emailId, To: $toEmail, Subject: $subject");
+                return $emailId;
+            } else {
+                error_log("Failed to queue email - To: $toEmail, Subject: $subject");
+                return false;
+            }
         } catch (Exception $e) {
             error_log("EmailQueue::addToQueue error: " . $e->getMessage());
             return false;
@@ -197,6 +219,94 @@ class EmailQueue
         ];
 
         return $templates[$templateName] ?? '<p>Email template not found: ' . $templateName . '</p>';
+    }
+
+    /**
+     * Process pending emails in the queue
+     */
+    public function processQueue($limit = 10)
+    {
+        try {
+            $processed = 0;
+            $failed = 0;
+            
+            // Get pending emails from queue
+            $stmt = $this->pdo->prepare("
+                SELECT * FROM email_queue 
+                WHERE status = 'pending' 
+                AND (scheduled_at IS NULL OR scheduled_at <= NOW())
+                ORDER BY priority ASC, created_at ASC 
+                LIMIT ?
+            ");
+            $stmt->execute([$limit]);
+            $emails = $stmt->fetchAll();
+            
+            foreach ($emails as $email) {
+                try {
+                    // Mark as processing
+                    $updateStmt = $this->pdo->prepare("
+                        UPDATE email_queue 
+                        SET status = 'processing', attempts = attempts + 1, updated_at = NOW()
+                        WHERE id = ?
+                    ");
+                    $updateStmt->execute([$email['id']]);
+                    
+                    // Decode template data
+                    $templateData = json_decode($email['template_data'], true) ?: [];
+                    
+                    // Send email
+                    $result = $this->sendEmailImmediately(
+                        $email['to_email'],
+                        $email['to_name'],
+                        $email['subject'],
+                        $email['template_name'],
+                        $templateData,
+                        $email['email_type']
+                    );
+                    
+                    if ($result) {
+                        // Mark as sent
+                        $updateStmt = $this->pdo->prepare("
+                            UPDATE email_queue 
+                            SET status = 'sent', sent_at = NOW(), updated_at = NOW()
+                            WHERE id = ?
+                        ");
+                        $updateStmt->execute([$email['id']]);
+                        $processed++;
+                    } else {
+                        // Mark as failed
+                        $updateStmt = $this->pdo->prepare("
+                            UPDATE email_queue 
+                            SET status = 'failed', error_message = 'Email sending failed', updated_at = NOW()
+                            WHERE id = ?
+                        ");
+                        $updateStmt->execute([$email['id']]);
+                        $failed++;
+                    }
+                    
+                } catch (Exception $e) {
+                    // Mark as failed with error message
+                    $updateStmt = $this->pdo->prepare("
+                        UPDATE email_queue 
+                        SET status = 'failed', error_message = ?, updated_at = NOW()
+                        WHERE id = ?
+                    ");
+                    $updateStmt->execute([$e->getMessage(), $email['id']]);
+                    $failed++;
+                    error_log("EmailQueue::processQueue error for email ID {$email['id']}: " . $e->getMessage());
+                }
+            }
+            
+            return [
+                'processed' => $processed,
+                'failed' => $failed,
+                'total' => count($emails)
+            ];
+            
+        } catch (Exception $e) {
+            error_log("EmailQueue::processQueue error: " . $e->getMessage());
+            return false;
+        }
     }
 
     /**

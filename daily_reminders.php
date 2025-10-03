@@ -52,6 +52,18 @@ try {
     $resetCount = $emailQueue->resetFailedEmails(24);
     logMessage("Reset $resetCount failed emails for retry");
     
+    // Process pending emails in queue
+    $queueResult = $emailQueue->processQueue(50); // Process up to 50 emails
+    if ($queueResult) {
+        logMessage("Processed {$queueResult['processed']} emails successfully");
+        if ($queueResult['failed'] > 0) {
+            logMessage("Failed to send {$queueResult['failed']} emails");
+        }
+        logMessage("Total emails processed: {$queueResult['total']}");
+    } else {
+        logMessage("Error processing email queue");
+    }
+    
     // Get statistics
     $stats = $emailQueue->getStats();
     logMessage("Email queue statistics:");
