@@ -638,7 +638,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <div class="form-check mt-4">
                             <input class="form-check-input" type="checkbox" name="participants[${participantCount - 1}][requires_visa]" value="1">
                             <label class="form-check-label">
-                                Requires visa to enter Ghana?
+                                Requires visa to enter South Africa?
                             </label>
                         </div>
                     </div>

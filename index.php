@@ -711,7 +711,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                                 <div class="form-check mt-4">
                                     <input class="form-check-input" type="checkbox" name="requires_visa" id="requires_visa" value="1" <?php echo isset($formData['requires_visa']) ? 'checked' : ''; ?>>
                                     <label class="form-check-label" for="requires_visa">
-                                        Do you require a visa to enter Ghana?
+                                        Do you require a visa to enter South Africa?
                                     </label>
                                 </div>
                             </div>
