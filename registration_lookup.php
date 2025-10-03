@@ -52,7 +52,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'pay' && isset($_GET['id']) &&
     if ($registration && $registration['payment_status'] === 'pending') {
         // Generate payment token and redirect to payment page
         $paymentToken = generatePaymentToken($registrationId);
-        $paymentUrl = rtrim(APP_URL, '/') . "/checkout_payment.php?registration_id=" . $registrationId . "&token=" . $paymentToken;
+        $paymentUrl = rtrim(APP_URL, '/') . "/payment/payment_confirm.php?registration_id=" . $registrationId . "&token=" . $paymentToken;
         header("Location: " . $paymentUrl);
         exit;
     } else {
