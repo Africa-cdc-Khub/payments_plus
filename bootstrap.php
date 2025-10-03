@@ -62,6 +62,7 @@ define('EXCHANGE_CLIENT_ID', $_ENV['EXCHANGE_CLIENT_ID'] ?? '');
 define('EXCHANGE_CLIENT_SECRET', $_ENV['EXCHANGE_CLIENT_SECRET'] ?? '');
 define('EXCHANGE_REDIRECT_URI', $_ENV['EXCHANGE_REDIRECT_URI'] ?? 'http://localhost:8000/oauth/callback');
 define('EXCHANGE_SCOPE', $_ENV['EXCHANGE_SCOPE'] ?? 'https://graph.microsoft.com/Mail.Send');
+define('EXCHANGE_AUTH_METHOD', $_ENV['EXCHANGE_AUTH_METHOD'] ?? 'client_credentials'); 
 
 // Admin email configuration
 define('ADMIN_EMAIL', $_ENV['ADMIN_EMAIL'] ?? 'admin@cphia2025.com');
