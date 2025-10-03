@@ -85,12 +85,34 @@ include 'security.php';
         </div>
 
         <div class="back-link">
-            <a href="./">← Go Back</a>
+            <?php
+            // Extract registration ID from reference number or other parameters
+            $registrationId = null;
+            $email = '';
+            
+            // Try to get registration ID from reference number
+            if (!empty($referenceNumber)) {
+                // Extract registration ID from reference number (assuming format like "REG_123")
+                if (preg_match('/REG_(\d+)/', $referenceNumber, $matches)) {
+                    $registrationId = $matches[1];
+                } else {
+                    $registrationId = $referenceNumber; // Use reference number as registration ID
+                }
+            }
+            
+            // Try to get email from request parameters
+            $email = @$response['req_bill_to_email'] ?: @$response['email'];
+            
+            if ($registrationId && $email) {
+                // Redirect to payment status page with registration details
+                $paymentStatusUrl = '../payment_status.php?id=' . urlencode($registrationId) . '&email=' . urlencode($email);
+                echo '<a href="' . htmlspecialchars($paymentStatusUrl) . '">← View Registration Status</a>';
+            } else {
+                // Fallback to registration lookup if we can't determine registration details
+                echo '<a href="../registration_lookup.php">← Go Back to Registration Lookup</a>';
+            }
+            ?>
         </div>
-    </div>
-</body>
-</html>
-
     </div>
 </body>
 </html>

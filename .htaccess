@@ -1,0 +1,54 @@
+# Disable directory browsing
+Options -Indexes
+
+# Prevent access to sensitive files
+<FilesMatch "\.(env|ini|conf|log|sql|md|txt|json|lock|key|pem|crt)$">
+    Order Allow,Deny
+    Deny from all
+</FilesMatch>
+
+# Protect configuration files
+<Files "bootstrap.php">
+    Order Allow,Deny
+    Deny from all
+</Files>
+
+<Files "db_connector.php">
+    Order Allow,Deny
+    Deny from all
+</Files>
+
+<Files "functions.php">
+    Order Allow,Deny
+    Deny from all
+</Files>
+
+# Protect test and debug files
+<FilesMatch "^(test_|debug_|check_).*\.php$">
+    Order Allow,Deny
+    Deny from all
+</FilesMatch>
+
+# Protect migration and setup files
+<FilesMatch "^(migrations|setup|install|run_migrations).*\.php$">
+    Order Allow,Deny
+    Deny from all
+</FilesMatch>
+
+# Protect vendor directory
+<Directory "vendor">
+    Order Allow,Deny
+    Deny from all
+</Directory>
+
+# Protect composer files
+<Files "composer.*">
+    Order Allow,Deny
+    Deny from all
+</Files>
+
+# Prevent access to hidden files
+<FilesMatch "^\.">
+    Order Allow,Deny
+    Deny from all
+</FilesMatch>

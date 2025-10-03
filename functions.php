@@ -31,19 +31,58 @@ function getPackagesByType($type) {
     return $stmt->fetchAll();
 }
 
+// File upload functions
+function handleFileUpload($file, $uploadDir = 'uploads/passports/') {
+    if (!isset($file) || $file['error'] !== UPLOAD_ERR_OK) {
+        return false;
+    }
+    
+    // Create upload directory if it doesn't exist
+    if (!is_dir($uploadDir)) {
+        mkdir($uploadDir, 0755, true);
+    }
+    
+    // Validate file type
+    $allowedTypes = ['application/pdf'];
+    $fileType = mime_content_type($file['tmp_name']);
+    
+    if (!in_array($fileType, $allowedTypes)) {
+        return false;
+    }
+    
+    // Validate file size (5MB max)
+    if ($file['size'] > 5 * 1024 * 1024) {
+        return false;
+    }
+    
+    // Generate unique filename
+    $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
+    $filename = uniqid() . '_' . time() . '.' . $extension;
+    $filepath = $uploadDir . $filename;
+    
+    // Move uploaded file
+    if (move_uploaded_file($file['tmp_name'], $filepath)) {
+        return $filename;
+    }
+    
+    return false;
+}
+
 // User functions
 function createUser($data) {
     $pdo = getConnection();
-    $sql = "INSERT INTO users (email, title, first_name, last_name, phone, nationality, organization, 
-            address_line1, address_line2, city, state, country, postal_code) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    $sql = "INSERT INTO users (email, title, first_name, last_name, phone, nationality, passport_number, 
+            passport_file, requires_visa, organization, position, address_line1, city, state, country) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     $stmt = $pdo->prepare($sql);
-    return $stmt->execute([
+    $stmt->execute([
         $data['email'], $data['title'] ?? '', $data['first_name'], $data['last_name'], 
-        $data['phone'], $data['nationality'], $data['organization'],
-        $data['address_line1'], $data['address_line2'] ?? '', $data['city'], 
-        $data['state'] ?? '', $data['country'], $data['postal_code']
+        $data['phone'], $data['nationality'], $data['passport_number'] ?? '', 
+        $data['passport_file'] ?? '', $data['requires_visa'] ?? '', $data['organization'],
+        $data['position'] ?? '', $data['address_line1'], $data['city'], 
+        $data['state'] ?? '', $data['country']
     ]);
+    return $pdo->lastInsertId();
 }
 
 function getUserByEmail($email) {
@@ -78,15 +117,16 @@ function createRegistration($data) {
 
 function createRegistrationParticipants($registrationId, $participants) {
     $pdo = getConnection();
-    $sql = "INSERT INTO registration_participants (registration_id, title, first_name, last_name, email, nationality, passport_number, organization) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+    $sql = "INSERT INTO registration_participants (registration_id, title, first_name, last_name, email, nationality, passport_number, passport_file, requires_visa, organization) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     $stmt = $pdo->prepare($sql);
     
     foreach ($participants as $participant) {
         $stmt->execute([
             $registrationId, $participant['title'], $participant['first_name'], 
             $participant['last_name'], $participant['email'], $participant['nationality'],
-            $participant['passport_number'] ?? '', $participant['organization'] ?? ''
+            $participant['passport_number'] ?? '', $participant['passport_file'] ?? '', 
+            $participant['requires_visa'] ?? '', $participant['organization'] ?? ''
         ]);
     }
 }
@@ -161,13 +201,9 @@ function sendRegistrationEmails($user, $registrationId, $package, $amount, $part
     // Queue registration confirmation to user
     $userName = $user['first_name'] . ' ' . $user['last_name'];
     
-    // Generate payment link for pending payments
-    $paymentLink = '';
+    // Generate payment status link (no payment link in registration email)
+    $paymentStatusLink = rtrim(APP_URL, '/') . "/payment_status.php?id=" . $registrationId . "&email=" . urlencode($user['email']);
     $paymentStatus = 'pending'; // All new registrations start as pending
-    if ($paymentStatus === 'pending') {
-        $paymentToken = generatePaymentToken($registrationId);
-        $paymentLink = rtrim(APP_URL, '/') . "/sa-wm/payment_confirm.php?registration_id=" . $registrationId . "&token=" . $paymentToken;
-    }
     
     $templateData = [
         'user_name' => $userName,
@@ -181,7 +217,7 @@ function sendRegistrationEmails($user, $registrationId, $package, $amount, $part
         'conference_location' => CONFERENCE_LOCATION,
         'conference_venue' => CONFERENCE_VENUE,
         'logo_url' => EMAIL_LOGO_URL,
-        'payment_link' => $paymentLink,
+        'payment_status_link' => $paymentStatusLink,
         'payment_status' => $paymentStatus
     ];
 
@@ -583,13 +619,12 @@ function checkDuplicateRegistration($email, $packageId, $eventDate = null) {
     $eventYear = $eventRange['year'];
     
     $stmt = $pdo->prepare("
-        SELECT r.id, r.status, r.created_at, p.name as package_name, u.first_name, u.last_name
+        SELECT r.id, r.status, r.payment_status, r.created_at, p.name as package_name, u.first_name, u.last_name
         FROM registrations r
         JOIN packages p ON r.package_id = p.id
         JOIN users u ON r.user_id = u.id
         WHERE u.email = ? 
         AND r.package_id = ? 
-        AND r.payment_status = 'completed'
         AND r.created_at >= ? 
         AND r.created_at <= ?
         ORDER BY r.created_at DESC
@@ -604,7 +639,8 @@ function checkDuplicateRegistration($email, $packageId, $eventDate = null) {
             'is_duplicate' => true,
             'registration' => $existingRegistration,
             'event_date' => $eventDate,
-            'event_year' => $eventYear
+            'event_year' => $eventYear,
+            'payment_status' => $existingRegistration['payment_status']
         ];
     }
     
@@ -686,21 +722,23 @@ function getRegistrationDetails($registrationId) {
 function getDuplicateRegistrationMessage($duplicateData) {
     $registration = $duplicateData['registration'];
     $packageName = $registration['package_name'];
-    $status = $registration['status'];
+    $paymentStatus = $duplicateData['payment_status'] ?? $registration['payment_status'];
     $createdAt = date('F j, Y \a\t g:i A', strtotime($registration['created_at']));
     $name = $registration['first_name'] . ' ' . $registration['last_name'];
     $eventDate = $duplicateData['event_date'] ?? CONFERENCE_DATES;
     
     $statusMessages = [
         'pending' => 'is pending payment',
-        'paid' => 'has been completed and paid',
+        'completed' => 'has been completed and paid',
+        'failed' => 'failed payment',
         'cancelled' => 'was cancelled'
     ];
     
-    $statusText = $statusMessages[$status] ?? 'exists';
+    $statusText = $statusMessages[$paymentStatus] ?? 'exists';
     
     return "You have already registered for the <strong>{$packageName}</strong> package for <strong>{$eventDate}</strong>. " .
-           "Your previous registration (ID: #{$registration['id']}) {$statusText} and was created on {$createdAt}.";
+           "Your previous registration (ID: #{$registration['id']}) {$statusText} and was created on {$createdAt}. " .
+           "Each email address can only register once per package.";
 }
 
 // Function to check if a nationality is African

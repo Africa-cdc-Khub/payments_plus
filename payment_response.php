@@ -199,7 +199,15 @@ error_log("Payment Response: " . $message . " | Signed: " . $signed);
         <?php endif; ?>
 
         <div style="text-align: center;">
-            <a href="index.php" class="btn-home">Return to Home</a>
+            <?php
+            // Try to redirect to payment status page if we have registration details
+            if ($registrationId && isset($registration['email'])) {
+                $paymentStatusUrl = 'payment_status.php?id=' . urlencode($registrationId) . '&email=' . urlencode($registration['email']);
+                echo '<a href="' . htmlspecialchars($paymentStatusUrl) . '" class="btn-home">View Registration Status</a>';
+            } else {
+                echo '<a href="index.php" class="btn-home">Return to Home</a>';
+            }
+            ?>
         </div>
 
         <?php if (APP_DEBUG): ?>

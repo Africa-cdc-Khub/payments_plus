@@ -304,9 +304,13 @@ document.addEventListener('DOMContentLoaded', function() {
         const nationality = $('#nationality').val();
         if (!nationality || !selectedPackage) return;
         
+        const isAfrican = isAfricanNational(nationality);
         const registrationType = document.querySelector('input[name="registration_type"]:checked');
         
-        if (registrationType && registrationType.value === 'group') {
+        if (registrationType && registrationType.value === 'individual') {
+            // Update package selection based on African status
+            // Pricing is handled automatically based on nationality
+        } else if (registrationType && registrationType.value === 'group') {
             // Check all participant nationalities for group pricing
             checkGroupPricing();
         }
@@ -330,12 +334,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         
-        // Show appropriate pricing message
-        if (hasNonAfricanParticipants || !isMainAfrican) {
-            showWarning('Group includes non-African participants - Non-African pricing ($400 per person) will apply', 'Group Pricing');
-        } else {
-            showInfo('All participants are African nationals - African pricing ($200 per person) applies', 'Group Pricing');
-        }
+        // Pricing is handled automatically based on participant nationalities
     }
 
     // Registration type change
@@ -658,9 +657,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label class="form-label">Passport Copy (PDF/Image)</label>
-                        <input type="file" class="form-control" name="participants[${participantCount - 1}][passport_file]" accept=".pdf,.jpg,.jpeg,.png,.gif,.bmp,.tiff,.webp">
-                        <div class="form-text small">Upload passport copy (PDF or image format, max 5MB)</div>
+                        <label class="form-label">Passport Copy (PDF)</label>
+                        <input type="file" class="form-control" name="participants[${participantCount - 1}][passport_file]" accept=".pdf">
+                        <div class="form-text small">Upload passport copy (PDF, max 5MB)</div>
                     </div>
                     <div class="col-md-6 mb-3">
                         <label class="form-label">Requires visa to enter South Africa? *</label>
@@ -824,7 +823,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (formData.organization) document.getElementById('organization').value = formData.organization;
             if (formData.position) document.getElementById('position').value = formData.position;
             if (formData.passport_number) document.getElementById('passport_number').value = formData.passport_number;
-            if (formData.passport_file) document.getElementById('passport_file').value = formData.passport_file;
+            // Note: File inputs cannot be restored for security reasons
             if (formData.requires_visa) {
                 if (formData.requires_visa === '1') {
                     document.getElementById('visa_yes').checked = true;
@@ -833,11 +832,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
             if (formData.address_line1) document.getElementById('address_line1').value = formData.address_line1;
-            if (formData.address_line2) document.getElementById('address_line2').value = formData.address_line2;
             if (formData.city) document.getElementById('city').value = formData.city;
             if (formData.state) document.getElementById('state').value = formData.state;
             if (formData.country) document.getElementById('country').value = formData.country;
-            if (formData.postal_code) document.getElementById('postal_code').value = formData.postal_code;
             if (formData.exhibition_description) document.getElementById('exhibition_description').value = formData.exhibition_description;
             
             // Restore registration type
@@ -891,7 +888,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             if (participant.email) participantContainer.querySelector('input[name*="[email]"]').value = participant.email;
                             if (participant.nationality) participantContainer.querySelector('select[name*="[nationality]"]').value = participant.nationality;
                             if (participant.passport_number) participantContainer.querySelector('input[name*="[passport_number]"]').value = participant.passport_number;
-                            if (participant.passport_file) participantContainer.querySelector('input[name*="[passport_file]"]').value = participant.passport_file;
+                            // Note: File inputs cannot be restored for security reasons
                             if (participant.requires_visa) {
                                 const visaRadio = participantContainer.querySelector(`input[name*="[requires_visa]"][value="${participant.requires_visa}"]`);
                                 if (visaRadio) visaRadio.checked = true;

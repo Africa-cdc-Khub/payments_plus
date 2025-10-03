@@ -67,9 +67,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = "Please enter a valid phone number";
     }
     
-    if (!empty($_POST['postal_code']) && !validatePostalCode($_POST['postal_code'])) {
-        $errors[] = "Please enter a valid postal code";
-    }
     
     if (!empty($_POST['passport_number']) && !validatePassportNumber($_POST['passport_number'])) {
         $errors[] = "Please enter a valid passport number";
@@ -119,17 +116,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Prepare user data
             $userData = [
                 'email' => sanitizeInput($_POST['email']),
+                'title' => sanitizeInput($_POST['title']),
                 'first_name' => sanitizeInput($_POST['first_name']),
                 'last_name' => sanitizeInput($_POST['last_name']),
                 'phone' => sanitizeInput($_POST['phone']),
                 'nationality' => sanitizeInput($_POST['nationality']),
+                'passport_number' => sanitizeInput($_POST['passport_number']),
+                'passport_file' => handleFileUpload($_FILES['passport_file'] ?? null) ?: '',
+                'requires_visa' => $_POST['requires_visa'] ?? '',
                 'organization' => sanitizeInput($_POST['organization']),
+                'position' => sanitizeInput($_POST['position']),
                 'address_line1' => sanitizeInput($_POST['address_line1']),
-                'address_line2' => sanitizeInput($_POST['address_line2']),
                 'city' => sanitizeInput($_POST['city']),
                 'state' => sanitizeInput($_POST['state']),
                 'country' => sanitizeInput($_POST['country']),
-                'postal_code' => sanitizeInput($_POST['postal_code'])
             ];
             
             // Get or create user
@@ -219,6 +219,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             'email' => sanitizeInput($participant['email']),
                             'nationality' => sanitizeInput($participant['nationality']),
                             'passport_number' => sanitizeInput($participant['passport_number']),
+                            'passport_file' => handleFileUpload($participant['passport_file'] ?? null) ?: '',
+                            'requires_visa' => $participant['requires_visa'] ?? '',
                             'organization' => sanitizeInput($participant['organization'])
                         ];
                     }
@@ -236,6 +238,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             'email' => sanitizeInput($participant['email']),
                             'nationality' => sanitizeInput($participant['nationality']),
                             'passport_number' => sanitizeInput($participant['passport_number']),
+                            'passport_file' => handleFileUpload($participant['passport_file'] ?? null) ?: '',
+                            'requires_visa' => $participant['requires_visa'] ?? '',
                             'organization' => sanitizeInput($participant['organization'])
                         ];
                     }
@@ -301,16 +305,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
         'phone' => $_POST['phone'] ?? '',
         'nationality' => $_POST['nationality'] ?? '',
         'passport_number' => $_POST['passport_number'] ?? '',
-        'passport_file' => $_POST['passport_file'] ?? '',
+        'passport_file' => $_FILES['passport_file']['name'] ?? '',
         'requires_visa' => $_POST['requires_visa'] ?? '',
         'organization' => $_POST['organization'] ?? '',
         'position' => $_POST['position'] ?? '',
         'address_line1' => $_POST['address_line1'] ?? '',
-        'address_line2' => $_POST['address_line2'] ?? '',
         'city' => $_POST['city'] ?? '',
         'state' => $_POST['state'] ?? '',
         'country' => $_POST['country'] ?? '',
-        'postal_code' => $_POST['postal_code'] ?? '',
         'num_people' => $_POST['num_people'] ?? '',
         'exhibition_description' => $_POST['exhibition_description'] ?? '',
         'participants' => $_POST['participants'] ?? []
@@ -715,9 +717,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                         </div>
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label for="passport_file" class="form-label">Passport Copy (PDF/Image)</label>
-                                <input type="file" class="form-control" name="passport_file" id="passport_file" accept=".pdf,.jpg,.jpeg,.png,.gif,.bmp,.tiff,.webp" value="<?php echo htmlspecialchars($formData['passport_file'] ?? ''); ?>">
-                                <div class="form-text">Upload a clear copy of your passport (PDF or image format, max 5MB)</div>
+                                <label for="passport_file" class="form-label">Passport Copy (PDF)</label>
+                                <input type="file" class="form-control" name="passport_file" id="passport_file" accept=".pdf" value="<?php echo htmlspecialchars($formData['passport_file'] ?? ''); ?>">
+                                <div class="form-text">Upload a clear copy of your passport (PDF format, max 5MB)</div>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Do you require a visa to enter South Africa? *</label>
@@ -755,12 +757,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                     </div>
                     <div class="card-body">
                         <div class="mb-3">
-                            <label for="address_line1" class="form-label">Address Line 1</label>
-                            <input type="text" class="form-control" name="address_line1" id="address_line1" value="<?php echo htmlspecialchars($formData['address_line1'] ?? ''); ?>">
-                        </div>
-                        <div class="mb-3">
-                            <label for="address_line2" class="form-label">Address Line 2</label>
-                            <input type="text" class="form-control" name="address_line2" id="address_line2" value="<?php echo htmlspecialchars($formData['address_line2'] ?? ''); ?>">
+                            <label for="address_line1" class="form-label">Address *</label>
+                            <input type="text" class="form-control" name="address_line1" id="address_line1" value="<?php echo htmlspecialchars($formData['address_line1'] ?? ''); ?>" required>
                         </div>
                         <div class="row">
                             <div class="col-md-6 mb-3">
@@ -776,10 +774,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                             <div class="col-md-6 mb-3">
                                 <label for="country" class="form-label">Country</label>
                                 <input type="text" class="form-control" name="country" id="country" value="<?php echo htmlspecialchars($formData['country'] ?? ''); ?>">
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="postal_code" class="form-label">Postal Code</label>
-                                <input type="text" class="form-control" name="postal_code" id="postal_code" value="<?php echo htmlspecialchars($formData['postal_code'] ?? ''); ?>">
                             </div>
                         </div>
                     </div>

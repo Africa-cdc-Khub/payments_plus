@@ -1,0 +1,22 @@
+# Disable directory browsing
+Options -Indexes
+
+# Deny access to all files except PHP files
+<Files "*">
+    Require all denied
+</Files>
+
+# Allow only PHP files
+<Files "*.php">
+    Require all granted
+</Files>
+
+# Prevent access to sensitive files
+<FilesMatch "\.(log|txt|md|json|env|ini|conf|sql)$">
+    Require all denied
+</FilesMatch>
+
+# Protect migration files
+<Directory "migrations">
+    Require all denied
+</Directory>

@@ -67,11 +67,9 @@ function createTables() {
         nationality VARCHAR(100),
         organization VARCHAR(255),
         address_line1 VARCHAR(255),
-        address_line2 VARCHAR(255),
         city VARCHAR(100),
         state VARCHAR(100),
         country VARCHAR(100),
-        postal_code VARCHAR(20),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )";
     $pdo->exec($sql);
@@ -207,10 +205,19 @@ function insertPackages() {
         ['Uhuru Platinum', 'Platinum level exhibition package', 75000.00, 'USD', 'exhibition', 50]
     ];
     
-    $stmt = $pdo->prepare("INSERT INTO packages (name, description, price, currency, type, max_people) VALUES (?, ?, ?, ?, ?, ?)");
+    $checkStmt = $pdo->prepare("SELECT COUNT(*) FROM packages WHERE name = ?");
+    $insertStmt = $pdo->prepare("INSERT INTO packages (name, description, price, currency, type, max_people) VALUES (?, ?, ?, ?, ?, ?)");
     
     foreach ($packages as $package) {
-        $stmt->execute($package);
+        $checkStmt->execute([$package[0]]);
+        $exists = $checkStmt->fetchColumn();
+        
+        if ($exists == 0) {
+            $insertStmt->execute($package);
+            echo "✓ Added package: {$package[0]}\n";
+        } else {
+            echo "✓ Package already exists: {$package[0]}\n";
+        }
     }
 }
 

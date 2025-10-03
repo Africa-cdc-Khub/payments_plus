@@ -42,7 +42,7 @@ try {
     
     // Generate payment token
     $paymentToken = generatePaymentToken($registrationId);
-    $paymentLink = rtrim(APP_URL, '/') . "/sa-wm/payment_confirm.php?registration_id=" . $registrationId . "&token=" . $paymentToken;
+    $paymentLink = rtrim(APP_URL, '/') . "/checkout_payment.php?registration_id=" . $registrationId . "&token=" . $paymentToken;
     
     // Prepare email data
     $user = [
@@ -81,9 +81,9 @@ try {
         $user['email'],
         $userName,
         CONFERENCE_SHORT_NAME . " - Payment Link for Registration #" . $registrationId,
-        'registration_confirmation',
+        'payment_link',
         $templateData,
-        'registration_confirmation',
+        'payment_link',
         5
     );
     

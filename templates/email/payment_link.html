@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>{{conference_short_name}} - Registration Confirmation</title>
+    <title>{{conference_short_name}} - Payment Link</title>
     <style>
         body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; }
         .header { background: #063218; color: white; padding: 20px; text-align: center; }
@@ -11,6 +11,7 @@
         .footer { text-align: center; padding: 20px; background: #e2e8f0; color: #666; }
         .logo { max-height: 60px; margin-bottom: 10px; }
         .highlight { color: #063218; font-weight: bold; }
+        .payment-button { display: inline-block; background: #28a745; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; margin: 10px 0; }
     </style>
 </head>
 <body>
@@ -21,38 +22,41 @@
     </div>
     
     <div class="content">
-        <h2>Registration Confirmed! 🎉</h2>
+        <h2>Complete Your Payment 💳</h2>
         <p>Dear <span class="highlight">{{user_name}}</span>,</p>
-        <p>Thank you for registering for {{conference_short_name}}! We're excited to have you join us.</p>
+        <p>You requested a payment link for your {{conference_short_name}} registration. Please complete your payment to finalize your registration.</p>
         
         <div class="details">
-            <h3>Registration Details</h3>
+            <h3>Payment Details</h3>
             <p><strong>Registration ID:</strong> #{{registration_id}}</p>
             <p><strong>Package:</strong> {{package_name}}</p>
-            <p><strong>Amount:</strong> ${{amount}}</p>
+            <p><strong>Amount Due:</strong> <span class="highlight">${{amount}}</span></p>
             <p><strong>Conference:</strong> {{conference_dates}}</p>
             <p><strong>Location:</strong> {{conference_venue}}, {{conference_location}}</p>
         </div>
         
-        <h3>What's Next?</h3>
-        <ul>
-            <li>View your registration status and complete payment</li>
-            <li>Conference materials will be sent closer to the event date</li>
-            <li>Check your email for regular updates about the conference</li>
-        </ul>
-        
         <div class="details" style="text-align: center; margin: 30px 0;">
-            <h3>View Your Registration Status</h3>
-            <p>Click the button below to view your registration details and complete your payment:</p>
-            <a href="{{payment_status_link}}" style="display: inline-block; background: #063218; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; margin: 10px 0;">
-                View Registration Status
+            <h3>Secure Payment</h3>
+            <p>Click the button below to complete your payment securely:</p>
+            <a href="{{payment_link}}" class="payment-button">
+                Pay ${{amount}} Now
             </a>
             <p style="font-size: 12px; color: #666; margin-top: 10px;">
-                Or copy and paste this link: {{payment_status_link}}
+                Or copy and paste this link: {{payment_link}}
             </p>
         </div>
         
-        <p>If you have any questions, please don't hesitate to contact us at <a href="mailto:{{mail_from_address}}">{{mail_from_address}}</a></p>
+        <div class="details">
+            <h3>Payment Security</h3>
+            <ul>
+                <li>Your payment is processed securely through our payment partner</li>
+                <li>We accept all major credit cards</li>
+                <li>Your payment information is encrypted and protected</li>
+                <li>You will receive a receipt upon successful payment</li>
+            </ul>
+        </div>
+        
+        <p><strong>Important:</strong> This payment link is valid for 7 days. If you have any questions or need assistance, please contact us at <a href="mailto:{{mail_from_address}}">{{mail_from_address}}</a></p>
     </div>
     
     <div class="footer">
