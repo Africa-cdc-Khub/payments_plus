@@ -166,7 +166,13 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             // Repopulate nationality select with filtered countries
-            populateNationalitySelect();
+            // Ensure countries are loaded first
+            if (countries.length === 0) {
+                console.log('Countries not loaded yet, loading...');
+                loadCountries();
+            } else {
+                populateNationalitySelect();
+            }
         } catch (error) {
             console.error('Error in selectPackage:', error);
         }
@@ -185,11 +191,16 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function loadCountries() {
+        console.log('Loading countries...');
         fetch('data/countries.json')
             .then(response => response.json())
             .then(data => {
                 countries = data;
-                populateNationalitySelect();
+                console.log('Countries loaded:', countries.length);
+                // Only populate if no package is selected yet
+                if (!selectedPackage) {
+                    populateNationalitySelect();
+                }
             })
             .catch(error => {
                 console.error('Error loading countries:', error);
@@ -209,10 +220,16 @@ document.addEventListener('DOMContentLoaded', function() {
         // Get the current selected value before clearing
         const currentValue = nationalitySelect.value;
         
+        console.log('populateNationalitySelect called');
+        console.log('selectedPackage:', selectedPackage);
+        
         // Filter countries based on selected package
         const filteredCountries = selectedPackage ? 
             filterCountriesByPackage(selectedPackage.id, selectedPackage.name) : 
             countries;
+        
+        console.log('filteredCountries count:', filteredCountries.length);
+        console.log('First few countries:', filteredCountries.slice(0, 5).map(c => c.nationality));
         
         nationalitySelect.innerHTML = '<option value="">Select Nationality</option>';
         filteredCountries.forEach(country => {
@@ -231,6 +248,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Initialize Select2 for nationality dropdown
     function initializeSelect2() {
+        // Destroy existing Select2 if it exists
+        if ($('#nationality').hasClass('select2-hidden-accessible')) {
+            $('#nationality').select2('destroy');
+        }
+        
         $('#nationality').select2({
             theme: 'bootstrap-5',
             placeholder: 'Select Nationality',
@@ -273,13 +295,23 @@ document.addEventListener('DOMContentLoaded', function() {
         
         let filteredCountries = countries;
         
+        console.log('filterCountriesByPackage called with:', packageId, packageName);
+        console.log('Package name check:', packageName ? packageName.toLowerCase() : 'null');
+        console.log('Contains african nationals:', packageName ? packageName.toLowerCase().includes('african nationals') : false);
+        
         // Check package name for African/Non-African filtering
         if (packageName && packageName.toLowerCase().includes('african nationals')) {
             // African Nationals package - show only African countries
+            console.log('Filtering for African Nationals');
             filteredCountries = countries.filter(country => isAfricanNational(country.nationality));
+            console.log('African countries found:', filteredCountries.length);
         } else if (packageName && packageName.toLowerCase().includes('non african')) {
             // Non-African Nationals package - show only non-African countries
+            console.log('Filtering for Non-African Nationals');
             filteredCountries = countries.filter(country => !isAfricanNational(country.nationality));
+            console.log('Non-African countries found:', filteredCountries.length);
+        } else {
+            console.log('No filtering applied - showing all countries');
         }
         // For other packages (side events, exhibitions), show all countries
         
