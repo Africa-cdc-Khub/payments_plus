@@ -82,62 +82,9 @@ class EmailQueue
                 return $this->sendSimpleEmail($toEmail, $toName, $subject, $templateData);
             }
 
-            // Map email types to EmailService methods
-            switch ($emailType) {
-                case 'registration_confirmation':
-                    return $this->emailService->sendRegistrationConfirmation(
-                        $toEmail,
-                        $toName,
-                        $templateData['registration_id'] ?? '',
-                        $templateData['package_name'] ?? '',
-                        $templateData['amount'] ?? 0,
-                        $templateData['participants'] ?? []
-                    );
-
-                case 'payment_link':
-                    return $this->emailService->sendPaymentLink(
-                        $toEmail,
-                        $toName,
-                        $templateData['registration_id'] ?? '',
-                        $templateData['amount'] ?? 0,
-                        $templateData['payment_link'] ?? ''
-                    );
-
-                case 'payment_confirmation':
-                    return $this->emailService->sendPaymentConfirmation(
-                        $toEmail,
-                        $toName,
-                        $templateData['registration_id'] ?? '',
-                        $templateData['amount'] ?? 0,
-                        $templateData['transaction_id'] ?? '',
-                        $templateData['participants'] ?? []
-                    );
-
-                case 'admin_registration':
-                    return $this->emailService->sendAdminRegistrationNotification(
-                        $templateData['registration_id'] ?? '',
-                        $templateData['user_name'] ?? '',
-                        $templateData['user_email'] ?? '',
-                        $templateData['package_name'] ?? '',
-                        $templateData['amount'] ?? 0,
-                        $templateData['registration_type'] ?? 'individual',
-                        $templateData['participants'] ?? []
-                    );
-
-                case 'admin_payment':
-                    return $this->emailService->sendAdminPaymentNotification(
-                        $templateData['registration_id'] ?? '',
-                        $templateData['user_name'] ?? '',
-                        $templateData['user_email'] ?? '',
-                        $templateData['amount'] ?? 0,
-                        $templateData['transaction_id'] ?? ''
-                    );
-
-                default:
-                    // Fallback to generic email sending
-                    $htmlContent = $this->renderTemplate($templateName, $templateData);
-                    return $this->emailService->sendEmail($toEmail, $subject, $htmlContent);
-            }
+            // Always use template rendering for consistent variable replacement
+            $htmlContent = $this->renderTemplate($templateName, $templateData);
+            return $this->emailService->sendEmail($toEmail, $toName, $subject, $htmlContent);
         } catch (Exception $e) {
             error_log("EmailQueue::sendEmailImmediately error: " . $e->getMessage());
             // Fall back to simple email

@@ -40,9 +40,8 @@ try {
         exit;
     }
     
-    // Generate payment token
-    $paymentToken = generatePaymentToken($registrationId);
-    $paymentLink = rtrim(APP_URL, '/') . "/checkout_payment.php?registration_id=" . $registrationId . "&token=" . $paymentToken;
+    // Generate payment link
+    $paymentLink = rtrim(APP_URL, '/') . "/registration_lookup.php?action=pay&id=" . $registrationId;
     
     // Prepare email data
     $user = [
@@ -72,9 +71,10 @@ try {
         'conference_dates' => CONFERENCE_DATES,
         'conference_location' => CONFERENCE_LOCATION,
         'conference_venue' => CONFERENCE_VENUE,
-        'logo_url' => EMAIL_LOGO_URL,
+        'logo_url' => rtrim(APP_URL, '/') . '/images/CPHIA-2025-logo_reverse.webp',
         'payment_link' => $paymentLink,
-        'payment_status' => 'pending'
+        'payment_status' => 'pending',
+        'mail_from_address' => MAIL_FROM_ADDRESS
     ];
     
     $result = $emailQueue->addToQueue(

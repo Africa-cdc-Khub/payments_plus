@@ -229,9 +229,10 @@ function sendRegistrationEmails($user, $registrationId, $package, $amount, $part
         'conference_dates' => CONFERENCE_DATES,
         'conference_location' => CONFERENCE_LOCATION,
         'conference_venue' => CONFERENCE_VENUE,
-        'logo_url' => EMAIL_LOGO_URL,
+        'logo_url' => rtrim(APP_URL, '/') . '/images/CPHIA-2025-logo_reverse.webp',
         'payment_status_link' => $paymentStatusLink,
-        'payment_status' => $paymentStatus
+        'payment_status' => $paymentStatus,
+        'mail_from_address' => MAIL_FROM_ADDRESS
     ];
 
     $result = $emailQueue->addToQueue(
@@ -261,7 +262,8 @@ function sendRegistrationEmails($user, $registrationId, $package, $amount, $part
         'conference_name' => CONFERENCE_NAME,
         'conference_short_name' => CONFERENCE_SHORT_NAME,
         'admin_name' => ADMIN_NAME,
-        'logo_url' => EMAIL_LOGO_URL
+        'logo_url' => rtrim(APP_URL, '/') . '/images/CPHIA-2025-logo_reverse.webp',
+        'mail_from_address' => MAIL_FROM_ADDRESS
     ];
 
     $result = $emailQueue->addToQueue(
@@ -282,17 +284,22 @@ function sendRegistrationEmails($user, $registrationId, $package, $amount, $part
     return $success;
 }
 
-function sendPaymentLinkEmail($user, $registrationId, $amount) {
+function sendPaymentLinkEmail($user, $registrationId, $amount, $packageName = null) {
     $emailQueue = new \Cphia2025\EmailQueue();
-    $paymentToken = generatePaymentToken($registrationId);
-    $baseUrl = APP_URL . dirname($_SERVER['PHP_SELF']);
-    $paymentLink = $baseUrl . "/sa-wm/payment_confirm.php?registration_id=" . $registrationId . "&token=" . $paymentToken;
+    $paymentLink = rtrim(APP_URL, '/') . "/registration_lookup.php?action=pay&id=" . $registrationId;
 
     $userName = $user['first_name'] . ' ' . $user['last_name'];
+    
+    // Get package name if not provided
+    if (!$packageName) {
+        $registration = getRegistrationById($registrationId);
+        $packageName = $registration ? $registration['package_name'] : 'Unknown Package';
+    }
     
     $templateData = [
         'user_name' => $userName,
         'registration_id' => $registrationId,
+        'package_name' => $packageName,
         'amount' => $amount,
         'payment_link' => $paymentLink,
         'conference_name' => CONFERENCE_NAME,
@@ -300,7 +307,8 @@ function sendPaymentLinkEmail($user, $registrationId, $amount) {
         'conference_dates' => CONFERENCE_DATES,
         'conference_location' => CONFERENCE_LOCATION,
         'conference_venue' => CONFERENCE_VENUE,
-        'logo_url' => EMAIL_LOGO_URL
+        'logo_url' => rtrim(APP_URL, '/') . '/images/CPHIA-2025-logo_reverse.webp',
+        'mail_from_address' => MAIL_FROM_ADDRESS
     ];
 
     return $emailQueue->addToQueue(
