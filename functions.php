@@ -75,10 +75,17 @@ function createUser($data) {
             passport_file, requires_visa, organization, position, address_line1, city, state, country) 
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     $stmt = $pdo->prepare($sql);
+    
+    // Convert requires_visa from yes/no to 1/0
+    $requiresVisa = 0;
+    if (isset($data['requires_visa']) && $data['requires_visa'] === 'yes') {
+        $requiresVisa = 1;
+    }
+    
     $stmt->execute([
         $data['email'], $data['title'] ?? '', $data['first_name'], $data['last_name'], 
         $data['phone'], $data['nationality'], $data['passport_number'] ?? '', 
-        $data['passport_file'] ?? '', $data['requires_visa'] ?? '', $data['organization'],
+        $data['passport_file'] ?? '', $requiresVisa, $data['organization'],
         $data['position'] ?? '', $data['address_line1'], $data['city'], 
         $data['state'] ?? '', $data['country']
     ]);
@@ -122,11 +129,17 @@ function createRegistrationParticipants($registrationId, $participants) {
     $stmt = $pdo->prepare($sql);
     
     foreach ($participants as $participant) {
+        // Convert requires_visa from yes/no to 1/0
+        $requiresVisa = 0;
+        if (isset($participant['requires_visa']) && $participant['requires_visa'] === 'yes') {
+            $requiresVisa = 1;
+        }
+        
         $stmt->execute([
             $registrationId, $participant['title'], $participant['first_name'], 
             $participant['last_name'], $participant['email'], $participant['nationality'],
             $participant['passport_number'] ?? '', $participant['passport_file'] ?? '', 
-            $participant['requires_visa'] ?? '', $participant['organization'] ?? ''
+            $requiresVisa, $participant['organization'] ?? ''
         ]);
     }
 }
