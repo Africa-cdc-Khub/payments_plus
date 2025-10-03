@@ -109,7 +109,7 @@ class ExchangeOAuth
         
         if (isset($response['access_token'])) {
             $this->accessToken = $response['access_token'];
-            $this->tokenExpiry = time() + ($response['expires_in'] ?? 3600);
+            $this->tokenExpiresAt = time() + ($response['expires_in'] ?? 3600);
             
             // Store tokens
             $this->storeTokens();
