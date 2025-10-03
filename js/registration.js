@@ -819,6 +819,7 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('Restoring form data:', formData);
             
             // Restore basic fields
+            if (formData.title) document.getElementById('title').value = formData.title;
             if (formData.first_name) document.getElementById('first_name').value = formData.first_name;
             if (formData.last_name) document.getElementById('last_name').value = formData.last_name;
             if (formData.email) document.getElementById('email').value = formData.email;

@@ -295,6 +295,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
         'package_id' => $_POST['package_id'] ?? '',
         'registration_type' => $_POST['registration_type'] ?? '',
         'email' => $_POST['email'] ?? '',
+        'title' => $_POST['title'] ?? '',
         'first_name' => $_POST['first_name'] ?? '',
         'last_name' => $_POST['last_name'] ?? '',
         'phone' => $_POST['phone'] ?? '',
@@ -669,11 +670,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                     </div>
                     <div class="card-body">
                         <div class="row">
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-2 mb-3">
+                                <label for="title" class="form-label">Title</label>
+                                <select name="title" id="title" class="form-select">
+                                    <option value="">Select</option>
+                                    <option value="Dr." <?php echo (($formData['title'] ?? '') === 'Dr.') ? 'selected' : ''; ?>>Dr.</option>
+                                    <option value="Prof." <?php echo (($formData['title'] ?? '') === 'Prof.') ? 'selected' : ''; ?>>Prof.</option>
+                                    <option value="Mr." <?php echo (($formData['title'] ?? '') === 'Mr.') ? 'selected' : ''; ?>>Mr.</option>
+                                    <option value="Mrs." <?php echo (($formData['title'] ?? '') === 'Mrs.') ? 'selected' : ''; ?>>Mrs.</option>
+                                    <option value="Ms." <?php echo (($formData['title'] ?? '') === 'Ms.') ? 'selected' : ''; ?>>Ms.</option>
+                                </select>
+                            </div>
+                            <div class="col-md-5 mb-3">
                                 <label for="first_name" class="form-label">First Name *</label>
                                 <input type="text" class="form-control" name="first_name" id="first_name" value="<?php echo htmlspecialchars($formData['first_name'] ?? ''); ?>" required>
                             </div>
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-5 mb-3">
                                 <label for="last_name" class="form-label">Last Name *</label>
                                 <input type="text" class="form-control" name="last_name" id="last_name" value="<?php echo htmlspecialchars($formData['last_name'] ?? ''); ?>" required>
                             </div>

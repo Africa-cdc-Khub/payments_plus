@@ -34,12 +34,12 @@ function getPackagesByType($type) {
 // User functions
 function createUser($data) {
     $pdo = getConnection();
-    $sql = "INSERT INTO users (email, first_name, last_name, phone, nationality, organization, 
+    $sql = "INSERT INTO users (email, title, first_name, last_name, phone, nationality, organization, 
             address_line1, address_line2, city, state, country, postal_code) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     $stmt = $pdo->prepare($sql);
     return $stmt->execute([
-        $data['email'], $data['first_name'], $data['last_name'], 
+        $data['email'], $data['title'] ?? '', $data['first_name'], $data['last_name'], 
         $data['phone'], $data['nationality'], $data['organization'],
         $data['address_line1'], $data['address_line2'] ?? '', $data['city'], 
         $data['state'] ?? '', $data['country'], $data['postal_code']
