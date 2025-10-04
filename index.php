@@ -565,6 +565,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
         <?php endif; ?>
             </div>
             
+            <!-- Duplicate Registration Alert -->
+            <?php if (isset($isDuplicateRegistration) && $isDuplicateRegistration): ?>
+                <div class="alert alert-warning">
+                    <div class="d-flex align-items-start">
+                        <div class="me-3">
+                            <i class="fas fa-exclamation-triangle fa-2x text-warning"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h4 class="alert-heading">Duplicate Registration Detected</h4>
+                            <p class="mb-3"><?php echo $duplicateMessage; ?></p>
+                            
+                            <div class="d-flex flex-wrap gap-2">
+                                <a href="registration_lookup.php" class="btn btn-lg" style="background: var(--primary-green); border-color: var(--primary-green); color: white;">
+                                    <i class="fas fa-eye me-2"></i>View My Registrations
+                                </a>
+                                
+                                <?php if ($duplicateRegistrationStatus === 'pending'): ?>
+                                    <a href="registration_lookup.php?action=pay&id=<?php echo $duplicateRegistrationId; ?>" class="btn btn-success">
+                                        <i class="fas fa-credit-card me-2"></i>Complete Payment
+                                    </a>
+                                <?php endif; ?>
+                                
+                                <a href="mailto:support@cphia2025.com?subject=Registration%20Inquiry&body=Registration%20ID:%20%23<?php echo $duplicateRegistrationId; ?>" class="btn btn-outline-secondary">
+                                    <i class="fas fa-envelope me-2"></i>Contact Support
+                                </a>
+                            </div>
+                            
+                            <hr class="my-3">
+                            <small class="text-muted">
+                                <strong>Need help?</strong> If you believe this is an error or need to make changes to your registration, 
+                                please contact our support team with your registration ID: <strong>#<?php echo $duplicateRegistrationId; ?></strong>
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            <?php endif; ?>
+
             <!-- Display User's Registration History -->
             <?php if (!empty($userRegistrationHistory)): ?>
                 <div class="mt-4">
@@ -662,41 +699,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
             <?php endif; ?>
         <?php endif; ?>
 
-        <?php if (isset($isDuplicateRegistration) && $isDuplicateRegistration): ?>
-            <div class="alert alert-warning">
-                <div class="d-flex align-items-start">
-                    <div class="me-3">
-                        <i class="fas fa-exclamation-triangle fa-2x text-warning"></i>
-                    </div>
-                    <div class="flex-grow-1">
-                        <h4 class="alert-heading">Duplicate Registration Detected</h4>
-                        <p class="mb-3"><?php echo $duplicateMessage; ?></p>
-                        
-                        <div class="d-flex flex-wrap gap-2">
-                            <a href="registration_lookup.php" class="btn btn-lg" style="background: var(--primary-green); border-color: var(--primary-green); color: white;">
-                                <i class="fas fa-eye me-2"></i>View My Registrations
-                            </a>
-                            
-                            <?php if ($duplicateRegistrationStatus === 'pending'): ?>
-                                <a href="registration_lookup.php?action=pay&id=<?php echo $duplicateRegistrationId; ?>" class="btn btn-success">
-                                    <i class="fas fa-credit-card me-2"></i>Complete Payment
-                                </a>
-                            <?php endif; ?>
-                            
-                            <a href="mailto:support@cphia2025.com?subject=Registration%20Inquiry&body=Registration%20ID:%20%23<?php echo $duplicateRegistrationId; ?>" class="btn btn-outline-secondary">
-                                <i class="fas fa-envelope me-2"></i>Contact Support
-                            </a>
-                        </div>
-                        
-                        <hr class="my-3">
-                        <small class="text-muted">
-                            <strong>Need help?</strong> If you believe this is an error or need to make changes to your registration, 
-                            please contact our support team with your registration ID: <strong>#<?php echo $duplicateRegistrationId; ?></strong>
-                        </small>
-                    </div>
-                </div>
-            </div>
-        <?php elseif (!empty($errors)): ?>
+
+        <?php if (!empty($errors)): ?>
             <div class="alert alert-danger">
                 <h3>Please correct the following errors:</h3>
                 <ul>
