@@ -196,10 +196,12 @@ if (isset($_GET['view']) && is_numeric($_GET['view'])) {
                                                 error_log("Registration #20 payment_status: " . ($registration['payment_status'] ?? 'NULL') . " (type: " . gettype($registration['payment_status']) . ")");
                                             }
                                             
-                                            if (($registration['payment_status'] ?? '') !== 'completed'): ?>
+                                            if (($registration['payment_status'] ?? '') !== 'completed' && $registration['total_amount'] > 0): ?>
                                                 <a href="?action=pay&id=<?php echo $registration['id']; ?>" class="btn btn-success btn-sm">
                                                     <i class="fas fa-credit-card me-1"></i>Complete Payment
                                                 </a>
+                                            <?php elseif ($registration['total_amount'] == 0): ?>
+                                                <span class="badge bg-success">No Payment Required</span>
                                             <?php endif; ?>
                                         </div>
                                     </div>

@@ -628,17 +628,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                                             </div>
                                             
                                             <!-- Action Buttons -->
-                                            <?php if ($registration['payment_status'] !== 'completed'): ?>
+                                            <?php if ($registration['payment_status'] !== 'completed' && $registration['total_amount'] > 0): ?>
                                                 <div class="mt-2">
                                                     <a href="registration_lookup.php?action=pay&id=<?php echo $registration['id']; ?>" class="btn btn-success btn-sm">
                                                         <i class="fas fa-credit-card me-1"></i>Complete Payment
                                                     </a>
                                                 </div>
-                                            <?php else: ?>
+                                            <?php elseif ($registration['payment_status'] === 'completed'): ?>
                                                 <div class="mt-2">
                                                     <a href="registration_lookup.php?action=receipt&id=<?php echo $registration['id']; ?>" class="btn btn-outline-success btn-sm">
                                                         <i class="fas fa-receipt me-1"></i>View Receipt
                                                     </a>
+                                                </div>
+                                            <?php else: ?>
+                                                <div class="mt-2">
+                                                    <span class="badge bg-success">No Payment Required</span>
                                                 </div>
                                             <?php endif; ?>
                                         </div>
