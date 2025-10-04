@@ -799,7 +799,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                                     <?php if ($package['price'] > 0): ?>
                                     <div class="package-price h4 text-success mb-3"><?php echo formatCurrency($package['price']); ?></div>
                                     <?php endif; ?>
-                                    <button type="button" class="btn btn-primary btn-lg select-package mt-auto">Select Package</button>
+                                    <button type="button" class="btn btn-primary btn-lg select-package mt-auto">Register</button>
                                 </div>
                             </div>
                         </div>
