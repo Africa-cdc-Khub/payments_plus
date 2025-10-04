@@ -250,6 +250,7 @@ function sendRegistrationEmails($user, $registrationId, $package, $amount, $part
         'conference_short_name' => CONFERENCE_SHORT_NAME,
         'admin_name' => ADMIN_NAME,
         'logo_url' => EMAIL_LOGO_URL,
+        'cphia_logo_url' => CPHIA_LOGO_URL,
         'mail_from_address' => MAIL_FROM_ADDRESS
     ];
 
@@ -295,6 +296,7 @@ function sendPaymentLinkEmail($user, $registrationId, $amount, $packageName = nu
         'conference_location' => CONFERENCE_LOCATION,
         'conference_venue' => CONFERENCE_VENUE,
         'logo_url' => EMAIL_LOGO_URL,
+        'cphia_logo_url' => CPHIA_LOGO_URL,
         'mail_from_address' => MAIL_FROM_ADDRESS
     ];
 
@@ -859,6 +861,7 @@ function sendPaymentConfirmationEmail($user, $registration) {
         'conference_location' => CONFERENCE_LOCATION,
         'conference_venue' => CONFERENCE_VENUE,
         'logo_url' => EMAIL_LOGO_URL,
+        'cphia_logo_url' => CPHIA_LOGO_URL,
         'mail_from_address' => MAIL_FROM_ADDRESS
     ];
     

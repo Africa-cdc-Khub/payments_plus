@@ -26,10 +26,27 @@
             padding: 30px;
             text-align: center;
         }
+        .logo-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
         .logo {
             max-width: 150px;
             height: auto;
-            margin-bottom: 15px;
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .africa-cdc-logo {
+            max-width: 120px;
+        }
+        .cphia-logo {
+            max-width: 180px;
         }
         .header h1 {
             margin: 0;
@@ -207,7 +224,10 @@
 <body>
     <div class="receipt-container">
         <div class="header">
-            <img src="{{logo_url}}" alt="{{conference_short_name}}" class="logo">
+            <div class="logo-container">
+                <img src="{{logo_url}}" alt="Africa CDC" class="logo africa-cdc-logo">
+                <img src="{{cphia_logo_url}}" alt="{{conference_short_name}}" class="logo cphia-logo">
+            </div>
             <h1>{{conference_short_name}}</h1>
             <p>{{conference_dates}} • {{conference_location}}</p>
         </div>

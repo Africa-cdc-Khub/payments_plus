@@ -73,6 +73,8 @@ define('ADMIN_NOTIFICATIONS', filter_var($_ENV['ADMIN_NOTIFICATIONS'] ?? 'true',
 define('EMAIL_TEMPLATE_PATH', $_ENV['EMAIL_TEMPLATE_PATH'] ?? 'templates/email/');
 // Use the official Africa CDC logo for emails
 define('EMAIL_LOGO_URL', 'https://africacdc.org/wp-content/uploads/2020/02/AfricaCDC_Logo.png');
+// Use the CPHIA 2025 logo for emails
+define('CPHIA_LOGO_URL', rtrim(APP_URL, '/') . '/images/CPHIA-2025-logo_reverse_small.png');
 
 // Security
 define('APP_KEY', $_ENV['APP_KEY'] ?? 'base64:your-32-character-secret-key-here');
