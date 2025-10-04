@@ -881,21 +881,25 @@ function generateQRCode($data, $size = 200) {
     try {
         $context = stream_context_create([
             'http' => [
-                'timeout' => 10,
-                'user_agent' => 'CPHIA2025/1.0'
+                'timeout' => 15,
+                'user_agent' => 'CPHIA2025/1.0',
+                'follow_location' => true,
+                'max_redirects' => 3
             ]
         ]);
         
         $qrImage = file_get_contents($qrUrl, false, $context);
         if ($qrImage !== false && strlen($qrImage) > 0) {
+            // Return as base64 embedded image for better email compatibility
             return 'data:image/png;base64,' . base64_encode($qrImage);
         }
     } catch (Exception $e) {
         error_log("QR Code generation error: " . $e->getMessage());
     }
     
-    // Fallback: return a simple text representation
-    return "QR Code: " . substr($data, 0, 50) . "...";
+    // Fallback: create a simple text-based QR representation
+    $fallbackText = "QR Code\n" . substr($data, 0, 30) . "...";
+    return '<div style="border: 2px solid #333; padding: 10px; text-align: center; font-family: monospace; background: #f0f0f0; width: ' . $size . 'px; height: ' . $size . 'px; display: flex; align-items: center; justify-content: center;">' . htmlspecialchars($fallbackText) . '</div>';
 }
 
 function generateVerificationQRCode($data) {

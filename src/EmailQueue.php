@@ -135,7 +135,7 @@ class EmailQueue
     /**
      * Render template with data
      */
-    private function renderTemplate($templateName, $data)
+    public function renderTemplate($templateName, $data)
     {
         // Load template from file first, fallback to default
         $template = $this->loadTemplateFromFile($templateName);
