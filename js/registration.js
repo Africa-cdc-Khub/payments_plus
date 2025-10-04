@@ -69,6 +69,16 @@ document.addEventListener('DOMContentLoaded', function() {
     
     console.log('Package selection element:', packageSelection);
     console.log('Registration form element:', registrationForm);
+    
+    // Check if form is already visible due to validation errors
+    const isFormVisible = registrationForm.style.display === 'block' || 
+                         window.getComputedStyle(registrationForm).display === 'block';
+    
+    if (isFormVisible) {
+        console.log('Form is already visible (likely due to validation errors)');
+        // Restore form data if available
+        restoreFormData();
+    }
 
     // Package selection - make entire card clickable
     packageCards.forEach((card, index) => {
@@ -1391,9 +1401,26 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Restore package selection
             if (formData.package_id) {
+                // Set the hidden input value
+                selectedPackageId.value = formData.package_id;
+                
                 const packageCard = document.querySelector(`[data-package-id="${formData.package_id}"]`);
                 if (packageCard) {
-                    selectPackage(packageCard);
+                    // If form is already visible, just set the selected package without switching views
+                    if (isFormVisible) {
+                        selectedPackage = {
+                            id: formData.package_id,
+                            name: packageCard.dataset.packageName,
+                            price: parseFloat(packageCard.dataset.packagePrice) || 0,
+                            type: packageCard.dataset.packageType,
+                            icon: packageCard.querySelector('.package-icon i')?.className || 'fas fa-ticket-alt',
+                            color: packageCard.querySelector('.package-icon i')?.className.split(' ').find(cls => cls.startsWith('text-')) || 'text-primary'
+                        };
+                        updateSelectedPackageInfo();
+                        updateParticipantFields();
+                    } else {
+                        selectPackage(packageCard);
+                    }
                 }
             }
             

@@ -59,7 +59,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = "Last name is required";
     }
     
-    if (!empty($_POST['nationality']) && !validateNationality($_POST['nationality'])) {
+    // Get package details for validation
+    $package = null;
+    if (isset($_POST['package_id'])) {
+        $package = getPackageById($_POST['package_id']);
+    }
+    
+    // For Students and Delegates packages, allow any nationality
+    $isStudentsOrDelegates = $package && in_array(strtolower($package['name']), ['students', 'delegates']);
+    
+    if (!empty($_POST['nationality']) && !$isStudentsOrDelegates && !validateNationality($_POST['nationality'])) {
         $errors[] = "Please select a valid nationality";
     }
     
@@ -72,14 +81,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = "Please enter a valid passport number";
     }
     
-    if (!empty($_POST['organization']) && !validateOrganization($_POST['organization'])) {
+    // For Students and Delegates packages, allow any organization name
+    if (!empty($_POST['organization']) && !$isStudentsOrDelegates && !validateOrganization($_POST['organization'])) {
         $errors[] = "Please enter a valid organization name";
     }
     
     // Validate student fields if Students package is selected
-    if (isset($_POST['package_id'])) {
-        $package = getPackageById($_POST['package_id']);
-        if ($package && strtolower($package['name']) === 'students') {
+    if ($package && strtolower($package['name']) === 'students') {
             if (empty($_POST['institution'])) {
                 $errors[] = "Institution/School is required for student registration";
             }
@@ -123,8 +131,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     
     if (empty($errors)) {
-        // Get package details
-        $package = getPackageById($_POST['package_id']);
+        // Package details already retrieved above
         
         if ($package) {
             // Prepare user data
@@ -157,8 +164,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $nationality = sanitizeInput($_POST['nationality']);
             $isAfrican = isAfricanNational($nationality);
             
-            // Get the selected package
-            $package = getPackageById($_POST['package_id']);
+            // Package already retrieved above
             
              // Check if this is a side event package
              $isSideEvent = ($package['type'] === 'side_event');
@@ -198,9 +204,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     // Regular group registration
                     $numPeople = (int)$_POST['num_people'];
                     
-                    // Check if any participants are non-African
+                    // Check if any participants are non-African (only for non-fixed-price packages)
                     $hasNonAfricanParticipants = false;
-                    if (isset($_POST['participants'])) {
+                    if (isset($_POST['participants']) && !$isFixedPricePackage) {
                         foreach ($_POST['participants'] as $participant) {
                             if (!empty($participant['nationality']) && !isAfricanNational($participant['nationality'])) {
                                 $hasNonAfricanParticipants = true;
@@ -319,9 +325,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $errors[] = "Invalid package selected";
         }
     }
-        } // End rate limiting
-    } // End CSRF protection
-}
+    } // End rate limiting
+} // End CSRF protection
 
 // Get all packages
 $packages = getAllPackages();
@@ -446,6 +451,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
         .selected-package-card .package-icon i {
             filter: drop-shadow(0 2px 8px rgba(0,0,0,0.15));
         }
+        
+        /* View Registrations Button Styles */
+        .view-registrations-btn {
+            background: linear-gradient(135deg, var(--primary-green) 0%, var(--dark-green) 100%) !important;
+            border: none !important;
+            font-weight: 600 !important;
+            padding: 12px 24px !important;
+            border-radius: 8px !important;
+            transition: all 0.3s ease !important;
+            box-shadow: 0 4px 15px rgba(26, 86, 50, 0.3) !important;
+            position: relative !important;
+            overflow: hidden !important;
+            color: var(--white) !important;
+        }
+        
+        .view-registrations-btn:hover {
+            transform: translateY(-2px) !important;
+            box-shadow: 0 6px 20px rgba(26, 86, 50, 0.4) !important;
+            background: linear-gradient(135deg, var(--dark-green) 0%, #0d4f1c 100%) !important;
+            color: var(--white) !important;
+        }
+        
+        .view-registrations-btn:active {
+            transform: translateY(0) !important;
+        }
+        
+        .view-registrations-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        .view-registrations-btn:hover::before {
+            left: 100%;
+        }
     </style>
 </head>
 <body>
@@ -466,11 +511,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
 
         <!-- Success/Error Messages -->
         <?php if (isset($success) && $success): ?>
+            <?php 
+            // Get user's registration history for display
+            $userEmail = $userData['email'] ?? '';
+            $userRegistrationHistory = [];
+            if ($userEmail) {
+                $userRegistrationHistory = getRegistrationHistory($userEmail, CONFERENCE_DATES);
+            }
+            ?>
             <div class="alert alert-success">
                 <h3>Registration Successful!</h3>
-                <p>Thank you for registering for CPHIA 2025. A payment link has been sent to your email address.</p>
+                <p>Thank you for registering for CPHIA 2025. <?php if ($package['price'] > 0): ?>A payment link has been sent to your email address.<?php else: ?>Your registration is complete - no payment required.<?php endif; ?></p>
                 
-                <?php if (isset($registrationId) && !$isSideEvent && !$isExhibition): ?>
+                <?php if (isset($registrationId) && !$isSideEvent && !$isExhibition && $package['price'] > 0): ?>
                     <div class="mt-4">
                         <h5>Complete Your Registration</h5>
                         <p class="mb-3">Choose how you'd like to complete your payment:</p>
@@ -507,13 +560,102 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                             <p class="small text-muted mb-2">
                                 Registration ID: #<?php echo $registrationId; ?>
                             </p>
-                            <a href="registration_lookup.php" class="btn btn-outline-secondary btn-sm">
-                                <i class="fas fa-list me-1"></i>View All My Registrations
-                            </a>
                         </div>
                     </div>
                 <?php endif; ?>
             </div>
+            
+            <!-- Display User's Registration History -->
+            <?php if (!empty($userRegistrationHistory)): ?>
+                <div class="mt-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-history me-2"></i>Your Registration History for <?php echo CONFERENCE_SHORT_NAME; ?> (<?php echo CONFERENCE_DATES; ?>)
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <?php foreach ($userRegistrationHistory as $registration): ?>
+                                <div class="col-md-6 mb-3">
+                                    <div class="card h-100">
+                                        <div class="card-body p-3">
+                                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                                <h6 class="card-title mb-0">
+                                                    <?php echo htmlspecialchars($registration['package_name']); ?>
+                                                    <?php if ($registration['registration_type'] === 'group'): ?>
+                                                        <span class="badge bg-info ms-2">
+                                                            <i class="fas fa-users me-1"></i>Group
+                                                        </span>
+                                                    <?php endif; ?>
+                                                </h6>
+                                                <div class="d-flex flex-column align-items-end">
+                                                    <?php if ($registration['payment_status'] === 'completed'): ?>
+                                                        <span class="badge bg-success mb-1">
+                                                            <i class="fas fa-check-circle me-1"></i>Paid
+                                                        </span>
+                                                    <?php else: ?>
+                                                        <span class="badge bg-warning mb-1">
+                                                            <i class="fas fa-clock me-1"></i>Pending Payment
+                                                        </span>
+                                                    <?php endif; ?>
+                                                    <small class="text-muted"><?php echo ucfirst($registration['status']); ?></small>
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Contact Information -->
+                                            <div class="mb-2">
+                                                <div class="text-muted small">
+                                                    <div><i class="fas fa-user me-1"></i><?php echo htmlspecialchars($registration['first_name'] . ' ' . $registration['last_name']); ?></div>
+                                                    <div><i class="fas fa-envelope me-1"></i><?php echo htmlspecialchars($registration['email']); ?></div>
+                                                    <div><i class="fas fa-phone me-1"></i><?php echo htmlspecialchars($registration['phone']); ?></div>
+                                                    <?php if (!empty($registration['organization'])): ?>
+                                                        <div><i class="fas fa-building me-1"></i><?php echo htmlspecialchars($registration['organization']); ?></div>
+                                                    <?php endif; ?>
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Registration Details -->
+                                            <div class="text-muted small mb-2">
+                                                <div><strong>Registration ID:</strong> #<?php echo $registration['id']; ?></div>
+                                                <div><strong>Date:</strong> <?php echo date('M j, Y', strtotime($registration['created_at'])); ?></div>
+                                                <div><strong>Amount:</strong> <?php echo formatCurrency($registration['total_amount'], $registration['currency']); ?></div>
+                                                <?php if ($registration['registration_type'] === 'group'): ?>
+                                                    <div class="text-info small">
+                                                        <i class="fas fa-info-circle me-1"></i>Group registration - payment made by focal person
+                                                    </div>
+                                                <?php endif; ?>
+                                            </div>
+                                            
+                                            <!-- Action Buttons -->
+                                            <?php if ($registration['payment_status'] !== 'completed'): ?>
+                                                <div class="mt-2">
+                                                    <a href="registration_lookup.php?action=pay&id=<?php echo $registration['id']; ?>" class="btn btn-success btn-sm">
+                                                        <i class="fas fa-credit-card me-1"></i>Complete Payment
+                                                    </a>
+                                                </div>
+                                            <?php else: ?>
+                                                <div class="mt-2">
+                                                    <a href="registration_lookup.php?action=receipt&id=<?php echo $registration['id']; ?>" class="btn btn-outline-success btn-sm">
+                                                        <i class="fas fa-receipt me-1"></i>View Receipt
+                                                    </a>
+                                                </div>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+                                </div>
+                                <?php endforeach; ?>
+                            </div>
+                            
+                            <div class="mt-3 text-center">
+                                <a href="registration_lookup.php" class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-search me-1"></i>Search All My Registrations
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            <?php endif; ?>
         <?php endif; ?>
 
         <?php if (isset($isDuplicateRegistration) && $isDuplicateRegistration): ?>
@@ -527,7 +669,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                         <p class="mb-3"><?php echo $duplicateMessage; ?></p>
                         
                         <div class="d-flex flex-wrap gap-2">
-                            <a href="registration_lookup.php" class="btn btn-primary">
+                            <a href="registration_lookup.php" class="btn btn-lg" style="background: var(--primary-green); border-color: var(--primary-green); color: white;">
                                 <i class="fas fa-eye me-2"></i>View My Registrations
                             </a>
                             
@@ -562,15 +704,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
         <?php endif; ?>
 
         <!-- Package Selection (Initial View) -->
-        <div class="package-selection-container" id="packageSelection">
+        <div class="package-selection-container" id="packageSelection" <?php echo (!empty($errors) && $_SERVER['REQUEST_METHOD'] === 'POST') ? 'style="display: none;"' : ''; ?>>
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <div>
                     <h2>Select Your Registration Package</h2>
                     <p class="mb-0">Choose the package that best fits your needs for the 4th International Conference on Public Health in Africa</p>
                 </div>
                 <div>
-                    <a href="registration_lookup.php" class="btn btn-outline-info">
-                        <i class="fas fa-search me-2"></i>View My Registrations
+                    <a href="registration_lookup.php" class="btn btn-primary btn-lg view-registrations-btn">
+                        <i class="fas fa-list-alt me-2"></i>View My Registrations
                     </a>
                 </div>
             </div>
@@ -629,7 +771,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                         Unpaid registrations can be modified or cancelled.
                     </small>
                     <div class="mt-2">
-                        <a href="registration_lookup.php" class="btn btn-sm btn-outline-primary">
+                        <a href="registration_lookup.php" class="btn btn-sm" style="background: var(--primary-green); border-color: var(--primary-green); color: white;">
                             <i class="fas fa-eye me-1"></i>View Detailed Registration History
                         </a>
                     </div>
@@ -670,9 +812,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
         </div>
 
         <!-- Registration Form (Hidden Initially) -->
-        <div class="registration-container" id="registrationForm" style="display: none;">
+        <div class="registration-container" id="registrationForm" <?php echo (!empty($errors) && $_SERVER['REQUEST_METHOD'] === 'POST') ? 'style="display: block;"' : 'style="display: none;"'; ?>>
             <div class="form-header">
-                <div class="selected-package-info" id="selectedPackageInfo"></div>
+                <div class="selected-package-info" id="selectedPackageInfo">
+                    <?php if (!empty($errors) && $_SERVER['REQUEST_METHOD'] === 'POST' && !empty($formData['package_id'])): ?>
+                        <?php 
+                        $selectedPackage = getPackageById($formData['package_id']);
+                        if ($selectedPackage): 
+                        ?>
+                            <div class="selected-package-card">
+                                <div class="package-icon mb-2">
+                                    <i class="<?php echo htmlspecialchars($selectedPackage['icon'] ?? 'fas fa-ticket-alt'); ?> <?php echo htmlspecialchars($selectedPackage['color'] ?? 'text-primary'); ?> fa-2x"></i>
+                                </div>
+                                <h4><?php echo htmlspecialchars($selectedPackage['name']); ?></h4>
+                                <p><?php echo ucfirst($selectedPackage['type']); ?> Package</p>
+                                <?php if ($selectedPackage['price'] > 0): ?>
+                                    <div class="package-price"><?php echo formatCurrency($selectedPackage['price']); ?></div>
+                                <?php endif; ?>
+                            </div>
+                        <?php endif; ?>
+                    <?php endif; ?>
+                </div>
             </div>
             
             <div class="row mb-4">
@@ -687,7 +847,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
             </div>
             
             <form id="registrationFormData" method="POST" class="registration-form" enctype="multipart/form-data">
-                <input type="hidden" name="package_id" id="selectedPackageId" required>
+                <input type="hidden" name="package_id" id="selectedPackageId" value="<?php echo htmlspecialchars($formData['package_id'] ?? ''); ?>" required>
                 <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token']); ?>">
 
                 <!-- Registration Type -->
@@ -1031,6 +1191,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
     <!-- Pass form data to JavaScript for restoration -->
     <script>
         window.formData = <?php echo json_encode($formData); ?>;
+        window.hasErrors = <?php echo !empty($errors) ? 'true' : 'false'; ?>;
         
         // Function to send payment link via email
         function sendPaymentLink(registrationId) {

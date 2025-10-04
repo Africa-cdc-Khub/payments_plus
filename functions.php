@@ -8,6 +8,7 @@ if (file_exists(__DIR__ . '/vendor/autoload.php')) {
 }
 
 use Cphia2025\EmailService;
+use Cphia2025\EmailQueue;
 
 // Package functions
 function getAllPackages() {
@@ -666,9 +667,9 @@ function getRegistrationHistory($email, $eventDate = null) {
     $eventRange = getEventDateRange($eventDate);
     
     $stmt = $pdo->prepare("
-        SELECT r.id, r.status, r.payment_status, r.created_at, r.total_amount, r.currency, 
+        SELECT r.id, r.status, r.payment_status, r.created_at, r.total_amount, r.currency, r.registration_type,
                p.name as package_name, p.type as package_type,
-               u.first_name, u.last_name
+               u.first_name, u.last_name, u.email, u.phone, u.nationality, u.organization
         FROM registrations r
         JOIN packages p ON r.package_id = p.id
         JOIN users u ON r.user_id = u.id
@@ -865,5 +866,167 @@ function sendPaymentConfirmationEmail($user, $registration) {
         'payment_confirmation',
         3
     );
+}
+
+function generateQRCode($data, $size = 200) {
+    try {
+        // Use the local QR code package (version 6.x API)
+        $qrCode = new \Endroid\QrCode\QrCode(
+            data: $data,
+            errorCorrectionLevel: \Endroid\QrCode\ErrorCorrectionLevel::Medium,
+            size: $size,
+            margin: 10
+        );
+        
+        $writer = new \Endroid\QrCode\Writer\PngWriter();
+        $result = $writer->write($qrCode);
+        
+        // Return as base64 data URI
+        return 'data:image/png;base64,' . base64_encode($result->getString());
+    } catch (Exception $e) {
+        // Fallback to Google Charts API if local generation fails
+        error_log("QR Code generation error: " . $e->getMessage());
+        $qrData = urlencode($data);
+        $sizeStr = $size . 'x' . $size;
+        $qrUrl = "https://chart.googleapis.com/chart?chs={$sizeStr}&cht=qr&chl={$qrData}";
+        
+        try {
+            $qrImage = file_get_contents($qrUrl);
+            return 'data:image/png;base64,' . base64_encode($qrImage);
+        } catch (Exception $e2) {
+            error_log("QR Code fallback error: " . $e2->getMessage());
+            return null;
+        }
+    }
+}
+
+function generateVerificationQRCode($data) {
+    // Generate a smaller QR code for verification purposes
+    return generateQRCode($data, 120);
+}
+
+function generateReceiptData($participant, $registration, $package, $user) {
+    $receiptData = [
+        'name' => $participant['first_name'] . ' ' . $participant['last_name'],
+        'email' => $participant['email'] ?? $user['email'],
+        'phone' => $user['phone'],
+        'registration_id' => $registration['id'],
+        'package' => $package['name'],
+        'organization' => $participant['organization'] ?? $user['organization'],
+        'institution' => $participant['institution'] ?? '',
+        'nationality' => $participant['nationality'] ?? $user['nationality'],
+        'payment_date' => date('Y-m-d H:i:s'),
+        'amount' => formatCurrency($registration['total_amount'], $registration['currency']),
+        'currency' => $registration['currency'],
+        'registration_type' => $registration['registration_type'],
+        'conference_name' => CONFERENCE_NAME,
+        'conference_dates' => CONFERENCE_DATES,
+        'conference_location' => CONFERENCE_LOCATION
+    ];
+    
+    // Create comprehensive QR code data string with all receipt information
+    $qrString = "CPHIA2025|{$receiptData['name']}|{$receiptData['email']}|{$receiptData['phone']}|{$receiptData['registration_id']}|{$receiptData['package']}|{$receiptData['organization']}|{$receiptData['institution']}|{$receiptData['nationality']}|{$receiptData['amount']}|{$receiptData['currency']}|{$receiptData['registration_type']}|{$receiptData['payment_date']}|{$receiptData['conference_name']}|{$receiptData['conference_dates']}|{$receiptData['conference_location']}";
+    
+    // Create navigation QR code for verification link
+    $verificationUrl = APP_URL . "/verify_attendance.php";
+    $navigationQrString = "VERIFY|{$verificationUrl}|{$receiptData['registration_id']}|{$receiptData['name']}";
+    
+    return [
+        'receipt_data' => $receiptData,
+        'qr_string' => $qrString,
+        'qr_code' => generateQRCode($qrString),
+        'navigation_qr_string' => $navigationQrString,
+        'navigation_qr_code' => generateVerificationQRCode($navigationQrString)
+    ];
+}
+
+function sendReceiptEmails($registration, $package, $user, $participants = []) {
+    $emailQueue = new EmailQueue();
+    $sentCount = 0;
+    
+    if ($registration['registration_type'] === 'group' && !empty($participants)) {
+        // For group registrations, send receipts to focal person with all participants
+        $receiptData = [];
+        $qrCodes = [];
+        $verificationQrCodes = [];
+        $navigationQrCodes = [];
+        
+        foreach ($participants as $participant) {
+            $participantReceipt = generateReceiptData($participant, $registration, $package, $user);
+            $receiptData[] = $participantReceipt['receipt_data'];
+            $qrCodes[] = $participantReceipt['qr_code'];
+            $verificationQrCodes[] = generateVerificationQRCode($participantReceipt['qr_string']);
+            $navigationQrCodes[] = $participantReceipt['navigation_qr_code'];
+        }
+        
+        $templateData = [
+            'conference_name' => CONFERENCE_NAME,
+            'conference_short_name' => CONFERENCE_SHORT_NAME,
+            'conference_dates' => CONFERENCE_DATES,
+            'conference_location' => CONFERENCE_LOCATION,
+            'focal_person_name' => $user['first_name'] . ' ' . $user['last_name'],
+            'focal_person_email' => $user['email'],
+            'registration_id' => $registration['id'],
+            'package_name' => $package['name'],
+            'total_amount' => formatCurrency($registration['total_amount'], $registration['currency']),
+            'payment_date' => date('F j, Y \a\t g:i A'),
+            'participants' => $receiptData,
+            'qr_codes' => $qrCodes,
+            'verification_qr_codes' => $verificationQrCodes,
+            'navigation_qr_codes' => $navigationQrCodes,
+            'logo_url' => EMAIL_LOGO_URL,
+            'mail_from_address' => MAIL_FROM_ADDRESS
+        ];
+        
+        $success = $emailQueue->addToQueue(
+            $user['email'],
+            'Group Registration Receipts - ' . CONFERENCE_SHORT_NAME,
+            'group_receipt',
+            $templateData,
+            'registration_receipt',
+            3
+        );
+        
+        if ($success) $sentCount++;
+        
+    } else {
+        // For individual registrations, send receipt to the participant
+        $receiptInfo = generateReceiptData($user, $registration, $package, $user);
+        
+        $templateData = [
+            'conference_name' => CONFERENCE_NAME,
+            'conference_short_name' => CONFERENCE_SHORT_NAME,
+            'conference_dates' => CONFERENCE_DATES,
+            'conference_location' => CONFERENCE_LOCATION,
+            'participant_name' => $user['first_name'] . ' ' . $user['last_name'],
+            'participant_email' => $user['email'],
+            'registration_id' => $registration['id'],
+            'package_name' => $package['name'],
+            'total_amount' => formatCurrency($registration['total_amount'], $registration['currency']),
+            'payment_date' => date('F j, Y \a\t g:i A'),
+            'organization' => $user['organization'],
+            'institution' => $user['institution'] ?? '',
+            'nationality' => $user['nationality'],
+            'phone' => $user['phone'],
+            'qr_code' => $receiptInfo['qr_code'],
+            'verification_qr_code' => generateVerificationQRCode($receiptInfo['qr_string']),
+            'navigation_qr_code' => $receiptInfo['navigation_qr_code'],
+            'logo_url' => EMAIL_LOGO_URL,
+            'mail_from_address' => MAIL_FROM_ADDRESS
+        ];
+        
+        $success = $emailQueue->addToQueue(
+            $user['email'],
+            'Registration Receipt - ' . CONFERENCE_SHORT_NAME,
+            'individual_receipt',
+            $templateData,
+            'registration_receipt',
+            3
+        );
+        
+        if ($success) $sentCount++;
+    }
+    
+    return $sentCount;
 }
 ?>

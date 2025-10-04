@@ -424,7 +424,10 @@ $isPaid = $paymentStatus === 'completed';
                         <button onclick="printReceipt()" class="btn-action">
                             <i class="fas fa-print me-2"></i>Print Receipt
                         </button>
-                        <a href="registration_lookup.php" class="btn-action btn-outline">
+                        <button onclick="sendReceiptEmail(<?php echo $registrationId; ?>)" class="btn-action btn-outline">
+                            <i class="fas fa-envelope me-2"></i>Send Receipt Email
+                        </button>
+                        <a href="registration_lookup.php" class="btn-action btn-secondary">
                             <i class="fas fa-list me-2"></i>View All Registrations
                         </a>
                     <?php else: ?>
@@ -474,52 +477,417 @@ $isPaid = $paymentStatus === 'completed';
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         function printReceipt() {
-            const receiptContent = document.getElementById('receipt-content');
+            // Get registration data for QR code generation
+            const registrationData = {
+                id: <?php echo $registrationId; ?>,
+                name: '<?php echo addslashes($user['first_name'] . ' ' . $user['last_name']); ?>',
+                email: '<?php echo addslashes($user['email']); ?>',
+                phone: '<?php echo addslashes($user['phone']); ?>',
+                package: '<?php echo addslashes($package['name']); ?>',
+                organization: '<?php echo addslashes($user['organization']); ?>',
+                institution: '<?php echo addslashes($user['institution'] ?? ''); ?>',
+                nationality: '<?php echo addslashes($user['nationality']); ?>',
+                amount: '<?php echo formatCurrency($registration['total_amount'], $registration['currency']); ?>',
+                paymentDate: '<?php echo date('Y-m-d H:i:s'); ?>'
+            };
+            
+            // Generate QR code data
+            const qrData = `CPHIA2025|${registrationData.name}|${registrationData.id}|${registrationData.package}|${registrationData.organization}|${registrationData.institution}|${registrationData.phone}|${registrationData.nationality}|${registrationData.paymentDate}`;
+            
+            // Generate QR code using PHP function (pre-generated)
+            const qrCodeUrl = '<?php 
+                $qrData = "CPHIA2025|" . addslashes($user["first_name"] . " " . $user["last_name"]) . "|" . $registrationId . "|" . addslashes($package["name"]) . "|" . addslashes($user["organization"]) . "|" . addslashes($user["institution"] ?? "") . "|" . addslashes($user["phone"]) . "|" . addslashes($user["nationality"]) . "|" . date("Y-m-d H:i:s");
+                echo generateQRCode($qrData);
+            ?>';
+            
             const printWindow = window.open('', '_blank');
             printWindow.document.write(`
-                <html>
-                    <head>
-                        <title>Payment Receipt - <?php echo CONFERENCE_SHORT_NAME; ?></title>
-                        <style>
-                            body { 
-                                font-family: 'Inter', Arial, sans-serif; 
-                                margin: 20px; 
-                                background: #f8f9fa;
-                            }
-                            .header { 
-                                text-align: center; 
-                                margin-bottom: 30px; 
-                                background: linear-gradient(135deg, #1a5632 0%, #2d7a4a 100%);
-                                color: white;
-                                padding: 30px;
-                                border-radius: 10px;
-                            }
-                            .receipt-details { 
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>Payment Receipt - <?php echo CONFERENCE_SHORT_NAME; ?></title>
+                    <style>
+                        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+                        
+                        * {
+                            margin: 0;
+                            padding: 0;
+                            box-sizing: border-box;
+                        }
+                        
+                        body {
+                            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                            line-height: 1.6;
+                            color: #1a1a1a;
+                            background: #ffffff;
+                            font-size: 14px;
+                        }
+                        
+                        .receipt-container {
+                            max-width: 800px;
+                            margin: 0 auto;
+                            background: #ffffff;
+                            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+                            border-radius: 12px;
+                            overflow: hidden;
+                        }
+                        
+                        .receipt-header {
+                            background: linear-gradient(135deg, #1a5632 0%, #2d7d32 100%);
+                            color: white;
+                            padding: 40px 30px;
+                            text-align: center;
+                            position: relative;
+                        }
+                        
+                        .logo-section {
+                            display: flex;
+                            justify-content: center;
+                            align-items: center;
+                            gap: 30px;
+                            margin-bottom: 25px;
+                        }
+                        
+                        .logo {
+                            height: 60px;
+                            width: auto;
+                            filter: brightness(0) invert(1);
+                        }
+                        
+                        .cphia-logo {
+                            height: 70px;
+                            width: auto;
+                        }
+                        
+                        .header-content h1 {
+                            font-size: 32px;
+                            font-weight: 700;
+                            margin-bottom: 8px;
+                            letter-spacing: -0.5px;
+                        }
+                        
+                        .header-content h2 {
+                            font-size: 20px;
+                            font-weight: 500;
+                            margin-bottom: 12px;
+                            opacity: 0.9;
+                        }
+                        
+                        .header-content p {
+                            font-size: 16px;
+                            opacity: 0.8;
+                            font-weight: 400;
+                        }
+                        
+                        .receipt-body {
+                            padding: 40px 30px;
+                        }
+                        
+                        .receipt-title {
+                            text-align: center;
+                            margin-bottom: 40px;
+                            padding-bottom: 20px;
+                            border-bottom: 3px solid #1a5632;
+                        }
+                        
+                        .receipt-title h3 {
+                            font-size: 28px;
+                            color: #1a5632;
+                            font-weight: 700;
+                            margin-bottom: 8px;
+                        }
+                        
+                        .receipt-title p {
+                            font-size: 16px;
+                            color: #666;
+                            font-weight: 500;
+                        }
+                        
+                        .receipt-grid {
+                            display: grid;
+                            grid-template-columns: 1fr 1fr;
+                            gap: 30px;
+                            margin-bottom: 40px;
+                        }
+                        
+                        .receipt-section {
+                            background: #f8f9fa;
+                            padding: 25px;
+                            border-radius: 8px;
+                            border-left: 4px solid #1a5632;
+                        }
+                        
+                        .receipt-section h4 {
+                            color: #1a5632;
+                            font-size: 18px;
+                            font-weight: 600;
+                            margin-bottom: 20px;
+                            display: flex;
+                            align-items: center;
+                            gap: 8px;
+                        }
+                        
+                        .detail-row {
+                            display: flex;
+                            justify-content: space-between;
+                            align-items: center;
+                            padding: 12px 0;
+                            border-bottom: 1px solid #e9ecef;
+                        }
+                        
+                        .detail-row:last-child {
+                            border-bottom: none;
+                        }
+                        
+                        .detail-label {
+                            font-weight: 600;
+                            color: #495057;
+                            font-size: 14px;
+                        }
+                        
+                        .detail-value {
+                            color: #212529;
+                            font-weight: 500;
+                            text-align: right;
+                            font-size: 14px;
+                        }
+                        
+                        .qr-section {
+                            background: #f8f9fa;
+                            padding: 30px;
+                            border-radius: 8px;
+                            text-align: center;
+                            margin: 30px 0;
+                            border: 2px solid #1a5632;
+                        }
+                        
+                        .qr-section h4 {
+                            color: #1a5632;
+                            font-size: 20px;
+                            font-weight: 600;
+                            margin-bottom: 20px;
+                        }
+                        
+                        .qr-code {
+                            max-width: 200px;
+                            height: auto;
+                            margin: 0 auto 20px;
+                            border: 3px solid #1a5632;
+                            border-radius: 8px;
+                            padding: 10px;
+                            background: white;
+                        }
+                        
+                        .qr-info {
+                            color: #666;
+                            font-size: 14px;
+                            line-height: 1.5;
+                        }
+                        
+                        .amount-section {
+                            background: linear-gradient(135deg, #1a5632 0%, #2d7d32 100%);
+                            color: white;
+                            padding: 30px;
+                            border-radius: 8px;
+                            text-align: center;
+                            margin: 30px 0;
+                        }
+                        
+                        .amount-label {
+                            font-size: 18px;
+                            margin-bottom: 10px;
+                            opacity: 0.9;
+                            font-weight: 500;
+                        }
+                        
+                        .amount-value {
+                            font-size: 36px;
+                            font-weight: 700;
+                            margin: 0;
+                            letter-spacing: -1px;
+                        }
+                        
+                        .footer {
+                            background: #f8f9fa;
+                            padding: 30px;
+                            text-align: center;
+                            border-top: 1px solid #e9ecef;
+                        }
+                        
+                        .footer h4 {
+                            color: #1a5632;
+                            font-size: 18px;
+                            font-weight: 600;
+                            margin-bottom: 15px;
+                        }
+                        
+                        .footer p {
+                            color: #666;
+                            font-size: 14px;
+                            margin: 8px 0;
+                            line-height: 1.5;
+                        }
+                        
+                        .contact-info {
+                            display: flex;
+                            justify-content: center;
+                            gap: 30px;
+                            margin-top: 20px;
+                            flex-wrap: wrap;
+                        }
+                        
+                        .contact-item {
+                            display: flex;
+                            align-items: center;
+                            gap: 8px;
+                            color: #666;
+                            font-size: 14px;
+                        }
+                        
+                        .receipt-id {
+                            background: #1a5632;
+                            color: white;
+                            padding: 8px 16px;
+                            border-radius: 20px;
+                            font-weight: 600;
+                            font-size: 16px;
+                            display: inline-block;
+                            margin-bottom: 20px;
+                        }
+                        
+                        @media print {
+                            body {
                                 background: white;
-                                padding: 30px;
-                                border-radius: 10px;
-                                box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-                                margin: 20px 0; 
                             }
-                            .amount { 
-                                font-size: 1.2em; 
-                                font-weight: bold; 
-                                color: #1a5632; 
+                            .receipt-container {
+                                box-shadow: none;
+                                border-radius: 0;
                             }
-                            h4 { color: #1a5632; }
-                            h6 { color: #1a5632; font-weight: 600; }
-                        </style>
-                    </head>
-                    <body>
-                        <div class="header">
-                            <h2><?php echo CONFERENCE_NAME; ?></h2>
-                            <h3><?php echo CONFERENCE_SHORT_NAME; ?></h3>
-                            <p><?php echo CONFERENCE_DATES; ?> • <?php echo CONFERENCE_LOCATION; ?></p>
+                        }
+                        
+                        @media (max-width: 768px) {
+                            .receipt-grid {
+                                grid-template-columns: 1fr;
+                            }
+                            .logo-section {
+                                flex-direction: column;
+                                gap: 15px;
+                            }
+                            .contact-info {
+                                flex-direction: column;
+                                gap: 10px;
+                            }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="receipt-container">
+                        <div class="receipt-header">
+                            <div class="logo-section">
+                                <img src="https://africacdc.org/wp-content/uploads/2020/02/AfricaCDC_Logo.png" alt="Africa CDC" class="logo">
+                                <img src="https://cphia2025.com/wp-content/uploads/2025/09/CPHIA-2025-logo_reverse.png" alt="CPHIA 2025" class="cphia-logo">
+                            </div>
+                            <div class="header-content">
+                                <h1><?php echo CONFERENCE_NAME; ?></h1>
+                                <h2><?php echo CONFERENCE_SHORT_NAME; ?></h2>
+                                <p><?php echo CONFERENCE_DATES; ?> • <?php echo CONFERENCE_LOCATION; ?></p>
+                            </div>
                         </div>
-                        <div class="receipt-details">
-                            ${receiptContent.innerHTML}
+                        
+                        <div class="receipt-body">
+                            <div class="receipt-title">
+                                <div class="receipt-id">Receipt #${registrationData.id}</div>
+                                <h3>Payment Confirmation</h3>
+                                <p>Registration Receipt</p>
+                            </div>
+                            
+                            <div class="receipt-grid">
+                                <div class="receipt-section">
+                                    <h4><i class="fas fa-user"></i> Participant Information</h4>
+                                    <div class="detail-row">
+                                        <span class="detail-label">Name:</span>
+                                        <span class="detail-value">${registrationData.name}</span>
+                                    </div>
+                                    <div class="detail-row">
+                                        <span class="detail-label">Email:</span>
+                                        <span class="detail-value">${registrationData.email}</span>
+                                    </div>
+                                    <div class="detail-row">
+                                        <span class="detail-label">Phone:</span>
+                                        <span class="detail-value">${registrationData.phone}</span>
+                                    </div>
+                                    <div class="detail-row">
+                                        <span class="detail-label">Nationality:</span>
+                                        <span class="detail-value">${registrationData.nationality}</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="receipt-section">
+                                    <h4><i class="fas fa-ticket-alt"></i> Registration Details</h4>
+                                    <div class="detail-row">
+                                        <span class="detail-label">Package:</span>
+                                        <span class="detail-value">${registrationData.package}</span>
+                                    </div>
+                                    <div class="detail-row">
+                                        <span class="detail-label">Organization:</span>
+                                        <span class="detail-value">${registrationData.organization}</span>
+                                    </div>
+                                    ${registrationData.institution ? `
+                                    <div class="detail-row">
+                                        <span class="detail-label">Institution:</span>
+                                        <span class="detail-value">${registrationData.institution}</span>
+                                    </div>
+                                    ` : ''}
+                                    <div class="detail-row">
+                                        <span class="detail-label">Payment Date:</span>
+                                        <span class="detail-value">${new Date().toLocaleDateString('en-US', { 
+                                            year: 'numeric', 
+                                            month: 'long', 
+                                            day: 'numeric',
+                                            hour: '2-digit',
+                                            minute: '2-digit'
+                                        })}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="qr-section">
+                                <h4><i class="fas fa-qrcode"></i> Registration QR Code</h4>
+                                <img src="${qrCodeUrl}" alt="Registration QR Code" class="qr-code">
+                                <p class="qr-info">
+                                    This QR code contains your registration details and can be used for verification at the conference.
+                                    <br><strong>Scan this code at the conference for quick check-in.</strong>
+                                </p>
+                            </div>
+                            
+                            <div class="amount-section">
+                                <div class="amount-label">Total Amount Paid</div>
+                                <div class="amount-value">${registrationData.amount}</div>
+                            </div>
+                            
+                            <div class="footer">
+                                <h4>Important Information</h4>
+                                <p><strong>Thank you for registering for <?php echo CONFERENCE_NAME; ?>!</strong></p>
+                                <p>This receipt serves as confirmation of your registration and payment.</p>
+                                <p>Please keep this receipt for your records and bring it to the conference.</p>
+                                <p>Your QR code will be used for verification and check-in at the conference venue.</p>
+                                
+                                <div class="contact-info">
+                                    <div class="contact-item">
+                                        <i class="fas fa-envelope"></i>
+                                        <span><?php echo MAIL_FROM_ADDRESS; ?></span>
+                                    </div>
+                                    <div class="contact-item">
+                                        <i class="fas fa-globe"></i>
+                                        <span>https://cphia2025.com</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                    </body>
+                    </div>
+                </body>
                 </html>
             `);
             printWindow.document.close();
@@ -569,6 +937,51 @@ $isPaid = $paymentStatus === 'completed';
                 button.innerHTML = originalText;
                 button.disabled = false;
                 alert('An error occurred. Please try again.');
+            });
+        }
+
+        function sendReceiptEmail(registrationId) {
+            const button = event.target;
+            const originalText = button.innerHTML;
+            
+            button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Sending...';
+            button.disabled = true;
+            
+            fetch('send_receipt_email.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    registration_id: registrationId
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    button.innerHTML = '<i class="fas fa-check me-2"></i>Receipt Sent!';
+                    button.classList.remove('btn-outline');
+                    button.classList.add('btn-action');
+                    
+                    // Show success alert
+                    const alertDiv = document.createElement('div');
+                    alertDiv.className = 'alert alert-success mt-3';
+                    alertDiv.innerHTML = '<i class="fas fa-check-circle me-2"></i>Receipt email sent successfully!';
+                    button.parentNode.appendChild(alertDiv);
+                    
+                    // Remove alert after 5 seconds
+                    setTimeout(() => {
+                        alertDiv.remove();
+                    }, 5000);
+                } else {
+                    throw new Error(data.message || 'Failed to send receipt email');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                button.innerHTML = originalText;
+                button.disabled = false;
+                alert('Failed to send receipt email. Please try again.');
             });
         }
     </script>

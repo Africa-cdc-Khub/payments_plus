@@ -62,7 +62,24 @@ if (strtolower($decision) === 'accept' && $registrationId) {
                 if ($registration) {
                     $user = getUserById($registration['user_id']);
                     if ($user) {
+                        // Send payment confirmation email
                         sendPaymentConfirmationEmail($user, $registration);
+                        
+                        // Send receipt email with QR codes
+                        $package = getPackageById($registration['package_id']);
+                        if ($package) {
+                            // Get participants if group registration
+                            $participants = [];
+                            if ($registration['registration_type'] === 'group') {
+                                $stmt = $pdo->prepare("SELECT * FROM registration_participants WHERE registration_id = ?");
+                                $stmt->execute([$registrationId]);
+                                $participants = $stmt->fetchAll();
+                            }
+                            
+                            // Send receipt emails
+                            $sentCount = sendReceiptEmails($registration, $package, $user, $participants);
+                            error_log("Receipt emails sent: $sentCount for registration ID: $registrationId");
+                        }
                     }
                 }
             }
