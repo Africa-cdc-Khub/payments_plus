@@ -1030,4 +1030,8 @@ function sendReceiptEmails($registration, $package, $user, $participants = []) {
     
     return $sentCount;
 }
+// test function
+function testFunction() {
+    return 'test';
+}
 ?>
