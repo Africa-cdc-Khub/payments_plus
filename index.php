@@ -65,10 +65,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $package = getPackageById($_POST['package_id']);
     }
     
-    // For Students and Delegates packages, allow any nationality
-    $isStudentsOrDelegates = $package && in_array(strtolower($package['name']), ['students', 'delegates']);
+    // For Students, Delegates, and Non African nationals packages, allow any nationality
+    $isFixedPricePackage = $package && in_array(strtolower($package['name']), ['students', 'delegates', 'non african nationals']);
     
-    if (!empty($_POST['nationality']) && !$isStudentsOrDelegates && !validateNationality($_POST['nationality'])) {
+    if (!empty($_POST['nationality']) && !$isFixedPricePackage && !validateNationality($_POST['nationality'])) {
         $errors[] = "Please select a valid nationality";
     }
     
@@ -82,7 +82,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     
     // For Students and Delegates packages, allow any organization name
-    if (!empty($_POST['organization']) && !$isStudentsOrDelegates && !validateOrganization($_POST['organization'])) {
+    if (!empty($_POST['organization']) && !$isFixedPricePackage && !validateOrganization($_POST['organization'])) {
         $errors[] = "Please enter a valid organization name";
     }
     
