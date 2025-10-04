@@ -13,7 +13,7 @@ use Cphia2025\EmailQueue;
 // Package functions
 function getAllPackages() {
     $pdo = getConnection();
-    $stmt = $pdo->prepare("SELECT * FROM packages WHERE is_active = 1 ORDER BY type, price");
+    $stmt = $pdo->prepare("SELECT * FROM packages WHERE is_active = 1 ORDER BY price DESC, type");
     $stmt->execute();
     return $stmt->fetchAll();
 }
@@ -27,7 +27,7 @@ function getPackageById($id) {
 
 function getPackagesByType($type) {
     $pdo = getConnection();
-    $stmt = $pdo->prepare("SELECT * FROM packages WHERE type = ? AND is_active = 1 ORDER BY price");
+    $stmt = $pdo->prepare("SELECT * FROM packages WHERE type = ? AND is_active = 1 ORDER BY price DESC");
     $stmt->execute([$type]);
     return $stmt->fetchAll();
 }
