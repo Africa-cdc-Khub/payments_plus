@@ -84,7 +84,7 @@ class EmailQueue
 
             // Always use template rendering for consistent variable replacement
             $htmlContent = $this->renderTemplate($templateName, $templateData);
-            return $this->emailService->sendEmail($toEmail, $toName, $subject, $htmlContent);
+            return $this->emailService->sendEmail($toEmail, $subject, $htmlContent, true);
         } catch (Exception $e) {
             error_log("EmailQueue::sendEmailImmediately error: " . $e->getMessage());
             // Fall back to simple email
@@ -117,8 +117,11 @@ class EmailQueue
      */
     private function renderTemplate($templateName, $data)
     {
-        // Simple template rendering - you can enhance this
-        $template = $this->getDefaultTemplate($templateName);
+        // Load template from file first, fallback to default
+        $template = $this->loadTemplateFromFile($templateName);
+        if (!$template) {
+            $template = $this->getDefaultTemplate($templateName);
+        }
         
         foreach ($data as $key => $value) {
             if (is_array($value)) {
@@ -128,6 +131,20 @@ class EmailQueue
         }
         
         return $template;
+    }
+
+    /**
+     * Load template from file
+     */
+    private function loadTemplateFromFile($templateName)
+    {
+        $templatePath = __DIR__ . '/../templates/email/' . $templateName . '.html';
+        
+        if (file_exists($templatePath)) {
+            return file_get_contents($templatePath);
+        }
+        
+        return false;
     }
 
     /**

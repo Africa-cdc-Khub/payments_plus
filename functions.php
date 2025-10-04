@@ -229,7 +229,7 @@ function sendRegistrationEmails($user, $registrationId, $package, $amount, $part
         'conference_dates' => CONFERENCE_DATES,
         'conference_location' => CONFERENCE_LOCATION,
         'conference_venue' => CONFERENCE_VENUE,
-        'logo_url' => rtrim(APP_URL, '/') . '/images/CPHIA-2025-logo_reverse.webp',
+        'logo_url' => rtrim(APP_URL, '/') . '/images/CPHIA-2025-logo_reverse.png',
         'payment_status_link' => $paymentStatusLink,
         'payment_status' => $paymentStatus,
         'mail_from_address' => MAIL_FROM_ADDRESS
@@ -262,7 +262,7 @@ function sendRegistrationEmails($user, $registrationId, $package, $amount, $part
         'conference_name' => CONFERENCE_NAME,
         'conference_short_name' => CONFERENCE_SHORT_NAME,
         'admin_name' => ADMIN_NAME,
-        'logo_url' => rtrim(APP_URL, '/') . '/images/CPHIA-2025-logo_reverse.webp',
+        'logo_url' => rtrim(APP_URL, '/') . '/images/CPHIA-2025-logo_reverse.png',
         'mail_from_address' => MAIL_FROM_ADDRESS
     ];
 
@@ -307,7 +307,7 @@ function sendPaymentLinkEmail($user, $registrationId, $amount, $packageName = nu
         'conference_dates' => CONFERENCE_DATES,
         'conference_location' => CONFERENCE_LOCATION,
         'conference_venue' => CONFERENCE_VENUE,
-        'logo_url' => rtrim(APP_URL, '/') . '/images/CPHIA-2025-logo_reverse.webp',
+        'logo_url' => rtrim(APP_URL, '/') . '/images/CPHIA-2025-logo_reverse.png',
         'mail_from_address' => MAIL_FROM_ADDRESS
     ];
 

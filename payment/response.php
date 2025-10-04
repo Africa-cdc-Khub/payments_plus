@@ -3,117 +3,335 @@
 include 'security.php';
 #include '../notify/line-notify.php';
 
+// Load bootstrap for constants
+require_once '../bootstrap.php';
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Payment Response</title>
-    <link rel="stylesheet" type="text/css" href="wm.css"/>
+    <title><?php echo CONFERENCE_SHORT_NAME; ?> - Payment Response</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="../css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        
+        .container {
+            max-width: none !important;
+            width: 100% !important;
+            padding: 0 !important;
+        }
+        .header-content {
+            max-width: none !important;
+            width: 100% !important;
+            padding: 0 var(--spacing-6) !important;
+        }
+        .header-text h1 {
+            font-size: var(--font-size-3xl) !important;
+        }
+        .header-text h2 {
+            font-size: var(--font-size-5xl) !important;
+        }
+        .conference-dates {
+            font-size: var(--font-size-xl) !important;
+        }
+        .response-container {
+            width: 100%;
+            margin: 0 auto;
+            padding: var(--spacing-6);
+            background: var(--light-gray);
+            min-height: 100vh;
+        }
+        .response-card {
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+            border: 1px solid var(--light-gray);
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .response-header {
+            background: linear-gradient(135deg, var(--primary-green) 0%, var(--dark-green) 100%);
+            color: var(--white);
+            padding: var(--spacing-8);
+            text-align: center;
+        }
+        .response-header h3 {
+            color: var(--white);
+            font-weight: 600;
+            margin-bottom: var(--spacing-2);
+            font-size: var(--font-size-2xl);
+        }
+        .response-header p {
+            color: rgba(255,255,255,0.9);
+            margin: 0;
+            font-size: var(--font-size-lg);
+        }
+        .response-content {
+            padding: var(--spacing-8);
+        }
+        .status-icon {
+            font-size: 4rem;
+            margin-bottom: var(--spacing-4);
+            text-align: center;
+        }
+        .status-success {
+            color: var(--primary-green);
+        }
+        .status-error {
+            color: #dc3545;
+        }
+        .status-warning {
+            color: #ff8c00;
+        }
+        .status-title {
+            text-align: center;
+            font-size: var(--font-size-2xl);
+            font-weight: 600;
+            margin-bottom: var(--spacing-4);
+        }
+        .status-message {
+            text-align: center;
+            font-size: var(--font-size-lg);
+            color: var(--medium-gray);
+            margin-bottom: var(--spacing-6);
+        }
+        .payment-info {
+            background: var(--light-gray);
+            border-radius: var(--radius-md);
+            padding: var(--spacing-6);
+            margin-bottom: var(--spacing-6);
+        }
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--spacing-3) 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .info-item:last-child {
+            border-bottom: none;
+            font-weight: 600;
+            font-size: var(--font-size-lg);
+            color: var(--primary-green);
+            background: var(--light-green);
+            margin: var(--spacing-3) -var(--spacing-6) -var(--spacing-6);
+            padding: var(--spacing-4) var(--spacing-6);
+            border-radius: 0 0 var(--radius-md) var(--radius-md);
+        }
+        .info-label {
+            font-weight: 500;
+            color: var(--dark-gray);
+        }
+        .info-value {
+            font-weight: 600;
+            color: var(--dark-gray);
+            text-align: right;
+        }
+        .back-link {
+            color: var(--medium-gray);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-2);
+            margin-bottom: var(--spacing-5);
+            font-weight: 500;
+        }
+        .back-link:hover {
+            color: var(--primary-green);
+        }
+        .action-buttons {
+            text-align: center;
+            margin-top: var(--spacing-6);
+        }
+        .btn-action {
+            background: linear-gradient(135deg, var(--secondary-green) 0%, var(--primary-green) 100%);
+            border: none;
+            border-radius: var(--radius-md);
+            padding: var(--spacing-4) var(--spacing-6);
+            font-size: var(--font-size-lg);
+            font-weight: 600;
+            color: var(--white);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-2);
+            box-shadow: 0 4px 15px rgba(26, 86, 50, 0.3);
+            margin: 0 var(--spacing-2);
+        }
+        .btn-action:hover {
+            color: var(--white);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(26, 86, 50, 0.4);
+        }
+        .btn-secondary {
+            background: var(--light-gray);
+            color: var(--dark-gray);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .btn-secondary:hover {
+            background: var(--medium-gray);
+            color: var(--white);
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <div class="header-content">
-                <div class="logo">
-                    <img src="../img/logo-cybersource.png" alt="CyberSource Logo" />
-                </div>
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content text-center">
                 <div class="header-text">
-                    <h1>Payment Response</h1>
-                    <p>Transaction Processing Result</p>
+                    <div class="logo mb-2">
+                        <img src="../images/logo.png" alt="CPHIA 2025" class="logo-img" style="filter: brightness(0) invert(1);">
+                    </div>
+                    <h1 class="mb-2"><?php echo CONFERENCE_NAME; ?></h1>
+                    <h2 class="mb-2"><?php echo CONFERENCE_SHORT_NAME; ?></h2>
+                    <p class="conference-dates mb-0"><?php echo CONFERENCE_DATES; ?> • <?php echo CONFERENCE_LOCATION; ?></p>
                 </div>
             </div>
-        </div>
+        </header>
+    </div>
 
-        <div class="payment-result-container">
-            <?php
-            $response = $_REQUEST;
-            $amount = @$response['auth_amount'];
-            $currency = @$response['req_currency'];
-            $referenceNumber = @$response['req_reference_number'];
-            $decision = @$response['decision'];
-            $message = @$response['message'];
-            
-            // Determine status styling and icon
-            $statusClass = 'status-warning';
-            $statusIcon = '⚠️';
-            $statusText = 'Processing';
-            $statusColor = '#ff8c00';
-            
-            if (strtolower($decision) === 'accept') {
-                $statusClass = 'status-success';
-                $statusIcon = '✓';
-                $statusText = 'Payment Successful';
-                $statusColor = '#28a745';
-            } elseif (strtolower($decision) === 'decline' || strtolower($decision) === 'error') {
-                $statusClass = 'status-error';
-                $statusIcon = '✗';
-                $statusText = 'Payment Failed';
-                $statusColor = '#dc3545';
-            }
-            ?>
-            
-            <div class="payment-status-icon <?php echo $statusClass; ?>">
-                <?php echo $statusIcon; ?>
+    <div class="response-container">
+        <a href="../registration_lookup.php" class="back-link">
+            <i class="fas fa-arrow-left"></i> Back to Registrations
+        </a>
+        
+        <div class="response-card">
+
+            <div class="response-header">
+                <h3><i class="fas fa-credit-card me-2"></i>Payment Response</h3>
+                <p>Transaction Processing Result</p>
             </div>
             
-            <h2 class="payment-status-title"><?php echo $statusText; ?></h2>
-            
-            <?php if (!empty($message)): ?>
-                <p class="payment-message"><?php echo htmlspecialchars($message); ?></p>
-            <?php endif; ?>
-            
-            <div class="payment-info">
-                <?php if (!empty($amount) && !empty($currency)): ?>
-                    <div class="payment-amount">
-                        <span class="amount-label">Amount:</span>
-                        <span class="amount-value"><?php echo htmlspecialchars($amount . ' ' . $currency); ?></span>
-                    </div>
+            <div class="response-content">
+                <?php
+                $response = $_REQUEST;
+                $amount = @$response['auth_amount'];
+                $currency = @$response['req_currency'];
+                $referenceNumber = @$response['req_reference_number'];
+                $decision = @$response['decision'];
+                $message = @$response['message'];
+                
+                // Determine status styling and icon
+                $statusClass = 'status-warning';
+                $statusIcon = 'fas fa-clock';
+                $statusText = 'Processing';
+                $statusColor = '#ff8c00';
+                
+                if (strtolower($decision) === 'accept') {
+                    $statusClass = 'status-success';
+                    $statusIcon = 'fas fa-check-circle';
+                    $statusText = 'Payment Successful';
+                    $statusColor = '#28a745';
+                } elseif (strtolower($decision) === 'decline' || strtolower($decision) === 'error') {
+                    $statusClass = 'status-error';
+                    $statusIcon = 'fas fa-times-circle';
+                    $statusText = 'Payment Failed';
+                    $statusColor = '#dc3545';
+                }
+                ?>
+                
+                <div class="status-icon <?php echo $statusClass; ?>">
+                    <i class="<?php echo $statusIcon; ?>"></i>
+                </div>
+                
+                <h2 class="status-title"><?php echo $statusText; ?></h2>
+                
+                <?php if (!empty($message)): ?>
+                    <p class="status-message"><?php echo htmlspecialchars($message); ?></p>
                 <?php endif; ?>
                 
-                <?php if (!empty($referenceNumber)): ?>
-                    <div class="payment-reference">
-                        <span class="reference-label">Reference:</span>
-                        <span class="reference-value"><?php echo htmlspecialchars($referenceNumber); ?></span>
+                <div class="payment-info">
+                    <h5 style="color: var(--primary-green); margin-bottom: 20px; font-weight: 600;">
+                        <i class="fas fa-receipt me-2"></i>Transaction Details
+                    </h5>
+                    
+                    <?php if (!empty($amount) && !empty($currency)): ?>
+                        <div class="info-item">
+                            <span class="info-label">Amount:</span>
+                            <span class="info-value"><?php echo htmlspecialchars($amount . ' ' . $currency); ?></span>
+                        </div>
+                    <?php endif; ?>
+                    
+                    <?php if (!empty($referenceNumber)): ?>
+                        <div class="info-item">
+                            <span class="info-label">Reference Number:</span>
+                            <span class="info-value"><?php echo htmlspecialchars($referenceNumber); ?></span>
+                        </div>
+                    <?php endif; ?>
+                    
+                    <div class="info-item">
+                        <span class="info-label">Status:</span>
+                        <span class="info-value" style="color: <?php echo $statusColor; ?>; font-weight: 600;"><?php echo $statusText; ?></span>
                     </div>
-                <?php endif; ?>
+                    
+                    <div class="info-item">
+                        <span class="info-label">Date:</span>
+                        <span class="info-value"><?php echo date('F j, Y \a\t g:i A'); ?></span>
+                    </div>
+                </div>
+                
+                <div class="action-buttons">
+                    <?php
+                    // Extract registration ID from reference number or other parameters
+                    $registrationId = null;
+                    $email = '';
+                    
+                    // Try to get registration ID from reference number
+                    if (!empty($referenceNumber)) {
+                        // Extract registration ID from reference number (assuming format like "REG_123")
+                        if (preg_match('/REG-(\d+)/', $referenceNumber, $matches)) {
+                            $registrationId = $matches[1];
+                        } else {
+                            $registrationId = $referenceNumber; // Use reference number as registration ID
+                        }
+                    }
+                    
+                    // Try to get email from request parameters
+                    $email = @$response['req_bill_to_email'] ?: @$response['email'];
+                    
+                    if ($registrationId && $email) {
+                        // Show action buttons for successful payment
+                        if (strtolower($decision) === 'accept') {
+                            echo '<a href="../payment_status.php?id=' . urlencode($registrationId) . '&email=' . urlencode($email) . '" class="btn-action">';
+                            echo '<i class="fas fa-eye me-2"></i>View Registration Status';
+                            echo '</a>';
+                            echo '<a href="../registration_lookup.php" class="btn-action btn-secondary">';
+                            echo '<i class="fas fa-list me-2"></i>All Registrations';
+                            echo '</a>';
+                        } else {
+                            echo '<a href="../checkout_payment.php?registration_id=' . urlencode($registrationId) . '" class="btn-action">';
+                            echo '<i class="fas fa-redo me-2"></i>Try Payment Again';
+                            echo '</a>';
+                            echo '<a href="../registration_lookup.php" class="btn-action btn-secondary">';
+                            echo '<i class="fas fa-list me-2"></i>All Registrations';
+                            echo '</a>';
+                        }
+                    } else {
+                        // Fallback buttons
+                        echo '<a href="../registration_lookup.php" class="btn-action">';
+                        echo '<i class="fas fa-list me-2"></i>View All Registrations';
+                        echo '</a>';
+                        echo '<a href="../index.php" class="btn-action btn-secondary">';
+                        echo '<i class="fas fa-home me-2"></i>Home Page';
+                        echo '</a>';
+                    }
+                    ?>
+                </div>
             </div>
         </div>
-
-        <div class="back-link">
-            <?php
-            // Extract registration ID from reference number or other parameters
-            $registrationId = null;
-            $email = '';
-            
-            // Try to get registration ID from reference number
-            if (!empty($referenceNumber)) {
-                // Extract registration ID from reference number (assuming format like "REG_123")
-                if (preg_match('/REG_(\d+)/', $referenceNumber, $matches)) {
-                    $registrationId = $matches[1];
-                } else {
-                    $registrationId = $referenceNumber; // Use reference number as registration ID
-                }
-            }
-            
-            // Try to get email from request parameters
-            $email = @$response['req_bill_to_email'] ?: @$response['email'];
-            
-            if ($registrationId && $email) {
-                // Redirect to payment status page with registration details
-                $paymentStatusUrl = '../payment_status.php?id=' . urlencode($registrationId) . '&email=' . urlencode($email);
-                echo '<a href="' . htmlspecialchars($paymentStatusUrl) . '">← View Registration Status</a>';
-            } else {
-                // Fallback to registration lookup if we can't determine registration details
-                echo '<a href="../registration_lookup.php">← Go Back to Registration Lookup</a>';
-            }
-            ?>
-        </div>
     </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
 

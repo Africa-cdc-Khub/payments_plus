@@ -24,9 +24,12 @@
             padding: 30px;
             text-align: center;
         }
-        .header img {
+        .logo {
             max-height: 60px;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
         }
         .content {
             padding: 30px;
@@ -72,14 +75,14 @@
 <body>
     <div class="container">
         <div class="header">
-            <img src="{{EMAIL_LOGO_URL}}" alt="{{CONFERENCE_SHORT_NAME}}">
+            <img src="{{logo_url}}" alt="{{conference_short_name}}" class="logo">
             <h1>{{CONFERENCE_SHORT_NAME}}</h1>
             <p>{{CONFERENCE_NAME}}</p>
         </div>
         
         <div class="content">
             <div class="reminder-box">
-                <h2 style="color: #dc2626; margin-top: 0;">⏰ Payment Reminder</h2>
+                <h2 style="color: #dc2626; margin-top: 0;">Payment Reminder</h2>
                 <p>Dear {{user_name}},</p>
                 <p>This is a friendly reminder that your registration for <strong>{{CONFERENCE_SHORT_NAME}}</strong> is still pending payment.</p>
             </div>

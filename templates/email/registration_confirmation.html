@@ -10,6 +10,17 @@
         .details { background: white; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #063218; }
         .footer { text-align: center; padding: 20px; background: #e2e8f0; color: #666; }
         .logo { max-height: 60px; margin-bottom: 10px; background: white; padding: 10px; border-radius: 5px; }
+        .logo-text { 
+            font-size: 32px; 
+            font-weight: bold; 
+            color: white; 
+            text-align: center; 
+            margin-bottom: 10px; 
+            background: rgba(255,255,255,0.1); 
+            padding: 15px; 
+            border-radius: 8px; 
+            border: 2px solid rgba(255,255,255,0.3);
+        }
         .highlight { color: #063218; font-weight: bold; }
     </style>
 </head>
@@ -21,7 +32,7 @@
     </div>
     
     <div class="content">
-        <h2>Registration Confirmed! 🎉</h2>
+        <h2>Registration Confirmed!</h2>
         <p>Dear <span class="highlight">{{user_name}}</span>,</p>
         <p>Thank you for registering for {{conference_short_name}}! We're excited to have you join us.</p>
         

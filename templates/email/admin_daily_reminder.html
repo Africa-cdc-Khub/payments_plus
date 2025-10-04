@@ -24,6 +24,13 @@
             padding: 30px;
             text-align: center;
         }
+        .logo {
+            max-height: 60px;
+            margin-bottom: 10px;
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+        }
         .content {
             padding: 30px;
         }
@@ -66,8 +73,9 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>📊 Daily Admin Reminder</h1>
-            <p>{{CONFERENCE_SHORT_NAME}} Registration System</p>
+            <img src="{{logo_url}}" alt="{{conference_short_name}}" class="logo">
+            <h1>Daily Admin Reminder</h1>
+            <p>{{conference_short_name}} Registration System</p>
         </div>
         
         <div class="content">
