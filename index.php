@@ -145,7 +145,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'passport_number' => sanitizeInput($_POST['passport_number']),
         'passport_file' => handleFileUpload($_FILES['passport_file'] ?? null) ?: '',
         'requires_visa' => $_POST['requires_visa'] ?? '',
-        'organization' => sanitizeInput($_POST['organization']),
+                'organization' => sanitizeInput($_POST['organization']),
         'position' => sanitizeInput($_POST['position']),
         'institution' => sanitizeInput($_POST['institution'] ?? ''),
         'student_id_file' => handleFileUpload($_FILES['student_id_file'] ?? null) ?: '',
@@ -179,10 +179,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
              if ($isFixedPricePackage) {
                  // Fixed-price packages - use exact package price, not nationality-based
                  $totalAmount = $package['price'];
-                 
-                 if ($isSideEvent) {
+             
+             if ($isSideEvent) {
                      $registrationType = 'side_event';
-                 } else if ($isExhibition) {
+             } else if ($isExhibition) {
                      $registrationType = 'exhibition';
                  } else {
                      $registrationType = 'individual'; // Students and Delegates are individual only
@@ -201,29 +201,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if ($isFixedPricePackage) {
                     $errors[] = "Group registration is not available for " . $package['name'] . " package";
                 } else {
-                    // Regular group registration
-                    $numPeople = (int)$_POST['num_people'];
-                    
+                // Regular group registration
+                $numPeople = (int)$_POST['num_people'];
+                
                     // Check if any participants are non-African (only for non-fixed-price packages)
-                    $hasNonAfricanParticipants = false;
+                $hasNonAfricanParticipants = false;
                     if (isset($_POST['participants']) && !$isFixedPricePackage) {
-                        foreach ($_POST['participants'] as $participant) {
-                            if (!empty($participant['nationality']) && !isAfricanNational($participant['nationality'])) {
-                                $hasNonAfricanParticipants = true;
-                                break;
-                            }
+                    foreach ($_POST['participants'] as $participant) {
+                        if (!empty($participant['nationality']) && !isAfricanNational($participant['nationality'])) {
+                            $hasNonAfricanParticipants = true;
+                            break;
                         }
                     }
-                    
-                    // Use non-African pricing if any participant is non-African
-                    if ($hasNonAfricanParticipants || !$isAfrican) {
-                        $package = getPackageById(20); // Non-African nationals package
-                    } else {
-                        $package = getPackageById(19); // African Nationals package
-                    }
-                    
-                    $totalAmount = $package['price'] * $numPeople;
-                    $registrationType = 'group';
+                }
+                
+                // Use non-African pricing if any participant is non-African
+                if ($hasNonAfricanParticipants || !$isAfrican) {
+                    $package = getPackageById(20); // Non-African nationals package
+                } else {
+                    $package = getPackageById(19); // African Nationals package
+                }
+                
+                $totalAmount = $package['price'] * $numPeople;
+                $registrationType = 'group';
                 }
             } else {
                 // Default to selected package
@@ -325,8 +325,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $errors[] = "Invalid package selected";
         }
     }
-    } // End rate limiting
-} // End CSRF protection
+        } // End rate limiting
+    } // End CSRF protection
 
 // Get all packages
 $packages = getAllPackages();
@@ -561,8 +561,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                                 Registration ID: #<?php echo $registrationId; ?>
                             </p>
                         </div>
-                    </div>
-                <?php endif; ?>
+            </div>
+        <?php endif; ?>
             </div>
             
             <!-- Display User's Registration History -->
@@ -705,16 +705,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
 
         <!-- Package Selection (Initial View) -->
         <div class="package-selection-container" id="packageSelection" <?php echo (!empty($errors) && $_SERVER['REQUEST_METHOD'] === 'POST') ? 'style="display: none;"' : ''; ?>>
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <div>
-                    <h2>Select Your Registration Package</h2>
-                    <p class="mb-0">Choose the package that best fits your needs for the 4th International Conference on Public Health in Africa</p>
-                </div>
-                <div>
-                    <a href="registration_lookup.php" class="btn btn-primary btn-lg view-registrations-btn">
-                        <i class="fas fa-list-alt me-2"></i>View My Registrations
-                    </a>
-                </div>
+            <div class="text-center mb-4">
+                <h2>Select Your Registration Package</h2>
+                <p class="mb-3">Choose the package that best fits your needs for the 4th International Conference on Public Health in Africa</p>
+                <a href="registration_lookup.php" class="btn btn-primary btn-lg view-registrations-btn">
+                    <i class="fas fa-list-alt me-2"></i>View My Registrations
+                </a>
             </div>
             
             <!-- Registration History Check -->
@@ -733,7 +729,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                                         <?php if ($registration['payment_status'] === 'completed'): ?>
                                             <span class="badge bg-success mb-1">
                                                 <i class="fas fa-check-circle me-1"></i>Paid
-                                            </span>
+                                    </span>
                                         <?php else: ?>
                                             <span class="badge bg-warning mb-1">
                                                 <i class="fas fa-clock me-1"></i>Pending Payment
@@ -797,7 +793,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                                     </div>
                                     <h5 class="card-title mb-3"><?php echo htmlspecialchars($package['name']); ?></h5>
                                     <?php if ($package['price'] > 0): ?>
-                                        <div class="package-price h4 text-success mb-3"><?php echo formatCurrency($package['price']); ?></div>
+                                    <div class="package-price h4 text-success mb-3"><?php echo formatCurrency($package['price']); ?></div>
                                     <?php endif; ?>
                                     <button type="button" class="btn btn-primary btn-lg select-package mt-auto">Select Package</button>
                                 </div>
