@@ -7,7 +7,7 @@ header('X-Content-Type-Options: nosniff');
 header('X-Frame-Options: DENY');
 header('X-XSS-Protection: 1; mode=block');
 header('Referrer-Policy: strict-origin-when-cross-origin');
-header('Content-Security-Policy: default-src \'self\'; script-src \'self\' \'unsafe-inline\' https://cdn.jsdelivr.net https://code.jquery.com https://cdnjs.cloudflare.com https://www.google.com https://www.gstatic.com; style-src \'self\' \'unsafe-inline\' https://cdn.jsdelivr.net https://fonts.googleapis.com; font-src \'self\' https://fonts.gstatic.com; img-src \'self\' data: https://www.google.com; connect-src \'self\' https://www.google.com; frame-src \'self\' https://www.google.com;');
+header('Content-Security-Policy: default-src \'self\'; script-src \'self\' \'unsafe-inline\' https://cdn.jsdelivr.net https://code.jquery.com https://cdnjs.cloudflare.com https://www.google.com https://www.gstatic.com; style-src \'self\' \'unsafe-inline\' https://cdn.jsdelivr.net https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src \'self\' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src \'self\' data: https://www.google.com; connect-src \'self\' https://www.google.com; frame-src \'self\' https://www.google.com;');
 
 // Start secure session
 if (session_status() === PHP_SESSION_NONE) {
@@ -76,6 +76,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = "Please enter a valid organization name";
     }
     
+    // Validate student fields if Students package is selected
+    if (isset($_POST['package_id'])) {
+        $package = getPackageById($_POST['package_id']);
+        if ($package && strtolower($package['name']) === 'students') {
+            if (empty($_POST['institution'])) {
+                $errors[] = "Institution/School is required for student registration";
+            }
+        } elseif ($package && strtolower($package['name']) === 'delegates') {
+            if (empty($_POST['delegate_category'])) {
+                $errors[] = "Delegate Category is required for delegate registration";
+            }
+        }
+    }
+    
     // Exhibition description is optional - only validate if provided
     if (!empty($_POST['exhibition_description']) && !validateExhibitionDescription($_POST['exhibition_description'])) {
         $errors[] = "Please enter a valid exhibition description (5-1000 characters)";
@@ -121,11 +135,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'last_name' => sanitizeInput($_POST['last_name']),
                 'phone' => sanitizeInput($_POST['phone']),
                 'nationality' => sanitizeInput($_POST['nationality']),
-                'passport_number' => sanitizeInput($_POST['passport_number']),
-                'passport_file' => handleFileUpload($_FILES['passport_file'] ?? null) ?: '',
-                'requires_visa' => $_POST['requires_visa'] ?? '',
-                'organization' => sanitizeInput($_POST['organization']),
-                'position' => sanitizeInput($_POST['position']),
+        'passport_number' => sanitizeInput($_POST['passport_number']),
+        'passport_file' => handleFileUpload($_FILES['passport_file'] ?? null) ?: '',
+        'requires_visa' => $_POST['requires_visa'] ?? '',
+        'organization' => sanitizeInput($_POST['organization']),
+        'position' => sanitizeInput($_POST['position']),
+        'institution' => sanitizeInput($_POST['institution'] ?? ''),
+        'student_id_file' => handleFileUpload($_FILES['student_id_file'] ?? null) ?: '',
+        'delegate_category' => sanitizeInput($_POST['delegate_category'] ?? ''),
+        'airport_of_origin' => sanitizeInput($_POST['airport_of_origin'] ?? ''),
                 'address_line1' => sanitizeInput($_POST['address_line1']),
                 'city' => sanitizeInput($_POST['city']),
                 'state' => sanitizeInput($_POST['state']),
@@ -148,14 +166,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
              // Check if this is an exhibition package
              $isExhibition = ($package['type'] === 'exhibition');
              
-             if ($isSideEvent) {
-                 // Side event - individual registration only, use exact package price
-                 $totalAmount = $package['price']; // Use exact package price, not nationality-based
-                 $registrationType = 'side_event'; // Use side_event registration type
-             } else if ($isExhibition) {
-                 // Exhibition package - individual registration only, use exact package price
-                 $totalAmount = $package['price']; // Use exact package price, not nationality-based
-                 $registrationType = 'exhibition'; // Use exhibition registration type
+             // Check if this is a fixed-price package (Students, Delegates, Side Events, Exhibitions)
+             $isFixedPricePackage = in_array(strtolower($package['name']), ['students', 'delegates']) || 
+                                   $isSideEvent || $isExhibition;
+             
+             if ($isFixedPricePackage) {
+                 // Fixed-price packages - use exact package price, not nationality-based
+                 $totalAmount = $package['price'];
+                 
+                 if ($isSideEvent) {
+                     $registrationType = 'side_event';
+                 } else if ($isExhibition) {
+                     $registrationType = 'exhibition';
+                 } else {
+                     $registrationType = 'individual'; // Students and Delegates are individual only
+                 }
             } else if ($_POST['registration_type'] === 'individual') {
                 // Regular individual registration - use African/Non-African pricing
                 if ($isAfrican) {
@@ -166,29 +191,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $totalAmount = $package['price'];
                 $registrationType = 'individual';
             } else if ($_POST['registration_type'] === 'group' && isset($_POST['num_people'])) {
-                // Regular group registration
-                $numPeople = (int)$_POST['num_people'];
-                
-                // Check if any participants are non-African
-                $hasNonAfricanParticipants = false;
-                if (isset($_POST['participants'])) {
-                    foreach ($_POST['participants'] as $participant) {
-                        if (!empty($participant['nationality']) && !isAfricanNational($participant['nationality'])) {
-                            $hasNonAfricanParticipants = true;
-                            break;
+                // Group registration - not allowed for fixed-price packages
+                if ($isFixedPricePackage) {
+                    $errors[] = "Group registration is not available for " . $package['name'] . " package";
+                } else {
+                    // Regular group registration
+                    $numPeople = (int)$_POST['num_people'];
+                    
+                    // Check if any participants are non-African
+                    $hasNonAfricanParticipants = false;
+                    if (isset($_POST['participants'])) {
+                        foreach ($_POST['participants'] as $participant) {
+                            if (!empty($participant['nationality']) && !isAfricanNational($participant['nationality'])) {
+                                $hasNonAfricanParticipants = true;
+                                break;
+                            }
                         }
                     }
+                    
+                    // Use non-African pricing if any participant is non-African
+                    if ($hasNonAfricanParticipants || !$isAfrican) {
+                        $package = getPackageById(20); // Non-African nationals package
+                    } else {
+                        $package = getPackageById(19); // African Nationals package
+                    }
+                    
+                    $totalAmount = $package['price'] * $numPeople;
+                    $registrationType = 'group';
                 }
-                
-                // Use non-African pricing if any participant is non-African
-                if ($hasNonAfricanParticipants || !$isAfrican) {
-                    $package = getPackageById(20); // Non-African nationals package
-                } else {
-                    $package = getPackageById(19); // African Nationals package
-                }
-                
-                $totalAmount = $package['price'] * $numPeople;
-                $registrationType = 'group';
             } else {
                 // Default to selected package
                 $totalAmount = $package['price'];
@@ -207,8 +237,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             $registrationId = createRegistration($registrationData);
             
-            // Handle group participants (not for side events or exhibition packages)
-            if ($_POST['registration_type'] === 'group' && isset($_POST['participants']) && !$isSideEvent && !$isExhibition) {
+            // Handle group participants (not for fixed-price packages)
+            if ($_POST['registration_type'] === 'group' && isset($_POST['participants']) && !$isFixedPricePackage) {
                 $participants = [];
                 foreach ($_POST['participants'] as $participant) {
                     if (!empty($participant['first_name']) && !empty($participant['last_name']) && !empty($participant['email'])) {
@@ -221,7 +251,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             'passport_number' => sanitizeInput($participant['passport_number']),
                             'passport_file' => handleFileUpload($participant['passport_file'] ?? null) ?: '',
                             'requires_visa' => $participant['requires_visa'] ?? '',
-                            'organization' => sanitizeInput($participant['organization'])
+                            'organization' => sanitizeInput($participant['organization']),
+                            'institution' => sanitizeInput($participant['institution'] ?? ''),
+                            'student_id_file' => handleFileUpload($participant['student_id_file'] ?? null) ?: '',
+                            'delegate_category' => sanitizeInput($participant['delegate_category'] ?? ''),
+                            'airport_of_origin' => sanitizeInput($participant['airport_of_origin'] ?? '')
                         ];
                     }
                 }
@@ -230,7 +264,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             // Send registration emails
             $participants = [];
-            if ($_POST['registration_type'] === 'group' && isset($_POST['participants']) && !$isSideEvent && !$isExhibition) {
+            if ($_POST['registration_type'] === 'group' && isset($_POST['participants']) && !$isFixedPricePackage) {
                 foreach ($_POST['participants'] as $participant) {
                     if (!empty($participant['first_name']) && !empty($participant['last_name']) && !empty($participant['email'])) {
                         $participants[] = [
@@ -240,7 +274,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             'passport_number' => sanitizeInput($participant['passport_number']),
                             'passport_file' => handleFileUpload($participant['passport_file'] ?? null) ?: '',
                             'requires_visa' => $participant['requires_visa'] ?? '',
-                            'organization' => sanitizeInput($participant['organization'])
+                            'organization' => sanitizeInput($participant['organization']),
+                            'institution' => sanitizeInput($participant['institution'] ?? ''),
+                            'student_id_file' => handleFileUpload($participant['student_id_file'] ?? null) ?: '',
+                            'delegate_category' => sanitizeInput($participant['delegate_category'] ?? ''),
+                            'airport_of_origin' => sanitizeInput($participant['airport_of_origin'] ?? '')
                         ];
                     }
                 }
@@ -261,6 +299,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $exhibitionMessage = "Exhibition registration submitted successfully! You will receive a confirmation email. Payment will be processed after your exhibition is approved.";
                 } else {
                     $errors[] = "Registration created but failed to send confirmation email. Please contact support.";
+                }
+            } else if ($isFixedPricePackage) {
+                // For fixed-price packages (Students, Delegates), send normal registration emails
+                if (sendRegistrationEmails($user, $registrationId, $package, $totalAmount, $participants)) {
+                    $success = true;
+                } else {
+                    $errors[] = "Registration created but failed to queue confirmation email. Please contact support.";
                 }
             } else {
                 // For regular registrations, send normal registration emails
@@ -309,6 +354,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
         'requires_visa' => $_POST['requires_visa'] ?? '',
         'organization' => $_POST['organization'] ?? '',
         'position' => $_POST['position'] ?? '',
+        'institution' => $_POST['institution'] ?? '',
+        'student_id_file' => $_FILES['student_id_file']['name'] ?? '',
+        'delegate_category' => $_POST['delegate_category'] ?? '',
+        'airport_of_origin' => $_POST['airport_of_origin'] ?? '',
         'address_line1' => $_POST['address_line1'] ?? '',
         'city' => $_POST['city'] ?? '',
         'state' => $_POST['state'] ?? '',
@@ -375,6 +424,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
             max-width: none !important;
             width: 100% !important;
             padding: var(--spacing-6) !important;
+        }
+        
+        /* Package icon styles */
+        .package-icon {
+            transition: transform 0.3s ease;
+        }
+        
+        .package-card:hover .package-icon {
+            transform: scale(1.1);
+        }
+        
+        .package-icon i {
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+        }
+        
+        .selected-package-card .package-icon {
+            text-align: center;
+        }
+        
+        .selected-package-card .package-icon i {
+            filter: drop-shadow(0 2px 8px rgba(0,0,0,0.15));
         }
     </style>
 </head>
@@ -580,9 +650,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                         <div class="col-6 col-md-6">
                             <div class="card package-card h-100" data-package-id="<?php echo $package['id']; ?>" data-type="<?php echo $package['type']; ?>" data-package-name="<?php echo htmlspecialchars($package['name']); ?>">
                                 <div class="card-body d-flex flex-column p-3 text-center">
+                                    <div class="package-icon mb-3">
+                                        <i class="<?php echo htmlspecialchars($package['icon'] ?? 'fas fa-ticket-alt'); ?> <?php echo htmlspecialchars($package['color'] ?? 'text-primary'); ?> fa-3x"></i>
+                                    </div>
                                     <h5 class="card-title mb-3"><?php echo htmlspecialchars($package['name']); ?></h5>
-                                    <div class="package-price h4 text-success mb-3"><?php echo formatCurrency($package['price']); ?></div>
-                                    <div class="badge bg-info mb-3"><?php echo $package['id'] == 19 ? 'African Nationals' : ($package['id'] == 20 ? 'Non-African Nationals' : 'Individual Package'); ?></div>
+                                    <?php if ($package['price'] > 0): ?>
+                                        <div class="package-price h4 text-success mb-3"><?php echo formatCurrency($package['price']); ?></div>
+                                    <?php endif; ?>
                                     <button type="button" class="btn btn-primary btn-lg select-package mt-auto">Select Package</button>
                                 </div>
                             </div>
@@ -737,7 +811,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                                 </div>
                             </div>
                         </div>
-                        <div class="row">
+                        <!-- Organization and Position fields (hidden for Students) -->
+                        <div id="organizationFields" class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="organization" class="form-label">Organization *</label>
                                 <input type="text" class="form-control" name="organization" id="organization" value="<?php echo htmlspecialchars($formData['organization'] ?? ''); ?>" required>
@@ -745,6 +820,52 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                             <div class="col-md-6 mb-3">
                                 <label for="position" class="form-label">Position/Title</label>
                                 <input type="text" class="form-control" name="position" id="position" value="<?php echo htmlspecialchars($formData['position'] ?? ''); ?>">
+                            </div>
+                        </div>
+                        
+                        <!-- Delegate Category and Airport fields (only for Delegates package) - Right column -->
+                        <div id="delegateFields" class="row" style="display: none;">
+                            <div class="col-md-6 mb-3">
+                                <!-- Empty left column for delegates -->
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="delegate_category" class="form-label">Delegate Category *</label>
+                                <select class="form-select" name="delegate_category" id="delegate_category" required>
+                                    <option value="">Select Category</option>
+                                    <option value="Oral abstract presenter" <?php echo (($formData['delegate_category'] ?? '') === 'Oral abstract presenter') ? 'selected' : ''; ?>>Oral abstract presenter</option>
+                                    <option value="Invited speaker/Moderator" <?php echo (($formData['delegate_category'] ?? '') === 'Invited speaker/Moderator') ? 'selected' : ''; ?>>Invited speaker/Moderator</option>
+                                    <option value="Scientific Program Committee Member" <?php echo (($formData['delegate_category'] ?? '') === 'Scientific Program Committee Member') ? 'selected' : ''; ?>>Scientific Program Committee Member</option>
+                                    <option value="Secretariat" <?php echo (($formData['delegate_category'] ?? '') === 'Secretariat') ? 'selected' : ''; ?>>Secretariat</option>
+                                    <option value="Media Partner" <?php echo (($formData['delegate_category'] ?? '') === 'Media Partner') ? 'selected' : ''; ?>>Media Partner</option>
+                                    <option value="Side event focal person" <?php echo (($formData['delegate_category'] ?? '') === 'Side event focal person') ? 'selected' : ''; ?>>Side event focal person</option>
+                                </select>
+                                <div class="form-text">Required for delegate registration</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Airport of Origin field (only for Delegates package) - Right column -->
+                        <div id="airportFields" class="row" style="display: none;">
+                            <div class="col-md-6 mb-3">
+                                <!-- Empty left column for delegates -->
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="airport_of_origin" class="form-label">Airport of Origin</label>
+                                <input type="text" class="form-control" name="airport_of_origin" id="airport_of_origin" value="<?php echo htmlspecialchars($formData['airport_of_origin'] ?? ''); ?>" placeholder="Enter your departure airport">
+                                <div class="form-text">Optional - for travel planning purposes</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Student Fields (only for Students package) -->
+                        <div id="studentFields" class="row" style="display: none;">
+                            <div class="col-md-6 mb-3">
+                                <label for="institution" class="form-label">Institution/School *</label>
+                                <input type="text" class="form-control" name="institution" id="institution" value="<?php echo htmlspecialchars($formData['institution'] ?? ''); ?>" placeholder="Enter your institution or school name">
+                                <div class="form-text">Required for student registration</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="student_id_file" class="form-label">Student ID Document</label>
+                                <input type="file" class="form-control" name="student_id_file" id="student_id_file" accept=".pdf,.jpg,.jpeg,.png">
+                                <div class="form-text">Upload your student ID (PDF, JPG, PNG - max 5MB)</div>
                             </div>
                         </div>
                     </div>

@@ -25,13 +25,13 @@ if (!empty($_POST) || !empty($_GET)) {
     if ($referenceNumber && preg_match('/REG-(\d+)-/', $referenceNumber, $matches)) {
         $registrationId = $matches[1];
     } elseif ($transactionUuid) {
-        // Try to find registration by transaction UUID
+        // Try to find registration by transaction UUID in registrations table
         $pdo = getConnection();
-        $stmt = $pdo->prepare("SELECT registration_id FROM payments WHERE transaction_uuid = ?");
+        $stmt = $pdo->prepare("SELECT id FROM registrations WHERE payment_transaction_id = ?");
         $stmt->execute([$transactionUuid]);
         $result = $stmt->fetch();
         if ($result) {
-            $registrationId = $result['registration_id'];
+            $registrationId = $result['id'];
         }
     }
     
@@ -47,21 +47,7 @@ if (!empty($_POST) || !empty($_GET)) {
             $stmt = $pdo->prepare("UPDATE registrations SET payment_status = 'completed', payment_reference = ? WHERE id = ?");
             $stmt->execute([$referenceNumber, $registrationId]);
             
-            // Create or update payment record
-            $stmt = $pdo->prepare("INSERT INTO payments (registration_id, transaction_uuid, amount, currency, payment_status, reference_number, payment_token, response_data) 
-                                  VALUES (?, ?, ?, ?, 'completed', ?, ?, ?) 
-                                  ON DUPLICATE KEY UPDATE 
-                                  status = 'completed', reference_number = VALUES(reference_number), 
-                                  payment_token = VALUES(payment_token), response_data = VALUES(response_data)");
-            $stmt->execute([
-                $registrationId, 
-                $transactionUuid, 
-                $authAmount, 
-                $currency, 
-                $referenceNumber, 
-                $paymentToken, 
-                json_encode($response)
-            ]);
+            // Payment details are now stored in registrations table
         }
         
     } else {
@@ -72,18 +58,8 @@ if (!empty($_POST) || !empty($_GET)) {
         // Update payment status in database
         if ($registrationId) {
             $pdo = getConnection();
-            $stmt = $pdo->prepare("INSERT INTO payments (registration_id, transaction_uuid, amount, currency, payment_status, reference_number, response_data) 
-                                  VALUES (?, ?, ?, ?, 'failed', ?, ?) 
-                                  ON DUPLICATE KEY UPDATE 
-                                  status = 'failed', response_data = VALUES(response_data)");
-            $stmt->execute([
-                $registrationId, 
-                $transactionUuid, 
-                $authAmount, 
-                $currency, 
-                $referenceNumber, 
-                json_encode($response)
-            ]);
+            $stmt = $pdo->prepare("UPDATE registrations SET payment_status = 'failed', payment_reference = ? WHERE id = ?");
+            $stmt->execute([$referenceNumber, $registrationId]);
         }
     }
     

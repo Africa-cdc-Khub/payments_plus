@@ -72,8 +72,8 @@ function handleFileUpload($file, $uploadDir = 'uploads/passports/') {
 function createUser($data) {
     $pdo = getConnection();
     $sql = "INSERT INTO users (email, title, first_name, last_name, phone, nationality, passport_number, 
-            passport_file, requires_visa, organization, position, address_line1, address_line2, city, state, country, postal_code) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            passport_file, requires_visa, organization, position, institution, student_id_file, delegate_category, airport_of_origin, address_line1, address_line2, city, state, country, postal_code) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     $stmt = $pdo->prepare($sql);
     
     // Convert requires_visa from yes/no to 1/0
@@ -86,7 +86,9 @@ function createUser($data) {
         $data['email'], $data['title'] ?? '', $data['first_name'], $data['last_name'], 
         $data['phone'], $data['nationality'], $data['passport_number'] ?? '', 
         $data['passport_file'] ?? '', $requiresVisa, $data['organization'],
-        $data['position'] ?? '', $data['address_line1'], $data['address_line2'] ?? '', 
+        $data['position'] ?? '', $data['institution'] ?? '', $data['student_id_file'] ?? '', 
+        $data['delegate_category'] ?? '', $data['airport_of_origin'] ?? '',
+        $data['address_line1'], $data['address_line2'] ?? '', 
         $data['city'], $data['state'] ?? '', $data['country'], $data['postal_code'] ?? ''
     ]);
     return $pdo->lastInsertId();
@@ -124,8 +126,8 @@ function createRegistration($data) {
 
 function createRegistrationParticipants($registrationId, $participants) {
     $pdo = getConnection();
-    $sql = "INSERT INTO registration_participants (registration_id, title, first_name, last_name, email, nationality, passport_number, passport_file, requires_visa, organization) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    $sql = "INSERT INTO registration_participants (registration_id, title, first_name, last_name, email, nationality, passport_number, passport_file, requires_visa, organization, institution, student_id_file, delegate_category, airport_of_origin) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     $stmt = $pdo->prepare($sql);
     
     foreach ($participants as $participant) {
@@ -139,7 +141,9 @@ function createRegistrationParticipants($registrationId, $participants) {
             $registrationId, $participant['title'], $participant['first_name'], 
             $participant['last_name'], $participant['email'], $participant['nationality'],
             $participant['passport_number'] ?? '', $participant['passport_file'] ?? '', 
-            $requiresVisa, $participant['organization'] ?? ''
+            $requiresVisa, $participant['organization'] ?? '', $participant['institution'] ?? '', 
+            $participant['student_id_file'] ?? '', $participant['delegate_category'] ?? '', 
+            $participant['airport_of_origin'] ?? ''
         ]);
     }
 }
@@ -170,25 +174,7 @@ function updateRegistrationStatus($id, $status, $paymentReference = null) {
     return $stmt->execute([$status, $paymentReference, $id]);
 }
 
-// Payment functions
-function createPayment($data) {
-    $pdo = getConnection();
-    $sql = "INSERT INTO payments (registration_id, amount, currency, transaction_uuid, payment_status) 
-            VALUES (?, ?, ?, ?, ?)";
-    $stmt = $pdo->prepare($sql);
-    return $stmt->execute([
-        $data['registration_id'], $data['amount'], $data['currency'], 
-        $data['transaction_uuid'], $data['payment_status']
-    ]);
-}
-
-function updatePaymentStatus($transactionUuid, $status, $paymentReference = null) {
-    $pdo = getConnection();
-    $sql = "UPDATE payments SET payment_status = ?, payment_reference = ?, payment_date = NOW() 
-            WHERE transaction_uuid = ?";
-    $stmt = $pdo->prepare($sql);
-    return $stmt->execute([$status, $paymentReference, $transactionUuid]);
-}
+// Payment functions - now handled directly in registrations table
 
 // Utility functions
 function formatCurrency($amount, $currency = 'USD') {
@@ -229,7 +215,7 @@ function sendRegistrationEmails($user, $registrationId, $package, $amount, $part
         'conference_dates' => CONFERENCE_DATES,
         'conference_location' => CONFERENCE_LOCATION,
         'conference_venue' => CONFERENCE_VENUE,
-        'logo_url' => rtrim(APP_URL, '/') . '/images/CPHIA-2025-logo_reverse.png',
+        'logo_url' => EMAIL_LOGO_URL,
         'payment_status_link' => $paymentStatusLink,
         'payment_status' => $paymentStatus,
         'mail_from_address' => MAIL_FROM_ADDRESS
@@ -262,7 +248,7 @@ function sendRegistrationEmails($user, $registrationId, $package, $amount, $part
         'conference_name' => CONFERENCE_NAME,
         'conference_short_name' => CONFERENCE_SHORT_NAME,
         'admin_name' => ADMIN_NAME,
-        'logo_url' => rtrim(APP_URL, '/') . '/images/CPHIA-2025-logo_reverse.png',
+        'logo_url' => EMAIL_LOGO_URL,
         'mail_from_address' => MAIL_FROM_ADDRESS
     ];
 
@@ -307,7 +293,7 @@ function sendPaymentLinkEmail($user, $registrationId, $amount, $packageName = nu
         'conference_dates' => CONFERENCE_DATES,
         'conference_location' => CONFERENCE_LOCATION,
         'conference_venue' => CONFERENCE_VENUE,
-        'logo_url' => rtrim(APP_URL, '/') . '/images/CPHIA-2025-logo_reverse.png',
+        'logo_url' => EMAIL_LOGO_URL,
         'mail_from_address' => MAIL_FROM_ADDRESS
     ];
 
@@ -840,6 +826,44 @@ function sendExhibitionConfirmationEmail($user, $registrationId, $package, $amou
         $templateData,
         'registration_confirmation',
         5
+    );
+}
+
+function getUserById($id) {
+    $pdo = getConnection();
+    $stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
+    $stmt->execute([$id]);
+    return $stmt->fetch(PDO::FETCH_ASSOC);
+}
+
+function sendPaymentConfirmationEmail($user, $registration) {
+    $emailQueue = new \Cphia2025\EmailQueue();
+    
+    $userName = $user['first_name'] . ' ' . $user['last_name'];
+    $templateData = [
+        'user_name' => $userName,
+        'registration_id' => $registration['id'],
+        'package_name' => $registration['package_name'],
+        'amount' => $registration['total_amount'],
+        'currency' => $registration['currency'],
+        'payment_reference' => $registration['payment_reference'],
+        'conference_name' => CONFERENCE_NAME,
+        'conference_short_name' => CONFERENCE_SHORT_NAME,
+        'conference_dates' => CONFERENCE_DATES,
+        'conference_location' => CONFERENCE_LOCATION,
+        'conference_venue' => CONFERENCE_VENUE,
+        'logo_url' => EMAIL_LOGO_URL,
+        'mail_from_address' => MAIL_FROM_ADDRESS
+    ];
+    
+    return $emailQueue->addToQueue(
+        $user['email'],
+        $userName,
+        CONFERENCE_SHORT_NAME . " - Payment Confirmed #" . $registration['id'],
+        'payment_confirmation',
+        $templateData,
+        'payment_confirmation',
+        3
     );
 }
 ?>

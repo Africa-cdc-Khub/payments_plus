@@ -71,7 +71,7 @@ try {
         'conference_dates' => CONFERENCE_DATES,
         'conference_location' => CONFERENCE_LOCATION,
         'conference_venue' => CONFERENCE_VENUE,
-        'logo_url' => rtrim(APP_URL, '/') . '/images/CPHIA-2025-logo_reverse.png',
+        'logo_url' => EMAIL_LOGO_URL,
         'payment_link' => $paymentLink,
         'payment_status' => 'pending',
         'mail_from_address' => MAIL_FROM_ADDRESS

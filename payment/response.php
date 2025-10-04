@@ -5,6 +5,75 @@ include 'security.php';
 
 // Load bootstrap for constants
 require_once '../bootstrap.php';
+require_once '../functions.php';
+
+// Process payment response
+$response = $_REQUEST;
+$amount = @$response['auth_amount'];
+$currency = @$response['req_currency'];
+$referenceNumber = @$response['req_reference_number'];
+$decision = @$response['decision'];
+$message = @$response['message'];
+$email = @$response['req_bill_to_email'] ?: @$response['email'];
+
+// Extract registration ID from reference number
+$registrationId = null;
+if (!empty($referenceNumber)) {
+    // Extract registration ID from reference number (assuming format like "REG-123")
+    if (preg_match('/REG-(\d+)/', $referenceNumber, $matches)) {
+        $registrationId = $matches[1];
+    } else {
+        $registrationId = $referenceNumber; // Use reference number as registration ID
+    }
+}
+
+// Process successful payment
+if (strtolower($decision) === 'accept' && $registrationId) {
+    try {
+        $pdo = getConnection();
+        
+        // Update registration with payment details
+        $updateSql = "UPDATE registrations SET 
+            status = 'paid',
+            payment_status = 'completed',
+            payment_completed_at = NOW(),
+            payment_transaction_id = ?,
+            payment_amount = ?,
+            payment_currency = ?,
+            payment_method = 'cybersource',
+            payment_reference = ?
+            WHERE id = ?";
+        
+        $stmt = $pdo->prepare($updateSql);
+        $result = $stmt->execute([
+            $referenceNumber,
+            $amount,
+            $currency,
+            $referenceNumber,
+            $registrationId
+        ]);
+        
+        if ($result) {
+            error_log("Payment processed successfully for registration ID: $registrationId");
+            
+            // Send confirmation email
+            if ($email) {
+                $registration = getRegistrationById($registrationId);
+                if ($registration) {
+                    $user = getUserById($registration['user_id']);
+                    if ($user) {
+                        sendPaymentConfirmationEmail($user, $registration);
+                    }
+                }
+            }
+        } else {
+            error_log("Failed to update registration for ID: $registrationId");
+        }
+        
+    } catch (Exception $e) {
+        error_log("Error processing payment: " . $e->getMessage());
+    }
+}
 
 ?>
 <!DOCTYPE html>
