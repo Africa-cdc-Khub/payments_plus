@@ -836,10 +836,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
             </div>
             
             <div class="row mb-4">
-                <div class="col-md-8 text-center">
+                <div class="col-12 text-center">
                     <h2 class="mb-0">Complete Your Registration</h2>
                 </div>
-                <div class="col-md-4 text-end">
+            </div>
+            
+            <div class="row mb-4">
+                <div class="col-12 text-end">
                     <button type="button" class="btn btn-secondary" id="changePackage">
                         <i class="fas fa-arrow-left me-2"></i>Change Package
                     </button>
