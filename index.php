@@ -942,7 +942,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="nationality" class="form-label">Nationality *</label>
-                                <select name="nationality" id="nationality" class="form-select" required>
+                                <select name="nationality" id="nationality" class="form-select">
                                     <option value="">Select Nationality</option>
                                 </select>
                             </div>

@@ -57,8 +57,11 @@ document.addEventListener('DOMContentLoaded', function() {
         showAlert('info', message, title);
     }
 
-    // Load countries data
-    loadCountries();
+    // Load countries data and populate nationality dropdown
+    loadCountries().then(() => {
+        // Populate nationality dropdown with all countries on page load
+        populateNationalitySelect();
+    });
 
     // Check if elements exist
     console.log('Package cards found:', packageCards.length);
@@ -1477,6 +1480,37 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Call restore function after a short delay to ensure everything is loaded
     setTimeout(restoreFormData, 200);
+    
+    // Add form validation
+    form.addEventListener('submit', function(e) {
+        // Validate nationality field
+        const nationalitySelect = document.getElementById('nationality');
+        if (!nationalitySelect.value) {
+            e.preventDefault();
+            showAlert('error', 'Please select your nationality', 'Validation Error');
+            nationalitySelect.focus();
+            return false;
+        }
+        
+        // Validate other required fields
+        const requiredFields = [
+            { id: 'first_name', name: 'First Name' },
+            { id: 'last_name', name: 'Last Name' },
+            { id: 'email', name: 'Email Address' },
+            { id: 'phone', name: 'Phone Number' },
+            { id: 'organization', name: 'Organization' }
+        ];
+        
+        for (const field of requiredFields) {
+            const element = document.getElementById(field.id);
+            if (element && !element.value.trim()) {
+                e.preventDefault();
+                showAlert('error', `Please enter your ${field.name}`, 'Validation Error');
+                element.focus();
+                return false;
+            }
+        }
+    });
     
     }, 100); // End of setTimeout
 }); // End of DOMContentLoaded
