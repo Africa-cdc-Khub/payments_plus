@@ -97,19 +97,39 @@ class EmailQueue
      */
     private function sendSimpleEmail($toEmail, $toName, $subject, $templateData)
     {
-        // Simple fallback email sending
-        $message = "Hello {$toName},\n\n";
-        $message .= "This is a test email from the CPHIA 2025 Registration System.\n\n";
-        $message .= "Subject: {$subject}\n";
-        $message .= "Registration ID: " . ($templateData['registration_id'] ?? 'N/A') . "\n";
-        $message .= "Amount: $" . ($templateData['amount'] ?? '0') . "\n\n";
-        $message .= "Best regards,\nCPHIA 2025 Team";
+        // Try to render the template first
+        $templateName = $templateData['_template_name'] ?? 'individual_receipt';
+        $htmlContent = $this->renderTemplate($templateName, $templateData);
         
-        $headers = "From: noreply@cphia2025.com\r\n";
-        $headers .= "Reply-To: noreply@cphia2025.com\r\n";
-        $headers .= "Content-Type: text/plain; charset=UTF-8\r\n";
-        
-        return mail($toEmail, $subject, $message, $headers);
+        if ($htmlContent && strlen($htmlContent) > 100) {
+            // Send HTML email with template
+            $headers = "From: " . ($templateData['mail_from_address'] ?? 'noreply@cphia2025.com') . "\r\n";
+            $headers .= "Reply-To: " . ($templateData['mail_from_address'] ?? 'noreply@cphia2025.com') . "\r\n";
+            $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
+            $headers .= "MIME-Version: 1.0\r\n";
+            
+            error_log("Sending HTML email to: $toEmail with subject: $subject");
+            $result = mail($toEmail, $subject, $htmlContent, $headers);
+            error_log("Mail result: " . ($result ? 'SUCCESS' : 'FAILED'));
+            return $result;
+        } else {
+            // Fallback to simple text email
+            $message = "Hello {$toName},\n\n";
+            $message .= "This is a test email from the CPHIA 2025 Registration System.\n\n";
+            $message .= "Subject: {$subject}\n";
+            $message .= "Registration ID: " . ($templateData['registration_id'] ?? 'N/A') . "\n";
+            $message .= "Amount: " . ($templateData['total_amount'] ?? '$0') . "\n\n";
+            $message .= "Best regards,\nCPHIA 2025 Team";
+            
+            $headers = "From: " . ($templateData['mail_from_address'] ?? 'noreply@cphia2025.com') . "\r\n";
+            $headers .= "Reply-To: " . ($templateData['mail_from_address'] ?? 'noreply@cphia2025.com') . "\r\n";
+            $headers .= "Content-Type: text/plain; charset=UTF-8\r\n";
+            
+            error_log("Sending text email to: $toEmail with subject: $subject");
+            $result = mail($toEmail, $subject, $message, $headers);
+            error_log("Mail result: " . ($result ? 'SUCCESS' : 'FAILED'));
+            return $result;
+        }
     }
 
     /**
@@ -123,12 +143,39 @@ class EmailQueue
             $template = $this->getDefaultTemplate($templateName);
         }
         
+        // Handle conditional blocks first (like {{#institution}}...{{/institution}})
+        $template = $this->processConditionalBlocks($template, $data);
+        
+        // Then do simple variable replacement
         foreach ($data as $key => $value) {
             if (is_array($value)) {
                 $value = $this->formatArray($value);
             }
             $template = str_replace('{{' . $key . '}}', $value, $template);
         }
+        
+        return $template;
+    }
+    
+    /**
+     * Process conditional blocks in templates
+     */
+    private function processConditionalBlocks($template, $data)
+    {
+        // Handle {{#field}}...{{/field}} blocks
+        $pattern = '/\{\{#(\w+)\}\}(.*?)\{\{\/\1\}\}/s';
+        $template = preg_replace_callback($pattern, function($matches) use ($data) {
+            $fieldName = $matches[1];
+            $content = $matches[2];
+            
+            // If the field exists and is not empty, show the content
+            if (isset($data[$fieldName]) && !empty($data[$fieldName])) {
+                return $content;
+            }
+            
+            // Otherwise, remove the block
+            return '';
+        }, $template);
         
         return $template;
     }
@@ -219,6 +266,9 @@ class EmailQueue
                     
                     // Decode template data
                     $templateData = json_decode($email['template_data'], true) ?: [];
+                    
+                    // Add template name to template data for fallback
+                    $templateData['_template_name'] = $email['template_name'];
                     
                     // Send email
                     $result = $this->sendEmailImmediately(
