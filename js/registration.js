@@ -60,7 +60,25 @@ document.addEventListener('DOMContentLoaded', function() {
     // Load countries data and populate nationality dropdown
     loadCountries().then(() => {
         // Populate nationality dropdown with all countries on page load
+        console.log('Countries loaded, populating nationality select');
         populateNationalitySelect();
+    }).catch(error => {
+        console.error('Error loading countries:', error);
+        // Fallback: populate with basic options
+        const nationalitySelect = document.getElementById('nationality');
+        if (nationalitySelect) {
+            nationalitySelect.innerHTML = `
+                <option value="">Select Nationality</option>
+                <option value="Algerian">Algeria (Algerian)</option>
+                <option value="Ghanaian">Ghana (Ghanaian)</option>
+                <option value="Nigerian">Nigeria (Nigerian)</option>
+                <option value="South African">South Africa (South African)</option>
+                <option value="Kenyan">Kenya (Kenyan)</option>
+                <option value="American">United States (American)</option>
+                <option value="British">United Kingdom (British)</option>
+                <option value="Other">Other (Other)</option>
+            `;
+        }
     });
 
     // Check if elements exist
@@ -1438,9 +1456,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Wait for countries to load, then set nationality
                 const checkNationality = () => {
                     if (countries.length > 0) {
-                        document.getElementById('nationality').value = formData.nationality;
-                        // Trigger Select2 update
-                        $('#nationality').trigger('change');
+                        // Ensure nationality dropdown is populated first
+                        populateNationalitySelect();
+                        // Then set the value
+                        setTimeout(() => {
+                            document.getElementById('nationality').value = formData.nationality;
+                            // Trigger Select2 update
+                            $('#nationality').trigger('change');
+                        }, 100);
                     } else {
                         setTimeout(checkNationality, 100);
                     }
@@ -1485,6 +1508,14 @@ document.addEventListener('DOMContentLoaded', function() {
     form.addEventListener('submit', function(e) {
         // Validate nationality field
         const nationalitySelect = document.getElementById('nationality');
+        
+        // Check if nationality dropdown is populated
+        if (nationalitySelect.options.length <= 1) {
+            e.preventDefault();
+            showAlert('error', 'Nationality dropdown is not loaded. Please refresh the page and try again.', 'Loading Error');
+            return false;
+        }
+        
         if (!nationalitySelect.value) {
             e.preventDefault();
             showAlert('error', 'Please select your nationality', 'Validation Error');

@@ -408,6 +408,9 @@ function validateRegistrationType($type) {
 }
 
 function validateNationality($nationality) {
+    // Trim whitespace and normalize the nationality
+    $nationality = trim($nationality);
+    
     // Check if nationality is in our allowed list
     $allowedNationalities = [
         'Algerian', 'Angolan', 'Beninese', 'Botswanan', 'Burkinabe', 'Burundian',
@@ -423,6 +426,8 @@ function validateNationality($nationality) {
         'Canadian', 'French', 'German', 'Italian', 'Spanish', 'Chinese', 'Japanese',
         'Indian', 'Brazilian', 'Australian', 'Other'
     ];
+    
+    
     return in_array($nationality, $allowedNationalities);
 }
 
