@@ -179,7 +179,9 @@ class EmailQueue
             'payment_link' => $this->getDefaultPaymentLinkTemplate(),
             'payment_confirmation' => $this->getDefaultPaymentConfirmationTemplate(),
             'admin_registration_notification' => $this->getDefaultAdminRegistrationTemplate(),
-            'admin_payment_notification' => $this->getDefaultAdminPaymentTemplate()
+            'admin_payment_notification' => $this->getDefaultAdminPaymentTemplate(),
+            'individual_receipt' => $this->getDefaultIndividualReceiptTemplate(),
+            'group_receipt' => $this->getDefaultGroupReceiptTemplate()
         ];
 
         return $templates[$templateName] ?? '<p>Email template not found: ' . $templateName . '</p>';
@@ -490,6 +492,114 @@ class EmailQueue
                     <p><strong>Amount:</strong> ${{amount}}</p>
                     <p><strong>Transaction ID:</strong> {{transaction_id}}</p>
                 </div>
+            </div>
+        </body>
+        </html>';
+    }
+
+    /**
+     * Get default individual receipt template
+     */
+    private function getDefaultIndividualReceiptTemplate()
+    {
+        return '
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>{{conference_short_name}} - Registration Receipt</title>
+        </head>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto;">
+            <div style="background: #059669; color: white; padding: 20px; text-align: center;">
+                <h1>{{conference_short_name}}</h1>
+                <p>{{conference_name}}</p>
+            </div>
+            
+            <div style="padding: 20px; background: #f8fafc;">
+                <h2>Registration Receipt</h2>
+                <p>Dear {{participant_name}},</p>
+                <p>Thank you for your registration! Here are your receipt details:</p>
+                
+                <div style="background: white; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                    <h3>Registration Details</h3>
+                    <p><strong>Registration ID:</strong> #{{registration_id}}</p>
+                    <p><strong>Package:</strong> {{package_name}}</p>
+                    <p><strong>Amount Paid:</strong> {{total_amount}}</p>
+                    <p><strong>Payment Date:</strong> {{payment_date}}</p>
+                    <p><strong>Organization:</strong> {{organization}}</p>
+                    <p><strong>Nationality:</strong> {{nationality}}</p>
+                    <p><strong>Phone:</strong> {{phone}}</p>
+                </div>
+                
+                <div style="background: white; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                    <h3>Conference Details</h3>
+                    <p><strong>Event:</strong> {{conference_name}}</p>
+                    <p><strong>Dates:</strong> {{conference_dates}}</p>
+                    <p><strong>Location:</strong> {{conference_location}}</p>
+                </div>
+                
+                <div style="text-align: center; margin: 30px 0;">
+                    <p><strong>QR Code for Check-in:</strong></p>
+                    <div style="background: white; padding: 20px; border: 1px solid #ddd; display: inline-block;">
+                        <p>QR Code will be displayed here</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="text-align: center; padding: 20px; background: #e2e8f0; color: #666;">
+                <p>Best regards,<br>{{conference_short_name}} Team</p>
+            </div>
+        </body>
+        </html>';
+    }
+
+    /**
+     * Get default group receipt template
+     */
+    private function getDefaultGroupReceiptTemplate()
+    {
+        return '
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>{{conference_short_name}} - Group Registration Receipts</title>
+        </head>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto;">
+            <div style="background: #059669; color: white; padding: 20px; text-align: center;">
+                <h1>{{conference_short_name}}</h1>
+                <p>{{conference_name}}</p>
+            </div>
+            
+            <div style="padding: 20px; background: #f8fafc;">
+                <h2>Group Registration Receipts</h2>
+                <p>Dear {{focal_person_name}},</p>
+                <p>Thank you for your group registration! Here are the receipt details for all participants:</p>
+                
+                <div style="background: white; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                    <h3>Registration Summary</h3>
+                    <p><strong>Registration ID:</strong> #{{registration_id}}</p>
+                    <p><strong>Package:</strong> {{package_name}}</p>
+                    <p><strong>Total Amount:</strong> {{total_amount}}</p>
+                    <p><strong>Payment Date:</strong> {{payment_date}}</p>
+                    <p><strong>Focal Person:</strong> {{focal_person_name}} ({{focal_person_email}})</p>
+                </div>
+                
+                <div style="background: white; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                    <h3>Conference Details</h3>
+                    <p><strong>Event:</strong> {{conference_name}}</p>
+                    <p><strong>Dates:</strong> {{conference_dates}}</p>
+                    <p><strong>Location:</strong> {{conference_location}}</p>
+                </div>
+                
+                <div style="background: white; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                    <h3>Participants</h3>
+                    <p>Individual receipts with QR codes for each participant will be displayed here.</p>
+                </div>
+            </div>
+            
+            <div style="text-align: center; padding: 20px; background: #e2e8f0; color: #666;">
+                <p>Best regards,<br>{{conference_short_name}} Team</p>
             </div>
         </body>
         </html>';

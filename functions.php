@@ -978,6 +978,7 @@ function sendReceiptEmails($registration, $package, $user, $participants = []) {
         
         $success = $emailQueue->addToQueue(
             $user['email'],
+            $user['first_name'] . ' ' . $user['last_name'],
             'Group Registration Receipts - ' . CONFERENCE_SHORT_NAME,
             'group_receipt',
             $templateData,
@@ -1015,6 +1016,7 @@ function sendReceiptEmails($registration, $package, $user, $participants = []) {
         
         $success = $emailQueue->addToQueue(
             $user['email'],
+            $user['first_name'] . ' ' . $user['last_name'],
             'Registration Receipt - ' . CONFERENCE_SHORT_NAME,
             'individual_receipt',
             $templateData,
