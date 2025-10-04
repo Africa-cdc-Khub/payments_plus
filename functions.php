@@ -874,36 +874,28 @@ function sendPaymentConfirmationEmail($user, $registration) {
 }
 
 function generateQRCode($data, $size = 200) {
+    // Use QR Server API which is more reliable
+    $qrData = urlencode($data);
+    $qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size={$size}x{$size}&data={$qrData}";
+    
     try {
-        // Use the local QR code package (version 6.x API)
-        $qrCode = new \Endroid\QrCode\QrCode(
-            $data,
-            new \Endroid\QrCode\Encoding\Encoding('UTF-8'),
-            \Endroid\QrCode\ErrorCorrectionLevel::Medium,
-            $size,
-            10
-        );
+        $context = stream_context_create([
+            'http' => [
+                'timeout' => 10,
+                'user_agent' => 'CPHIA2025/1.0'
+            ]
+        ]);
         
-        $writer = new \Endroid\QrCode\Writer\PngWriter();
-        $result = $writer->write($qrCode);
-        
-        // Return as base64 data URI
-        return 'data:image/png;base64,' . base64_encode($result->getString());
-    } catch (Exception $e) {
-        // Fallback to Google Charts API if local generation fails
-        error_log("QR Code generation error: " . $e->getMessage());
-        $qrData = urlencode($data);
-        $sizeStr = $size . 'x' . $size;
-        $qrUrl = "https://chart.googleapis.com/chart?chs={$sizeStr}&cht=qr&chl={$qrData}";
-        
-        try {
-            $qrImage = file_get_contents($qrUrl);
+        $qrImage = file_get_contents($qrUrl, false, $context);
+        if ($qrImage !== false && strlen($qrImage) > 0) {
             return 'data:image/png;base64,' . base64_encode($qrImage);
-        } catch (Exception $e2) {
-            error_log("QR Code fallback error: " . $e2->getMessage());
-            return null;
         }
+    } catch (Exception $e) {
+        error_log("QR Code generation error: " . $e->getMessage());
     }
+    
+    // Fallback: return a simple text representation
+    return "QR Code: " . substr($data, 0, 50) . "...";
 }
 
 function generateVerificationQRCode($data) {
