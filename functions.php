@@ -872,10 +872,11 @@ function generateQRCode($data, $size = 200) {
     try {
         // Use the local QR code package (version 6.x API)
         $qrCode = new \Endroid\QrCode\QrCode(
-            data: $data,
-            errorCorrectionLevel: \Endroid\QrCode\ErrorCorrectionLevel::Medium,
-            size: $size,
-            margin: 10
+            $data,
+            new \Endroid\QrCode\Encoding\Encoding('UTF-8'),
+            \Endroid\QrCode\ErrorCorrectionLevel::Medium,
+            $size,
+            10
         );
         
         $writer = new \Endroid\QrCode\Writer\PngWriter();
