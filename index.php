@@ -735,9 +735,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
         <!-- Package Selection (Initial View) -->
         <div class="package-selection-container" id="packageSelection" <?php echo (!empty($errors) && $_SERVER['REQUEST_METHOD'] === 'POST') ? 'style="display: none;"' : ''; ?>>
             <div class="text-center mb-4">
-                    <h2>Select Your Registration Package</h2>
-                <p class="mb-3">Choose the package that best fits your needs for the 4th International Conference on Public Health in Africa</p>
-                
                 <!-- Important Disclaimer -->
                 <div class="alert alert-warning mb-4" style="text-align: left;">
                     <h5><i class="fas fa-exclamation-triangle me-2"></i>Important Notice</h5>
