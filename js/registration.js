@@ -523,6 +523,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.log('Countries already loaded, populating nationality select');
                 populateNationalitySelect();
             }
+            
+            // Update conditional field requirements
+            updateConditionalRequirements();
         } catch (error) {
             console.error('Error in selectPackage:', error);
         }
@@ -637,12 +640,61 @@ document.addEventListener('DOMContentLoaded', function() {
         // Add change listener for nationality selection
         $('#nationality').on('change', function() {
             updatePricingBasedOnNationality();
+            updateConditionalRequirements();
             // Update cost estimation if group registration
             const numPeople = parseInt(numPeopleInput.value) || 0;
             if (numPeople > 0) {
                 updateCostEstimation(numPeople);
             }
         });
+    }
+
+    // Function to update conditional field requirements
+    function updateConditionalRequirements() {
+        const nationality = document.getElementById('nationality').value;
+        const packageId = document.getElementById('selectedPackageId').value;
+        const packageName = getPackageNameById(packageId);
+        
+        // Get field elements
+        const passportNumberField = document.getElementById('passport_number');
+        const passportFileField = document.getElementById('passport_file');
+        const studentIdField = document.getElementById('student_id_file');
+        
+        // Check if nationality is African
+        const isAfrican = isAfricanNational(nationality);
+        
+        // Update passport requirements for non-African nationals
+        if (!isAfrican && nationality) {
+            passportNumberField.required = true;
+            passportFileField.required = true;
+            passportNumberField.closest('.mb-3').querySelector('.form-label').innerHTML = 'Passport Number *';
+            passportFileField.closest('.mb-3').querySelector('.form-label').innerHTML = 'Passport Copy (PDF) *';
+        } else {
+            passportNumberField.required = false;
+            passportFileField.required = false;
+            passportNumberField.closest('.mb-3').querySelector('.form-label').innerHTML = 'Passport Number';
+            passportFileField.closest('.mb-3').querySelector('.form-label').innerHTML = 'Passport Copy (PDF)';
+        }
+        
+        // Update student ID requirements for Students package
+        if (packageName && packageName.toLowerCase().includes('student')) {
+            studentIdField.required = true;
+            studentIdField.closest('.mb-3').querySelector('.form-label').innerHTML = 'Student ID Document *';
+        } else {
+            studentIdField.required = false;
+            studentIdField.closest('.mb-3').querySelector('.form-label').innerHTML = 'Student ID Document';
+        }
+    }
+
+    // Helper function to get package name by ID
+    function getPackageNameById(packageId) {
+        const packageCards = document.querySelectorAll('.package-card');
+        for (let card of packageCards) {
+            if (card.dataset.packageId === packageId) {
+                return card.querySelector('.package-name').textContent.trim();
+            }
+        }
+        return '';
     }
 
     // Function to check if nationality is African
@@ -1510,6 +1562,9 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Update summary
             updateSummary();
+            
+            // Update conditional field requirements
+            updateConditionalRequirements();
         }
     }
     
