@@ -737,6 +737,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
             <div class="text-center mb-4">
                     <h2>Select Your Registration Package</h2>
                 <p class="mb-3">Choose the package that best fits your needs for the 4th International Conference on Public Health in Africa</p>
+                
+                <!-- Important Disclaimer -->
+                <div class="alert alert-warning mb-4" style="text-align: left;">
+                    <h5><i class="fas fa-exclamation-triangle me-2"></i>Important Notice</h5>
+                    <p class="mb-2"><strong>Please ensure you select the correct package for your registration.</strong></p>
+                    <p class="mb-0">Selecting the wrong package may result in disqualification or additional fees. If you are unsure about which package to choose, please contact our support team at <a href="mailto:support@africacdc.org" class="text-decoration-none"><strong>support@africacdc.org</strong></a> before proceeding.</p>
+                </div>
+                
                 <a href="registration_lookup.php" class="btn btn-primary btn-lg view-registrations-btn">
                     <i class="fas fa-list-alt me-2"></i>View My Registrations
                 </a>
@@ -1319,6 +1327,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                     <div class="d-flex justify-content-md-end gap-3">
                         <a href="https://africacdc.org" class="text-muted text-decoration-none small" target="_blank">Africa CDC</a>
                         <a href="https://cphia2025.com" class="text-muted text-decoration-none small" target="_blank">CPHIA 2025</a>
+                        <a href="mailto:support@africacdc.org" class="text-muted text-decoration-none small">
+                            <i class="fas fa-envelope me-1"></i>Support
+                        </a>
                     </div>
                 </div>
             </div>
