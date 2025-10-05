@@ -91,6 +91,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (empty($_POST['institution'])) {
                 $errors[] = "Institution/School is required for student registration";
             }
+            if (empty($_FILES['student_id_file']['name'])) {
+                $errors[] = "Student ID document is required for student registration";
+            }
         } elseif ($package && strtolower($package['name']) === 'delegates') {
             if (empty($_POST['delegate_category'])) {
                 $errors[] = "Delegate Category is required for delegate registration";
@@ -1030,9 +1033,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                                 <div class="form-text">Required for student registration</div>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label for="student_id_file" class="form-label">Student ID Document</label>
-                                <input type="file" class="form-control" name="student_id_file" id="student_id_file" accept=".pdf,.jpg,.jpeg,.png">
-                                <div class="form-text">Upload your student ID (PDF, JPG, PNG - max 5MB)</div>
+                                <label for="student_id_file" class="form-label">Student ID Document *</label>
+                                <input type="file" class="form-control" name="student_id_file" id="student_id_file" accept=".pdf,.jpg,.jpeg,.png" required>
+                                <div class="form-text">Required for student registration (PDF, JPG, PNG - max 5MB)</div>
                             </div>
                         </div>
                     </div>
