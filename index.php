@@ -81,28 +81,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = "Please enter a valid passport number";
     }
     
-    // Conditional validation based on nationality and package type
-    $nationality = $_POST['nationality'] ?? '';
-    $isNonAfrican = !empty($nationality) && !isAfricanNational($nationality);
-    $isStudentsPackage = $package && strtolower($package['name']) === 'students';
-    
-    // Require passport information for non-African nationals
-    if ($isNonAfrican) {
-        if (empty($_POST['passport_number'])) {
-            $errors[] = "Passport number is required for international participants";
-        }
-        if (empty($_FILES['passport_file']['name'])) {
-            $errors[] = "Passport copy is required for international participants";
-        }
-    }
-    
-    // Require student ID for Students package
-    if ($isStudentsPackage) {
-        if (empty($_FILES['student_id_file']['name'])) {
-            $errors[] = "Student ID document is required for student registration";
-        }
-    }
-    
     // For Students and Delegates packages, allow any organization name
     if (!empty($_POST['organization']) && !$isFixedPricePackage && !validateOrganization($_POST['organization'])) {
         $errors[] = "Please enter a valid organization name";
@@ -961,8 +939,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                                 <input type="email" class="form-control" name="email" id="email" value="<?php echo htmlspecialchars($formData['email'] ?? ''); ?>" required>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label for="phone" class="form-label">Phone Number *</label>
-                                <input type="tel" class="form-control" name="phone" id="phone" value="<?php echo htmlspecialchars($formData['phone'] ?? ''); ?>" required>
+                                <label for="phone" class="form-label">Phone Number</label>
+                                <input type="tel" class="form-control" name="phone" id="phone" value="<?php echo htmlspecialchars($formData['phone'] ?? ''); ?>">
                             </div>
                         </div>
                         <div class="row">
@@ -975,14 +953,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                             <div class="col-md-6 mb-3">
                                 <label for="passport_number" class="form-label">Passport Number</label>
                                 <input type="text" class="form-control" name="passport_number" id="passport_number" value="<?php echo htmlspecialchars($formData['passport_number'] ?? ''); ?>">
-                                <div class="form-text">Required for international participants</div>
+                                <div class="form-text">Optional - for international participants</div>
                             </div>
                         </div>
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="passport_file" class="form-label">Passport Copy (PDF)</label>
                                 <input type="file" class="form-control" name="passport_file" id="passport_file" accept=".pdf" value="<?php echo htmlspecialchars($formData['passport_file'] ?? ''); ?>">
-                                <div class="form-text">Required for international participants (PDF format, max 5MB)</div>
+                                <div class="form-text">Upload a clear copy of your passport (PDF format, max 5MB)</div>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Do you require a visa to enter South Africa? *</label>
@@ -1052,9 +1030,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                                 <div class="form-text">Required for student registration</div>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label for="student_id_file" class="form-label">Student ID Document *</label>
+                                <label for="student_id_file" class="form-label">Student ID Document</label>
                                 <input type="file" class="form-control" name="student_id_file" id="student_id_file" accept=".pdf,.jpg,.jpeg,.png">
-                                <div class="form-text">Required for student registration (PDF, JPG, PNG - max 5MB)</div>
+                                <div class="form-text">Upload your student ID (PDF, JPG, PNG - max 5MB)</div>
                             </div>
                         </div>
                     </div>
