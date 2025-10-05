@@ -7,7 +7,7 @@ header('X-Content-Type-Options: nosniff');
 header('X-Frame-Options: DENY');
 header('X-XSS-Protection: 1; mode=block');
 header('Referrer-Policy: strict-origin-when-cross-origin');
-header('Content-Security-Policy: default-src \'self\'; script-src \'self\' \'unsafe-inline\' https://cdn.jsdelivr.net https://code.jquery.com https://cdnjs.cloudflare.com https://www.google.com https://www.gstatic.com; style-src \'self\' \'unsafe-inline\' https://cdn.jsdelivr.net https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src \'self\' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src \'self\' data: https://www.google.com; connect-src \'self\' https://www.google.com; frame-src \'self\' https://www.google.com;');
+header('Content-Security-Policy: default-src \'self\'; script-src \'self\' \'unsafe-inline\' https://cdn.jsdelivr.net https://code.jquery.com https://cdnjs.cloudflare.com https://www.google.com https://www.gstatic.com; style-src \'self\' \'unsafe-inline\' https://cdn.jsdelivr.net https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src \'self\' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src \'self\' data: https://www.google.com; connect-src \'self\' https://www.google.com; frame-src \'self\' https://www.google.com; object-src \'none\'; base-uri \'self\';');
 
 // Start secure session
 if (session_status() === PHP_SESSION_NONE) {
@@ -1059,7 +1059,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label for="student_id_file" class="form-label">Student ID Document <span class="asterisk">*</span></label>
-                                <input type="file" class="form-control" name="student_id_file" id="student_id_file" accept=".pdf,.jpg,.jpeg,.png" required>
+                                <input type="file" class="form-control" name="student_id_file" id="student_id_file" accept=".pdf,.jpg,.jpeg,.png">
                                 <div class="form-text">Required for student registration (PDF, JPG, PNG - max 5MB)</div>
                             </div>
                         </div>

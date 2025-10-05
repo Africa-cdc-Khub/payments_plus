@@ -227,6 +227,11 @@ document.addEventListener('DOMContentLoaded', function() {
                             if (institutionField) {
                                 institutionField.required = true;
                             }
+                            // Make student ID file required for students
+                            const studentIdFile = document.getElementById('student_id_file');
+                            if (studentIdFile) {
+                                studentIdFile.required = true;
+                            }
                         }
                         
                         // Hide delegate fields
@@ -272,6 +277,11 @@ document.addEventListener('DOMContentLoaded', function() {
                             const institutionField = document.getElementById('institution');
                             if (institutionField) {
                                 institutionField.required = false;
+                            }
+                            // Remove student ID file requirement
+                            const studentIdFile = document.getElementById('student_id_file');
+                            if (studentIdFile) {
+                                studentIdFile.required = false;
                             }
                         }
                         
@@ -320,6 +330,11 @@ document.addEventListener('DOMContentLoaded', function() {
                             if (institutionField) {
                                 institutionField.required = false;
                             }
+                            // Remove student ID file requirement
+                            const studentIdFile = document.getElementById('student_id_file');
+                            if (studentIdFile) {
+                                studentIdFile.required = false;
+                            }
                         }
                         // Update participant student fields
                         updateParticipantStudentFields();
@@ -365,6 +380,11 @@ document.addEventListener('DOMContentLoaded', function() {
                             const institutionField = document.getElementById('institution');
                             if (institutionField) {
                                 institutionField.required = false;
+                            }
+                            // Remove student ID file requirement
+                            const studentIdFile = document.getElementById('student_id_file');
+                            if (studentIdFile) {
+                                studentIdFile.required = false;
                             }
                         }
                         
