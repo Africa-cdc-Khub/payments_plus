@@ -1050,17 +1050,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                         </div>
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label for="city" class="form-label">City</label>
-                                <input type="text" class="form-control" name="city" id="city" value="<?php echo htmlspecialchars($formData['city'] ?? ''); ?>">
+                                <label for="city" class="form-label">City *</label>
+                                <input type="text" class="form-control" name="city" id="city" value="<?php echo htmlspecialchars($formData['city'] ?? ''); ?>" required>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label for="state" class="form-label">State/Province</label>
-                                <input type="text" class="form-control" name="state" id="state" value="<?php echo htmlspecialchars($formData['state'] ?? ''); ?>">
+                                <label for="state" class="form-label">State/Province *</label>
+                                <input type="text" class="form-control" name="state" id="state" value="<?php echo htmlspecialchars($formData['state'] ?? ''); ?>" required>
                             </div>
                         </div>
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label for="country" class="form-label">Country</label>
+                                <label for="country" class="form-label">Country *</label>
                                 <select class="form-control" name="country" id="country" required>
                                     <option value="">Select Country</option>
                                     <?php
