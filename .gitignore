@@ -59,3 +59,20 @@ laravel_integration_example.php
 oauth_tokens.json
 tokens.json
 *.token
+
+# Laravel Admin (cphiaadmin)
+/cphiaadmin/.env
+/cphiaadmin/vendor/
+/cphiaadmin/node_modules/
+/cphiaadmin/storage/*.key
+/cphiaadmin/storage/framework/cache/*
+/cphiaadmin/storage/framework/sessions/*
+/cphiaadmin/storage/framework/views/*
+/cphiaadmin/storage/logs/*
+/cphiaadmin/bootstrap/cache/*
+/cphiaadmin/.phpunit.result.cache
+/cphiaadmin/Homestead.json
+/cphiaadmin/Homestead.yaml
+/cphiaadmin/npm-debug.log
+/cphiaadmin/yarn-error.log
+/cphiaadmin/.DS_Store
