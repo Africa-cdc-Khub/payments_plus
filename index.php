@@ -145,6 +145,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'last_name' => sanitizeInput($_POST['last_name']),
                 'phone' => sanitizeInput($_POST['phone']),
                 'nationality' => sanitizeInput($_POST['nationality']),
+                'national_id' => sanitizeInput($_POST['national_id']),
         'passport_number' => sanitizeInput($_POST['passport_number']),
         'passport_file' => handleFileUpload($_FILES['passport_file'] ?? null) ?: '',
         'requires_visa' => $_POST['requires_visa'] ?? '',
@@ -257,6 +258,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             'last_name' => sanitizeInput($participant['last_name']),
                             'email' => sanitizeInput($participant['email']),
                             'nationality' => sanitizeInput($participant['nationality']),
+                            'national_id' => sanitizeInput($participant['national_id']),
                             'passport_number' => sanitizeInput($participant['passport_number']),
                             'passport_file' => handleFileUpload($participant['passport_file'] ?? null) ?: '',
                             'requires_visa' => $participant['requires_visa'] ?? '',
@@ -280,6 +282,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             'name' => sanitizeInput($participant['title']) . ' ' . sanitizeInput($participant['first_name']) . ' ' . sanitizeInput($participant['last_name']),
                             'email' => sanitizeInput($participant['email']),
                             'nationality' => sanitizeInput($participant['nationality']),
+                            'national_id' => sanitizeInput($participant['national_id']),
                             'passport_number' => sanitizeInput($participant['passport_number']),
                             'passport_file' => handleFileUpload($participant['passport_file'] ?? null) ?: '',
                             'requires_visa' => $participant['requires_visa'] ?? '',
@@ -968,17 +971,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                                 </select>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label for="passport_number" class="form-label">Passport Number</label>
-                                <input type="text" class="form-control" name="passport_number" id="passport_number" value="<?php echo htmlspecialchars($formData['passport_number'] ?? ''); ?>">
-                                <div class="form-text">Optional - for international participants</div>
+                                <label for="national_id" class="form-label">National ID</label>
+                                <input type="text" class="form-control" name="national_id" id="national_id" value="<?php echo htmlspecialchars($formData['national_id'] ?? ''); ?>">
+                                <div class="form-text">Optional - your national identification number</div>
                             </div>
                         </div>
                         <div class="row">
                             <div class="col-md-6 mb-3">
+                                <label for="passport_number" class="form-label">Passport Number</label>
+                                <input type="text" class="form-control" name="passport_number" id="passport_number" value="<?php echo htmlspecialchars($formData['passport_number'] ?? ''); ?>">
+                                <div class="form-text">Optional - for international participants</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
                                 <label for="passport_file" class="form-label">Passport Copy (PDF)</label>
                                 <input type="file" class="form-control" name="passport_file" id="passport_file" accept=".pdf" value="<?php echo htmlspecialchars($formData['passport_file'] ?? ''); ?>">
-                                <div class="form-text">Upload a clear copy of your passport (PDF format, max 5MB)</div>
+                                <div class="form-text">Optional - upload a clear copy of your passport (PDF format, max 5MB)</div>
                             </div>
+                        </div>
+                        <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Do you require a visa to enter South Africa? <span class="asterisk">*</span></label>
                                 <div class="form-check">
