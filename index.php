@@ -495,12 +495,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
             left: 100%;
         }
         
-        /* Red asterisks for required fields */
-        .form-label {
-            color: #dc3545 !important;
-        }
-        
-        /* Make asterisks red and bold */
+        /* Make only asterisks red and bold */
         .form-label span.asterisk,
         .form-label .required-asterisk {
             color: #dc3545 !important;
