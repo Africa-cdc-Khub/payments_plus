@@ -67,6 +67,10 @@ define('EXCHANGE_AUTH_METHOD', $_ENV['EXCHANGE_AUTH_METHOD'] ?? 'client_credenti
 // Admin email configuration
 define('ADMIN_EMAIL', $_ENV['ADMIN_EMAIL'] ?? 'admin@cphia2025.com');
 define('ADMIN_NAME', $_ENV['ADMIN_NAME'] ?? 'CPHIA 2025 Admin');
+
+// Support email configuration
+define('SUPPORT_EMAIL', $_ENV['SUPPORT_EMAIL'] ?? 'support@africacdc.org');
+define('SUPPORT_NAME', $_ENV['SUPPORT_NAME'] ?? 'CPHIA 2025 Support');
 define('ADMIN_NOTIFICATIONS', filter_var($_ENV['ADMIN_NOTIFICATIONS'] ?? 'true', FILTER_VALIDATE_BOOLEAN));
 
 // Email templates

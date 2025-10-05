@@ -219,7 +219,8 @@ function sendRegistrationEmails($user, $registrationId, $package, $amount, $part
         'logo_url' => EMAIL_LOGO_URL,
         'payment_status_link' => $paymentStatusLink,
         'payment_status' => $paymentStatus,
-        'mail_from_address' => MAIL_FROM_ADDRESS
+        'mail_from_address' => MAIL_FROM_ADDRESS,
+        'support_email' => SUPPORT_EMAIL
     ];
 
     $result = $emailQueue->addToQueue(
@@ -250,7 +251,8 @@ function sendRegistrationEmails($user, $registrationId, $package, $amount, $part
         'conference_short_name' => CONFERENCE_SHORT_NAME,
         'admin_name' => ADMIN_NAME,
         'logo_url' => EMAIL_LOGO_URL,
-        'mail_from_address' => MAIL_FROM_ADDRESS
+        'mail_from_address' => MAIL_FROM_ADDRESS,
+        'support_email' => SUPPORT_EMAIL
     ];
 
     $result = $emailQueue->addToQueue(
@@ -295,7 +297,8 @@ function sendPaymentLinkEmail($user, $registrationId, $amount, $packageName = nu
         'conference_location' => CONFERENCE_LOCATION,
         'conference_venue' => CONFERENCE_VENUE,
         'logo_url' => EMAIL_LOGO_URL,
-        'mail_from_address' => MAIL_FROM_ADDRESS
+        'mail_from_address' => MAIL_FROM_ADDRESS,
+        'support_email' => SUPPORT_EMAIL
     ];
 
     return $emailQueue->addToQueue(
@@ -859,7 +862,8 @@ function sendPaymentConfirmationEmail($user, $registration) {
         'conference_location' => CONFERENCE_LOCATION,
         'conference_venue' => CONFERENCE_VENUE,
         'logo_url' => EMAIL_LOGO_URL,
-        'mail_from_address' => MAIL_FROM_ADDRESS
+        'mail_from_address' => MAIL_FROM_ADDRESS,
+        'support_email' => SUPPORT_EMAIL
     ];
     
     return $emailQueue->addToQueue(
@@ -977,7 +981,8 @@ function sendReceiptEmails($registration, $package, $user, $participants = []) {
             'verification_qr_codes' => $verificationQrCodes,
             'navigation_qr_codes' => $navigationQrCodes,
             'logo_url' => EMAIL_LOGO_URL,
-            'mail_from_address' => MAIL_FROM_ADDRESS
+            'mail_from_address' => MAIL_FROM_ADDRESS,
+        'support_email' => SUPPORT_EMAIL
         ];
         
         $success = $emailQueue->addToQueue(
@@ -1015,7 +1020,8 @@ function sendReceiptEmails($registration, $package, $user, $participants = []) {
             'verification_qr_code' => generateVerificationQRCode($receiptInfo['qr_string']),
             'navigation_qr_code' => $receiptInfo['navigation_qr_code'],
             'logo_url' => EMAIL_LOGO_URL,
-            'mail_from_address' => MAIL_FROM_ADDRESS
+            'mail_from_address' => MAIL_FROM_ADDRESS,
+        'support_email' => SUPPORT_EMAIL
         ];
         
         $success = $emailQueue->addToQueue(
