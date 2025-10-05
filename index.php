@@ -497,7 +497,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
         
         /* Make only asterisks red and bold */
         .form-label span.asterisk,
-        .form-label .required-asterisk {
+        .form-label .required-asterisk,
+        span.asterisk {
+            color: #dc3545 !important;
+            font-weight: bold;
+        }
+        
+        /* Ensure asterisks are red regardless of parent */
+        .asterisk {
             color: #dc3545 !important;
             font-weight: bold;
         }
@@ -973,7 +980,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                                 <div class="form-text">Upload a clear copy of your passport (PDF format, max 5MB)</div>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">Do you require a visa to enter South Africa? *</label>
+                                <label class="form-label">Do you require a visa to enter South Africa? <span class="asterisk">*</span></label>
                                 <div class="form-check">
                                     <input class="form-check-input" type="radio" name="requires_visa" id="visa_yes" value="1" <?php echo (($formData['requires_visa'] ?? '') === '1') ? 'checked' : ''; ?>>
                                     <label class="form-check-label" for="visa_yes">
@@ -991,7 +998,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                         <!-- Organization and Position fields (hidden for Students) -->
                         <div id="organizationFields" class="row">
                             <div class="col-md-6 mb-3">
-                                <label for="organization" class="form-label">Organization *</label>
+                                <label for="organization" class="form-label">Organization <span class="asterisk">*</span></label>
                                 <input type="text" class="form-control" name="organization" id="organization" value="<?php echo htmlspecialchars($formData['organization'] ?? ''); ?>" required>
                             </div>
                             <div class="col-md-6 mb-3">
@@ -1006,7 +1013,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                                 <!-- Empty left column for delegates -->
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label for="delegate_category" class="form-label">Delegate Category *</label>
+                                <label for="delegate_category" class="form-label">Delegate Category <span class="asterisk">*</span></label>
                                 <select class="form-select" name="delegate_category" id="delegate_category" required>
                                     <option value="">Select Category</option>
                                     <option value="Oral abstract presenter" <?php echo (($formData['delegate_category'] ?? '') === 'Oral abstract presenter') ? 'selected' : ''; ?>>Oral abstract presenter</option>
