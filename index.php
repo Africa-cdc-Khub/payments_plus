@@ -494,6 +494,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
         .view-registrations-btn:hover::before {
             left: 100%;
         }
+        
+        /* Red asterisks for required fields */
+        .form-label {
+            color: #dc3545 !important;
+        }
+        
+        /* Make asterisks red and bold */
+        .form-label span.asterisk,
+        .form-label .required-asterisk {
+            color: #dc3545 !important;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -928,17 +940,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                                 </select>
                             </div>
                             <div class="col-md-5 mb-3">
-                                <label for="first_name" class="form-label">First Name *</label>
+                                <label for="first_name" class="form-label">First Name <span class="asterisk">*</span></label>
                                 <input type="text" class="form-control" name="first_name" id="first_name" value="<?php echo htmlspecialchars($formData['first_name'] ?? ''); ?>" required>
                             </div>
                             <div class="col-md-5 mb-3">
-                                <label for="last_name" class="form-label">Last Name *</label>
+                                <label for="last_name" class="form-label">Last Name <span class="asterisk">*</span></label>
                                 <input type="text" class="form-control" name="last_name" id="last_name" value="<?php echo htmlspecialchars($formData['last_name'] ?? ''); ?>" required>
                             </div>
                         </div>
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label for="email" class="form-label">Email Address *</label>
+                                <label for="email" class="form-label">Email Address <span class="asterisk">*</span></label>
                                 <input type="email" class="form-control" name="email" id="email" value="<?php echo htmlspecialchars($formData['email'] ?? ''); ?>" required>
                             </div>
                             <div class="col-md-6 mb-3">
@@ -948,7 +960,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                         </div>
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label for="nationality" class="form-label">Nationality *</label>
+                                <label for="nationality" class="form-label">Nationality <span class="asterisk">*</span></label>
                                 <select name="nationality" id="nationality" class="form-select">
                                     <option value="">Select Nationality</option>
                                 </select>
@@ -1028,12 +1040,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                         <!-- Student Fields (only for Students package) -->
                         <div id="studentFields" class="row" style="display: none;">
                             <div class="col-md-6 mb-3">
-                                <label for="institution" class="form-label">Institution/School *</label>
+                                <label for="institution" class="form-label">Institution/School <span class="asterisk">*</span></label>
                                 <input type="text" class="form-control" name="institution" id="institution" value="<?php echo htmlspecialchars($formData['institution'] ?? ''); ?>" placeholder="Enter your institution or school name">
                                 <div class="form-text">Required for student registration</div>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label for="student_id_file" class="form-label">Student ID Document *</label>
+                                <label for="student_id_file" class="form-label">Student ID Document <span class="asterisk">*</span></label>
                                 <input type="file" class="form-control" name="student_id_file" id="student_id_file" accept=".pdf,.jpg,.jpeg,.png" required>
                                 <div class="form-text">Required for student registration (PDF, JPG, PNG - max 5MB)</div>
                             </div>
@@ -1048,22 +1060,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                     </div>
                     <div class="card-body">
                         <div class="mb-3">
-                            <label for="address_line1" class="form-label">Address *</label>
+                            <label for="address_line1" class="form-label">Address <span class="asterisk">*</span></label>
                             <input type="text" class="form-control" name="address_line1" id="address_line1" value="<?php echo htmlspecialchars($formData['address_line1'] ?? ''); ?>" required>
                         </div>
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label for="city" class="form-label">City *</label>
+                                <label for="city" class="form-label">City <span class="asterisk">*</span></label>
                                 <input type="text" class="form-control" name="city" id="city" value="<?php echo htmlspecialchars($formData['city'] ?? ''); ?>" required>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label for="state" class="form-label">State/Province *</label>
+                                <label for="state" class="form-label">State/Province <span class="asterisk">*</span></label>
                                 <input type="text" class="form-control" name="state" id="state" value="<?php echo htmlspecialchars($formData['state'] ?? ''); ?>" required>
                             </div>
                         </div>
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label for="country" class="form-label">Country *</label>
+                                <label for="country" class="form-label">Country <span class="asterisk">*</span></label>
                                 <select class="form-control" name="country" id="country" required>
                                     <option value="">Select Country</option>
                                     <?php
