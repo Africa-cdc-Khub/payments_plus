@@ -815,7 +815,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                         <h4 class="text-center mb-3">Individual Registration</h4>
                     </div>
                     <?php foreach ($individualPackages as $package): ?>
-                        <div class="col-6 col-md-4">
+                        <div class="col-6 col-md-3">
                             <div class="card package-card h-100" data-package-id="<?php echo $package['id']; ?>" data-type="<?php echo $package['type']; ?>" data-package-name="<?php echo htmlspecialchars($package['name']); ?>">
                                 <div class="card-body d-flex flex-column p-3 text-center">
                                     <div class="package-icon mb-3">
