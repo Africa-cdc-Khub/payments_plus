@@ -65,6 +65,9 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Initialize email validation
         initializeEmailValidation();
+        
+        // Restore package selection if form data exists
+        restorePackageSelection();
     }).catch(error => {
         console.error('Error loading countries:', error);
         // Fallback: populate with basic options
@@ -646,6 +649,36 @@ document.addEventListener('DOMContentLoaded', function() {
                 updateCostEstimation(numPeople);
             }
         });
+    }
+
+    // Restore package selection from form data
+    function restorePackageSelection() {
+        const packageId = selectedPackageId.value;
+        if (packageId) {
+            console.log('Restoring package selection for ID:', packageId);
+            
+            // Find the package card with the matching ID
+            const packageCard = document.querySelector(`[data-package-id="${packageId}"]`);
+            if (packageCard) {
+                console.log('Found package card:', packageCard);
+                
+                // Simulate a click on the package card to restore selection
+                packageCard.click();
+                
+                // Also restore the form data if it exists
+                restoreFormData();
+            } else {
+                console.log('Package card not found for ID:', packageId);
+            }
+        } else {
+            console.log('No package ID to restore');
+        }
+    }
+    
+    // Restore form data from PHP
+    function restoreFormData() {
+        // This will be called after package selection is restored
+        console.log('Form data restoration will be handled by existing form restoration logic');
     }
 
     // Initialize email validation

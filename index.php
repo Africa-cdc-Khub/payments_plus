@@ -360,6 +360,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
         'last_name' => $_POST['last_name'] ?? '',
         'phone' => $_POST['phone'] ?? '',
         'nationality' => $_POST['nationality'] ?? '',
+        'national_id' => $_POST['national_id'] ?? '',
         'passport_number' => $_POST['passport_number'] ?? '',
         'passport_file' => $_FILES['passport_file']['name'] ?? '',
         'requires_visa' => $_POST['requires_visa'] ?? '',
