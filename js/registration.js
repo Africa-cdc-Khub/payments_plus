@@ -62,6 +62,9 @@ document.addEventListener('DOMContentLoaded', function() {
         // Populate nationality dropdown with all countries on page load
         console.log('Countries loaded, populating nationality select');
         populateNationalitySelect();
+        
+        // Initialize email validation
+        initializeEmailValidation();
     }).catch(error => {
         console.error('Error loading countries:', error);
         // Fallback: populate with basic options
@@ -645,6 +648,46 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // Initialize email validation
+    function initializeEmailValidation() {
+        const emailInput = document.getElementById('email');
+        if (emailInput) {
+            // Real-time validation as user types
+            emailInput.addEventListener('input', function() {
+                const email = this.value;
+                const sanitized = validateAndSanitizeEmail(email);
+                
+                // Update the input with sanitized version
+                if (email !== sanitized) {
+                    this.value = sanitized;
+                }
+                
+                // Visual feedback for validation
+                if (email && !isValidEmail(sanitized)) {
+                    this.classList.add('is-invalid');
+                    this.classList.remove('is-valid');
+                } else if (email && isValidEmail(sanitized)) {
+                    this.classList.add('is-valid');
+                    this.classList.remove('is-invalid');
+                } else {
+                    this.classList.remove('is-valid', 'is-invalid');
+                }
+            });
+            
+            // Validate on blur
+            emailInput.addEventListener('blur', function() {
+                const email = this.value;
+                if (email && !isValidEmail(email)) {
+                    this.classList.add('is-invalid');
+                    this.classList.remove('is-valid');
+                } else if (email && isValidEmail(email)) {
+                    this.classList.add('is-valid');
+                    this.classList.remove('is-invalid');
+                }
+            });
+        }
+    }
+
     // Function to check if nationality is African
     function isAfricanNational(nationality) {
         const africanNationalities = [
@@ -814,8 +857,51 @@ document.addEventListener('DOMContentLoaded', function() {
     //     });
     // }
 
+    // Email validation and sanitization function
+    function validateAndSanitizeEmail(email) {
+        if (!email) return '';
+        
+        // Strip unnecessary characters and normalize
+        let sanitized = email.trim().toLowerCase();
+        
+        // Remove any non-printable characters
+        sanitized = sanitized.replace(/[^\x20-\x7E]/g, '');
+        
+        // Remove extra spaces
+        sanitized = sanitized.replace(/\s+/g, '');
+        
+        return sanitized;
+    }
+    
+    function isValidEmail(email) {
+        const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        return emailRegex.test(email);
+    }
+
     // Form submission
     form.addEventListener('submit', function(e) {
+        // Validate and sanitize email
+        const emailInput = document.getElementById('email');
+        if (emailInput) {
+            const originalEmail = emailInput.value;
+            const sanitizedEmail = validateAndSanitizeEmail(originalEmail);
+            
+            if (!sanitizedEmail) {
+                e.preventDefault();
+                showError('Please enter a valid email address', 'Email Required');
+                return;
+            }
+            
+            if (!isValidEmail(sanitizedEmail)) {
+                e.preventDefault();
+                showError('Please enter a valid email address format', 'Invalid Email');
+                return;
+            }
+            
+            // Update the input with sanitized email
+            emailInput.value = sanitizedEmail;
+        }
+        
         if (!selectedPackage) {
             e.preventDefault();
             showError('Please select a package', 'Package Required');
@@ -1155,6 +1241,43 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
         
         participantsContainer.appendChild(participantDiv);
+        
+        // Add email validation for participant
+        const participantEmailInput = participantDiv.querySelector('input[name*="[email]"]');
+        if (participantEmailInput) {
+            participantEmailInput.addEventListener('input', function() {
+                const email = this.value;
+                const sanitized = validateAndSanitizeEmail(email);
+                
+                // Update the input with sanitized version
+                if (email !== sanitized) {
+                    this.value = sanitized;
+                }
+                
+                // Visual feedback for validation
+                if (email && !isValidEmail(sanitized)) {
+                    this.classList.add('is-invalid');
+                    this.classList.remove('is-valid');
+                } else if (email && isValidEmail(sanitized)) {
+                    this.classList.add('is-valid');
+                    this.classList.remove('is-invalid');
+                } else {
+                    this.classList.remove('is-valid', 'is-invalid');
+                }
+            });
+            
+            // Validate on blur
+            participantEmailInput.addEventListener('blur', function() {
+                const email = this.value;
+                if (email && !isValidEmail(email)) {
+                    this.classList.add('is-invalid');
+                    this.classList.remove('is-valid');
+                } else if (email && isValidEmail(email)) {
+                    this.classList.add('is-valid');
+                    this.classList.remove('is-invalid');
+                }
+            });
+        }
         
         // Initialize Select2 for the new nationality dropdown
         $(participantDiv).find('.participant-nationality').select2({
