@@ -1117,3 +1117,8 @@ body {
         width: 100%;
     }
 }
+
+/* Orange text color for Non African Nationals package */
+.text-orange {
+    color: var(--accent-orange) !important;
+}

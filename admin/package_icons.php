@@ -66,7 +66,8 @@ $availableColors = [
     'text-warning' => 'Warning (Yellow)',
     'text-info' => 'Info (Cyan)',
     'text-light' => 'Light',
-    'text-dark' => 'Dark'
+    'text-dark' => 'Dark',
+    'text-orange' => 'Orange'
 ];
 ?>
 
