@@ -608,7 +608,7 @@ document.addEventListener('DOMContentLoaded', function() {
         initializeSelect2();
     }
 
-    // Initialize Select2 for nationality dropdown
+    // Initialize Select2 for nationality and country dropdowns
     function initializeSelect2() {
         // Destroy existing Select2 if it exists
         if ($('#nationality').hasClass('select2-hidden-accessible')) {
@@ -618,6 +618,18 @@ document.addEventListener('DOMContentLoaded', function() {
         $('#nationality').select2({
             theme: 'bootstrap-5',
             placeholder: 'Select Nationality',
+            allowClear: true,
+            width: '100%'
+        });
+        
+        // Initialize Select2 for country dropdown
+        if ($('#country').hasClass('select2-hidden-accessible')) {
+            $('#country').select2('destroy');
+        }
+        
+        $('#country').select2({
+            theme: 'bootstrap-5',
+            placeholder: 'Select Country',
             allowClear: true,
             width: '100%'
         });

@@ -1061,7 +1061,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="country" class="form-label">Country</label>
-                                <input type="text" class="form-control" name="country" id="country" value="<?php echo htmlspecialchars($formData['country'] ?? ''); ?>">
+                                <select class="form-control" name="country" id="country" required>
+                                    <option value="">Select Country</option>
+                                    <?php
+                                    // Load countries from JSON file
+                                    $countriesFile = 'data/countries.json';
+                                    if (file_exists($countriesFile)) {
+                                        $countriesData = json_decode(file_get_contents($countriesFile), true);
+                                        if ($countriesData) {
+                                            foreach ($countriesData as $country) {
+                                                $selected = (isset($formData['country']) && $formData['country'] === $country['name']) ? 'selected' : '';
+                                                echo '<option value="' . htmlspecialchars($country['name']) . '" ' . $selected . '>' . htmlspecialchars($country['name']) . '</option>';
+                                            }
+                                        }
+                                    }
+                                    ?>
+                                </select>
                             </div>
                         </div>
                     </div>
