@@ -29,6 +29,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let selectedPackage = null;
     let participantCount = 0;
     let countries = [];
+    let nationalities = [];
 
     // Lobibox alert helper functions
     function showAlert(type, message, title = '') {
@@ -59,8 +60,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Load countries data and populate nationality dropdown
     loadCountries().then(() => {
-        // Populate nationality dropdown with all countries on page load
-        console.log('Countries loaded, populating nationality select');
+        // Load all nationalities for initial population
+        console.log('Countries loaded, loading nationalities for initial population');
+        return loadNationalities();
+    }).then(() => {
+        // Populate nationality dropdown with all nationalities on page load
+        console.log('Nationalities loaded, populating nationality select');
         populateNationalitySelect();
         
         // Initialize email validation
@@ -69,7 +74,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Restore package selection if form data exists
         restorePackageSelection();
     }).catch(error => {
-        console.error('Error loading countries:', error);
+        console.error('Error loading countries/nationalities:', error);
         // Fallback: populate with basic options
         const nationalitySelect = document.getElementById('nationality');
         if (nationalitySelect) {
@@ -679,7 +684,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     console.log('Countries loaded:', countries.length);
                     // Only populate if no package is selected yet
                     if (!selectedPackage) {
-                        populateNationalitySelect();
+                populateNationalitySelect();
                     }
                     return data.countries;
                 } else {
@@ -712,6 +717,10 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(data => {
                 if (data.success) {
                     console.log('Nationalities loaded:', data.nationalities.length, 'for package:', packageName);
+                    // Store nationalities globally for reuse
+                    if (!packageId && !packageName) {
+                        nationalities = data.nationalities;
+                    }
                     return data.nationalities;
                 } else {
                     throw new Error(data.error || 'Failed to load nationalities');
@@ -735,6 +744,26 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Get the current selected value before clearing
         const currentValue = nationalitySelect.value;
+        
+        // If no package selected and we have nationalities loaded, use them
+        if (!selectedPackage && nationalities.length > 0) {
+            console.log('Using pre-loaded nationalities:', nationalities.length);
+            nationalitySelect.innerHTML = '<option value="">Select Nationality</option>';
+            
+            nationalities.forEach(nationality => {
+                const option = document.createElement('option');
+                option.value = nationality.nationality;
+                option.textContent = `${nationality.country_name} (${nationality.nationality})`;
+                if (nationality.nationality === currentValue) {
+                    option.selected = true;
+                }
+                nationalitySelect.appendChild(option);
+            });
+            
+            console.log('Nationality select populated with', nationalities.length, 'nationalities');
+            initializeSelect2();
+            return;
+        }
         
         // Load nationalities based on selected package
         const packageId = selectedPackage ? selectedPackage.id : null;
