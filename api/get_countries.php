@@ -71,10 +71,20 @@ try {
             }
         }
         
+        // Sort nationalities alphabetically by country name
+        usort($nationalities, function($a, $b) {
+            return strcmp($a['country_name'], $b['country_name']);
+        });
+        
         $response['success'] = true;
         $response['nationalities'] = $nationalities;
         $response['count'] = count($nationalities);
     } else {
+        // Sort countries alphabetically by name
+        usort($countries, function($a, $b) {
+            return strcmp($a['name'], $b['name']);
+        });
+        
         $response['success'] = true;
         $response['countries'] = $countries;
         $response['count'] = count($countries);
