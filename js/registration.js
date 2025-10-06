@@ -30,6 +30,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let participantCount = 0;
     let countries = [];
     let nationalities = [];
+    let africanNationalities = [];
 
     // Lobibox alert helper functions
     function showAlert(type, message, title = '') {
@@ -62,6 +63,12 @@ document.addEventListener('DOMContentLoaded', function() {
     loadCountries().then(() => {
         console.log('Countries loaded, initializing form');
         
+        // Load African nationalities for filtering
+        return loadNationalities(null, 'African Nationals');
+    }).then(africanNats => {
+        africanNationalities = africanNats.map(nat => nat.nationality);
+        console.log('African nationalities loaded:', africanNationalities.length);
+        
         // Initialize nationality dropdown (populated server-side)
         populateNationalitySelect();
         
@@ -71,7 +78,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Restore package selection if form data exists
         restorePackageSelection();
     }).catch(error => {
-        console.error('Error loading countries:', error);
+        console.error('Error loading countries/nationalities:', error);
     });
 
     // Check if elements exist
@@ -872,7 +879,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Function to check if nationality is African
     function isAfricanNational(nationality) {
-        const africanNationalities = [
+        // Use the African nationalities loaded from database
+        if (africanNationalities && africanNationalities.length > 0) {
+            return africanNationalities.includes(nationality);
+        }
+        
+        // Fallback to hardcoded list if database data not loaded
+        const fallbackAfricanNationalities = [
             'Algerian', 'Angolan', 'Beninese', 'Botswanan', 'Burkinabe', 'Burundian',
             'Cameroonian', 'Cape Verdian', 'Central African', 'Chadian', 'Comoran',
             'Congolese', 'Ivorian', 'Djibouti', 'Egyptian', 'Equatorial Guinean',
@@ -885,7 +898,7 @@ document.addEventListener('DOMContentLoaded', function() {
             'Zambian', 'Zimbabwean', 'Motswana', 'Mosotho'
         ];
         
-        return africanNationalities.includes(nationality);
+        return fallbackAfricanNationalities.includes(nationality);
     }
 
     // Function to load countries filtered by package type
