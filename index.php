@@ -983,37 +983,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                                 <select name="nationality" id="nationality" class="form-select">
                                     <option value="">Select Nationality</option>
                                     <?php
-                                    // Load all nationalities from database for initial population
-                                    try {
-                                        $pdo = getConnection();
-                                        $stmt = $pdo->prepare("SELECT code, name, nationality, continent, iso2_code, iso3_code FROM countries ORDER BY name");
-                                        $stmt->execute();
-                                        $allNationalities = $stmt->fetchAll(PDO::FETCH_ASSOC);
-                                        $uniqueNationalities = [];
-                                        $seenNationalities = [];
-                                        
-                                        foreach ($allNationalities as $country) {
-                                            if (!empty($country['nationality']) && !in_array($country['nationality'], $seenNationalities)) {
-                                                $uniqueNationalities[] = $country;
-                                                $seenNationalities[] = $country['nationality'];
-                                            }
+                                    // Load nationalities from database
+                                    $nationalitiesData = getAllNationalities();
+                                    if ($nationalitiesData) {
+                                        foreach ($nationalitiesData as $nationality) {
+                                            $selected = (isset($formData['nationality']) && $formData['nationality'] === $nationality['nationality']) ? 'selected' : '';
+                                            echo '<option value="' . htmlspecialchars($nationality['nationality']) . '" ' . $selected . '>' . htmlspecialchars($nationality['country_name']) . ' (' . htmlspecialchars($nationality['nationality']) . ')</option>';
                                         }
-                                        
-                                        // Sort by country name
-                                        usort($uniqueNationalities, function($a, $b) {
-                                            return strcmp($a['name'], $b['name']);
-                                        });
-                                        
-                                        foreach ($uniqueNationalities as $country) {
-                                            $selected = (isset($formData['nationality']) && $formData['nationality'] === $country['nationality']) ? 'selected' : '';
-                                            echo '<option value="' . htmlspecialchars($country['nationality']) . '" ' . $selected . '>' . htmlspecialchars($country['name']) . ' (' . htmlspecialchars($country['nationality']) . ')</option>';
-                                        }
-                                    } catch (Exception $e) {
-                                        // Fallback options
-                                        echo '<option value="Ghanaian">Ghana (Ghanaian)</option>';
-                                        echo '<option value="Nigerian">Nigeria (Nigerian)</option>';
-                                        echo '<option value="South African">South Africa (South African)</option>';
-                                        echo '<option value="Kenyan">Kenya (Kenyan)</option>';
                                     }
                                     ?>
                                 </select>

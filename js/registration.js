@@ -58,9 +58,12 @@ document.addEventListener('DOMContentLoaded', function() {
         showAlert('info', message, title);
     }
 
-    // Load countries data and initialize
+    // Load countries data and initialize form
     loadCountries().then(() => {
         console.log('Countries loaded, initializing form');
+        
+        // Initialize nationality dropdown (populated server-side)
+        populateNationalitySelect();
         
         // Initialize email validation
         initializeEmailValidation();
@@ -721,47 +724,46 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('populateNationalitySelect called');
         console.log('selectedPackage:', selectedPackage);
         
-        // If no package selected, keep the original options (all nationalities)
+        // Get all nationality options (excluding the first "Select Nationality" option)
+        const allOptions = Array.from(nationalitySelect.options).slice(1);
+        
         if (!selectedPackage) {
-            console.log('No package selected, keeping all nationalities');
-            initializeSelect2();
-            return;
+            // No package selected - show all nationalities
+            console.log('No package selected, showing all nationalities');
+            allOptions.forEach(option => {
+                option.style.display = '';
+                option.disabled = false;
+            });
+        } else {
+            // Package selected - filter based on package
+            const packageName = selectedPackage.name.toLowerCase();
+            console.log('Filtering nationalities for package:', packageName);
+            
+            allOptions.forEach(option => {
+                const nationality = option.value;
+                let shouldShow = true;
+                
+                if (packageName === 'african nationals') {
+                    // Show only African nationalities
+                    shouldShow = isAfricanNational(nationality);
+                } else if (packageName === 'non african nationals') {
+                    // Show only non-African nationalities
+                    shouldShow = !isAfricanNational(nationality);
+                }
+                // For students, delegates, and other packages, show all nationalities
+                
+                if (shouldShow) {
+                    option.style.display = '';
+                    option.disabled = false;
+                } else {
+                    option.style.display = 'none';
+                    option.disabled = true;
+                }
+            });
         }
         
-        // Get the current selected value before clearing
-        const currentValue = nationalitySelect.value;
-        
-        // Load nationalities based on selected package
-        const packageId = selectedPackage.id;
-        const packageName = selectedPackage.name;
-        
-        console.log('Loading nationalities for package:', packageName);
-        
-        loadNationalities(packageId, packageName).then(nationalities => {
-            console.log('Nationalities loaded for nationality select:', nationalities.length);
-            
-            nationalitySelect.innerHTML = '<option value="">Select Nationality</option>';
-            
-            nationalities.forEach(nationality => {
-                const option = document.createElement('option');
-                option.value = nationality.nationality;
-                option.textContent = `${nationality.country_name} (${nationality.nationality})`;
-                if (nationality.nationality === currentValue) {
-                    option.selected = true;
-                }
-                nationalitySelect.appendChild(option);
-            });
-            
-            console.log('Nationality select populated with', nationalities.length, 'nationalities');
-            
-            // Initialize Select2 after populating options
-            initializeSelect2();
-        }).catch(error => {
-            console.error('Error loading nationalities for select:', error);
-            // Keep original options as fallback
-            console.log('Error loading nationalities, keeping original options');
-            initializeSelect2();
-        });
+        // Reinitialize Select2 to reflect changes
+        initializeSelect2();
     }
 
     // Initialize Select2 for nationality and country dropdowns
@@ -1495,67 +1497,81 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         
-        // Populate nationality dropdown for this participant
-        const packageId = selectedPackage ? selectedPackage.id : null;
-        const packageName = selectedPackage ? selectedPackage.name : null;
+        // Populate nationality dropdown for this participant using the same options as main nationality
+        const nationalitySelect = participantDiv.querySelector('.participant-nationality');
+        const mainNationalitySelect = document.getElementById('nationality');
         
-        if (packageId && packageName) {
-            loadNationalities(packageId, packageName).then(nationalities => {
-                const nationalitySelect = participantDiv.querySelector('.participant-nationality');
-                nationalitySelect.innerHTML = '<option value="">Select Nationality</option>';
-                
-                nationalities.forEach(nationality => {
-                    const option = document.createElement('option');
-                    option.value = nationality.nationality;
-                    option.textContent = `${nationality.country_name} (${nationality.nationality})`;
-                    nationalitySelect.appendChild(option);
-                });
-                
-                // Reinitialize Select2 after populating options
-                $(nationalitySelect).select2('destroy').select2({
-                    theme: 'bootstrap-5',
-                    placeholder: 'Select Nationality',
-                    allowClear: true,
-                    width: '100%'
-                }).on('change', function() {
-                    const registrationType = document.querySelector('input[name="registration_type"]:checked');
-                    if (registrationType && registrationType.value === 'group') {
-                        checkGroupPricing();
-                        const numPeople = parseInt(numPeopleInput.value) || 0;
-                        if (numPeople > 0) {
-                            updateCostEstimation(numPeople);
-                        }
-                    }
-                });
-            }).catch(error => {
-                console.error('Error loading nationalities for participant:', error);
-            });
-        } else {
-            // No package selected, keep original options (all nationalities)
-            const nationalitySelect = participantDiv.querySelector('.participant-nationality');
-            // The options are already populated from PHP, just initialize Select2
-            $(nationalitySelect).select2({
-                theme: 'bootstrap-5',
-                placeholder: 'Select Nationality',
-                allowClear: true,
-                width: '100%'
-            }).on('change', function() {
-                const registrationType = document.querySelector('input[name="registration_type"]:checked');
-                if (registrationType && registrationType.value === 'group') {
-                    checkGroupPricing();
-                    const numPeople = parseInt(numPeopleInput.value) || 0;
-                    if (numPeople > 0) {
-                        updateCostEstimation(numPeople);
-                    }
+        // Copy all options from main nationality select
+        nationalitySelect.innerHTML = '<option value="">Select Nationality</option>';
+        Array.from(mainNationalitySelect.options).slice(1).forEach(option => {
+            const newOption = option.cloneNode(true);
+            nationalitySelect.appendChild(newOption);
+        });
+        
+        // Apply package-based filtering to participant nationality
+        updateParticipantNationalityFilter(nationalitySelect);
+        
+        // Reinitialize Select2 after populating options
+        $(nationalitySelect).select2('destroy').select2({
+            theme: 'bootstrap-5',
+            placeholder: 'Select Nationality',
+            allowClear: true,
+            width: '100%'
+        }).on('change', function() {
+            const registrationType = document.querySelector('input[name="registration_type"]:checked');
+            if (registrationType && registrationType.value === 'group') {
+                checkGroupPricing();
+                const numPeople = parseInt(numPeopleInput.value) || 0;
+                if (numPeople > 0) {
+                    updateCostEstimation(numPeople);
                 }
-            });
-        }
+            }
+        });
         
         // Show/hide fields for group participants based on selected package
         updateParticipantFields();
     }
 
     // removeParticipant function removed - participants are now automatically managed
+
+    function updateParticipantNationalityFilter(nationalitySelect) {
+        if (!nationalitySelect) return;
+        
+        const allOptions = Array.from(nationalitySelect.options).slice(1);
+        
+        if (!selectedPackage) {
+            // No package selected - show all nationalities
+            allOptions.forEach(option => {
+                option.style.display = '';
+                option.disabled = false;
+            });
+        } else {
+            // Package selected - filter based on package
+            const packageName = selectedPackage.name.toLowerCase();
+            
+            allOptions.forEach(option => {
+                const nationality = option.value;
+                let shouldShow = true;
+                
+                if (packageName === 'african nationals') {
+                    // Show only African nationalities
+                    shouldShow = isAfricanNational(nationality);
+                } else if (packageName === 'non african nationals') {
+                    // Show only non-African nationalities
+                    shouldShow = !isAfricanNational(nationality);
+                }
+                // For students, delegates, and other packages, show all nationalities
+                
+                if (shouldShow) {
+                    option.style.display = '';
+                    option.disabled = false;
+                } else {
+                    option.style.display = 'none';
+                    option.disabled = true;
+                }
+            });
+        }
+    }
 
     function updateParticipantFields() {
         // Show/hide fields for all participant forms based on selected package
@@ -1723,6 +1739,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
         }
+        
+        // Update nationality filtering for all participant nationality dropdowns
+        const participantNationalitySelects = document.querySelectorAll('.participant-nationality');
+        participantNationalitySelects.forEach(select => {
+            updateParticipantNationalityFilter(select);
+        });
     }
 
     function updateSummary() {

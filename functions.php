@@ -794,6 +794,19 @@ function getAllCountries() {
     return $countries;
 }
 
+// Function to get all nationalities from database
+function getAllNationalities() {
+    static $nationalities = null;
+    
+    if ($nationalities === null) {
+        $pdo = getConnection();
+        $stmt = $pdo->query("SELECT DISTINCT nationality, name as country_name, code FROM countries WHERE nationality IS NOT NULL AND nationality != '' ORDER BY name");
+        $nationalities = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+    
+    return $nationalities;
+}
+
 // Function to get countries by continent
 function getCountriesByContinent($continent) {
     $pdo = getConnection();
