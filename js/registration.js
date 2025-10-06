@@ -730,11 +730,9 @@ document.addEventListener('DOMContentLoaded', function() {
     function populateNationalitySelect() {
         console.log('populateNationalitySelect called');
         console.log('selectedPackage:', selectedPackage);
-        console.log('africanNationalities loaded:', africanNationalities.length);
         
         // Get all nationality options (excluding the first "Select Nationality" option)
         const allOptions = Array.from(nationalitySelect.options).slice(1);
-        console.log('Total nationality options found:', allOptions.length);
         
         if (!selectedPackage) {
             // No package selected - show all nationalities
@@ -756,17 +754,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 let shouldShow = true;
                 
                 if (packageName.includes('african nationals') && !packageName.includes('non')) {
-                    // Show only African nationalities
-                    shouldShow = isAfricanNational(nationality);
-                    if (nationality === 'Algerian' || nationality === 'American') {
-                        console.log('Testing nationality:', nationality, 'isAfrican:', shouldShow);
-                    }
+                    // Show only African nationalities - filter by continent
+                    shouldShow = isAfricanByContinent(option);
+                    console.log('African package - nationality:', nationality, 'shouldShow:', shouldShow);
                 } else if (packageName.includes('non') && packageName.includes('african nationals')) {
-                    // Show only non-African nationalities
-                    shouldShow = !isAfricanNational(nationality);
-                    if (nationality === 'Algerian' || nationality === 'American') {
-                        console.log('Testing nationality:', nationality, 'isAfrican:', !shouldShow);
-                    }
+                    // Show only non-African nationalities - filter by continent
+                    shouldShow = !isAfricanByContinent(option);
+                    console.log('Non-African package - nationality:', nationality, 'shouldShow:', shouldShow);
                 }
                 // For students, delegates, and other packages, show all nationalities
                 
@@ -893,14 +887,22 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Function to check if nationality is African
+    // Function to check if nationality is African by continent
+    function isAfricanByContinent(option) {
+        const continent = option.getAttribute('data-continent');
+        console.log('Checking continent for option:', option.value, 'continent:', continent);
+        return continent === 'Africa';
+    }
+
+    // Function to check if nationality is African (legacy function)
     function isAfricanNational(nationality) {
+        console.log('Checking if nationality is African:', nationality);
+        console.log('African nationalities loaded:', africanNationalities.length);
+        
         // Use the African nationalities loaded from database
         if (africanNationalities && africanNationalities.length > 0) {
             const isAfrican = africanNationalities.includes(nationality);
-            if (nationality === 'Algerian' || nationality === 'American') {
-                console.log('isAfricanNational check:', nationality, 'in database:', isAfrican, 'total loaded:', africanNationalities.length);
-            }
+            console.log('Database check result:', isAfrican);
             return isAfrican;
         }
         
@@ -919,7 +921,9 @@ document.addEventListener('DOMContentLoaded', function() {
             'Zambian', 'Zimbabwean', 'Motswana', 'Mosotho'
         ];
         
-        return fallbackAfricanNationalities.includes(nationality);
+        const isAfrican = fallbackAfricanNationalities.includes(nationality);
+        console.log('Fallback check result:', isAfrican);
+        return isAfrican;
     }
 
     // Function to load countries filtered by package type
@@ -1532,10 +1536,14 @@ document.addEventListener('DOMContentLoaded', function() {
         const nationalitySelect = participantDiv.querySelector('.participant-nationality');
         const mainNationalitySelect = document.getElementById('nationality');
         
-        // Copy all options from main nationality select
+        // Copy all options from main nationality select (including data-continent attributes)
         nationalitySelect.innerHTML = '<option value="">Select Nationality</option>';
         Array.from(mainNationalitySelect.options).slice(1).forEach(option => {
             const newOption = option.cloneNode(true);
+            // Ensure data-continent attribute is copied
+            if (option.hasAttribute('data-continent')) {
+                newOption.setAttribute('data-continent', option.getAttribute('data-continent'));
+            }
             nationalitySelect.appendChild(newOption);
         });
         
@@ -1584,11 +1592,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 let shouldShow = true;
                 
                 if (packageName.includes('african nationals') && !packageName.includes('non')) {
-                    // Show only African nationalities
-                    shouldShow = isAfricanNational(nationality);
+                    // Show only African nationalities - filter by continent
+                    shouldShow = isAfricanByContinent(option);
                 } else if (packageName.includes('non') && packageName.includes('african nationals')) {
-                    // Show only non-African nationalities
-                    shouldShow = !isAfricanNational(nationality);
+                    // Show only non-African nationalities - filter by continent
+                    shouldShow = !isAfricanByContinent(option);
                 }
                 // For students, delegates, and other packages, show all nationalities
                 

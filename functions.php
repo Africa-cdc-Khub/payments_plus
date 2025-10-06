@@ -800,7 +800,7 @@ function getAllNationalities() {
     
     if ($nationalities === null) {
         $pdo = getConnection();
-        $stmt = $pdo->query("SELECT DISTINCT nationality, name as country_name, code FROM countries WHERE nationality IS NOT NULL AND nationality != '' ORDER BY name");
+        $stmt = $pdo->query("SELECT DISTINCT nationality, name as country_name, code, continent FROM countries WHERE nationality IS NOT NULL AND nationality != '' ORDER BY name");
         $nationalities = $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
     
