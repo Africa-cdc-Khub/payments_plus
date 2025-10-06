@@ -730,9 +730,11 @@ document.addEventListener('DOMContentLoaded', function() {
     function populateNationalitySelect() {
         console.log('populateNationalitySelect called');
         console.log('selectedPackage:', selectedPackage);
+        console.log('africanNationalities loaded:', africanNationalities.length);
         
         // Get all nationality options (excluding the first "Select Nationality" option)
         const allOptions = Array.from(nationalitySelect.options).slice(1);
+        console.log('Total nationality options found:', allOptions.length);
         
         if (!selectedPackage) {
             // No package selected - show all nationalities
@@ -746,6 +748,9 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('Filtering nationalities for package:', packageName);
             console.log('Selected package name:', selectedPackage.name);
             
+            let visibleCount = 0;
+            let hiddenCount = 0;
+            
             allOptions.forEach(option => {
                 const nationality = option.value;
                 let shouldShow = true;
@@ -753,18 +758,28 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (packageName.includes('african nationals') && !packageName.includes('non')) {
                     // Show only African nationalities
                     shouldShow = isAfricanNational(nationality);
+                    if (nationality === 'Algerian' || nationality === 'American') {
+                        console.log('Testing nationality:', nationality, 'isAfrican:', shouldShow);
+                    }
                 } else if (packageName.includes('non') && packageName.includes('african nationals')) {
                     // Show only non-African nationalities
                     shouldShow = !isAfricanNational(nationality);
+                    if (nationality === 'Algerian' || nationality === 'American') {
+                        console.log('Testing nationality:', nationality, 'isAfrican:', !shouldShow);
+                    }
                 }
                 // For students, delegates, and other packages, show all nationalities
                 
                 if (shouldShow) {
                     option.style.display = '';
+                    visibleCount++;
                 } else {
                     option.style.display = 'none';
+                    hiddenCount++;
                 }
             });
+            
+            console.log('Filtering complete - Visible:', visibleCount, 'Hidden:', hiddenCount);
         }
         
         // Reinitialize Select2 to reflect changes
@@ -882,10 +897,15 @@ document.addEventListener('DOMContentLoaded', function() {
     function isAfricanNational(nationality) {
         // Use the African nationalities loaded from database
         if (africanNationalities && africanNationalities.length > 0) {
-            return africanNationalities.includes(nationality);
+            const isAfrican = africanNationalities.includes(nationality);
+            if (nationality === 'Algerian' || nationality === 'American') {
+                console.log('isAfricanNational check:', nationality, 'in database:', isAfrican, 'total loaded:', africanNationalities.length);
+            }
+            return isAfrican;
         }
         
         // Fallback to hardcoded list if database data not loaded
+        console.log('Using fallback African nationalities list');
         const fallbackAfricanNationalities = [
             'Algerian', 'Angolan', 'Beninese', 'Botswanan', 'Burkinabe', 'Burundian',
             'Cameroonian', 'Cape Verdian', 'Central African', 'Chadian', 'Comoran',
