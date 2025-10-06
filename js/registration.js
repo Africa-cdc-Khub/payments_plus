@@ -166,6 +166,8 @@ document.addEventListener('DOMContentLoaded', function() {
             };
             
             console.log('Selected package:', selectedPackage);
+            console.log('Package name from dataset:', card.dataset.packageName);
+            console.log('Package name from text content:', card.querySelector('h5, h6')?.textContent);
             
             selectedPackageId.value = selectedPackage.id;
             
@@ -745,6 +747,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const packageName = selectedPackage.name.toLowerCase();
             console.log('Filtering nationalities for package:', packageName);
             console.log('Selected package name:', selectedPackage.name);
+            console.log('Package name includes "african nationals":', packageName.includes('african nationals'));
+            console.log('Package name includes "non":', packageName.includes('non'));
             
             let visibleCount = 0;
             let hiddenCount = 0;
@@ -761,6 +765,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Show only non-African nationalities - filter by continent
                     shouldShow = !isAfricanByContinent(option);
                     console.log('Non-African package - nationality:', nationality, 'shouldShow:', shouldShow);
+                } else {
+                    console.log('Other package - showing all nationalities for:', nationality);
                 }
                 // For students, delegates, and other packages, show all nationalities
                 
