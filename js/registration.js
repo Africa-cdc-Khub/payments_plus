@@ -1331,9 +1331,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label class="form-label">Passport Copy (PDF)</label>
+                        <label class="form-label">Passport Copy (PDF) *</label>
                         <input type="file" class="form-control" name="participants[${participantCount - 1}][passport_file]" accept=".pdf">
-                        <div class="form-text small">Upload passport copy (PDF, max 5MB)</div>
+                        <div class="form-text small">Required for delegate participants - upload passport copy (PDF, max 5MB)</div>
                     </div>
                     <div class="col-md-6 mb-3">
                         <label class="form-label">Requires visa to enter South Africa? *</label>
@@ -1412,9 +1412,9 @@ document.addEventListener('DOMContentLoaded', function() {
                         <!-- Empty left column for delegates -->
                     </div>
                     <div class="col-md-6 mb-3">
-                        <label class="form-label">Airport of Origin</label>
+                        <label class="form-label">Airport of Origin *</label>
                         <input type="text" class="form-control" name="participants[${participantCount - 1}][airport_of_origin]" placeholder="Enter departure airport">
-                        <div class="form-text small">Optional - for travel planning purposes</div>
+                        <div class="form-text small">Required for delegate participants - for travel planning purposes</div>
                     </div>
                 </div>
             </div>
@@ -1562,8 +1562,16 @@ document.addEventListener('DOMContentLoaded', function() {
             participantAirportFields.forEach(field => {
                 field.style.display = 'block';
                 const airportField = field.querySelector('input[name*="[airport_of_origin]"]');
+                const airportLabel = field.querySelector('label');
+                const airportHelpText = field.querySelector('.form-text');
                 if (airportField) {
                     airportField.required = true;
+                }
+                if (airportLabel) {
+                    airportLabel.innerHTML = 'Airport of Origin *';
+                }
+                if (airportHelpText) {
+                    airportHelpText.textContent = 'Required for delegate participants - for travel planning purposes';
                 }
             });
             
@@ -1571,6 +1579,14 @@ document.addEventListener('DOMContentLoaded', function() {
             const participantPassportFields = document.querySelectorAll('input[name*="[passport_file]"]');
             participantPassportFields.forEach(field => {
                 field.required = true;
+                const passportLabel = field.closest('.row').querySelector('label');
+                const passportHelpText = field.closest('.row').querySelector('.form-text');
+                if (passportLabel) {
+                    passportLabel.innerHTML = 'Passport Copy (PDF) *';
+                }
+                if (passportHelpText) {
+                    passportHelpText.textContent = 'Required for delegate participants - upload passport copy (PDF, max 5MB)';
+                }
             });
         } else {
             // Show organization fields, hide student and delegate fields
@@ -1607,8 +1623,16 @@ document.addEventListener('DOMContentLoaded', function() {
             participantAirportFields.forEach(field => {
                 field.style.display = 'none';
                 const airportField = field.querySelector('input[name*="[airport_of_origin]"]');
+                const airportLabel = field.querySelector('label');
+                const airportHelpText = field.querySelector('.form-text');
                 if (airportField) {
                     airportField.required = false;
+                }
+                if (airportLabel) {
+                    airportLabel.innerHTML = 'Airport of Origin';
+                }
+                if (airportHelpText) {
+                    airportHelpText.textContent = 'Optional - for travel planning purposes';
                 }
             });
             
@@ -1616,6 +1640,14 @@ document.addEventListener('DOMContentLoaded', function() {
             const participantPassportFields = document.querySelectorAll('input[name*="[passport_file]"]');
             participantPassportFields.forEach(field => {
                 field.required = false;
+                const passportLabel = field.closest('.row').querySelector('label');
+                const passportHelpText = field.closest('.row').querySelector('.form-text');
+                if (passportLabel) {
+                    passportLabel.innerHTML = 'Passport Copy (PDF)';
+                }
+                if (passportHelpText) {
+                    passportHelpText.textContent = 'Optional - upload passport copy (PDF, max 5MB)';
+                }
             });
         }
     }
