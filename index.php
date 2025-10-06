@@ -98,6 +98,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (empty($_POST['delegate_category'])) {
                 $errors[] = "Delegate Category is required for delegate registration";
             }
+            if (empty($_POST['airport_of_origin'])) {
+                $errors[] = "Airport of Origin is required for delegate registration";
+            }
+            if (empty($_FILES['passport_file']['name'])) {
+                $errors[] = "Passport Copy (PDF) is required for delegate registration";
+            }
         }
     }
     
@@ -991,9 +997,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                                 <div class="form-text">Optional - for international participants</div>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label for="passport_file" class="form-label">Passport Copy (PDF)</label>
+                                <label for="passport_file" class="form-label">Passport Copy (PDF) <span class="asterisk">*</span></label>
                                 <input type="file" class="form-control" name="passport_file" id="passport_file" accept=".pdf" value="<?php echo htmlspecialchars($formData['passport_file'] ?? ''); ?>">
-                                <div class="form-text">Optional - upload a clear copy of your passport (PDF format, max 5MB)</div>
+                                <div class="form-text">Required for delegate registration - upload a clear copy of your passport (PDF format, max 5MB)</div>
                             </div>
                         </div>
                         <div class="row">
@@ -1051,9 +1057,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                                 <!-- Empty left column for delegates -->
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label for="airport_of_origin" class="form-label">Airport of Origin</label>
+                                <label for="airport_of_origin" class="form-label">Airport of Origin <span class="asterisk">*</span></label>
                                 <input type="text" class="form-control" name="airport_of_origin" id="airport_of_origin" value="<?php echo htmlspecialchars($formData['airport_of_origin'] ?? ''); ?>" placeholder="Enter your departure airport">
-                                <div class="form-text">Optional - for travel planning purposes</div>
+                                <div class="form-text">Required for delegate registration - for travel planning purposes</div>
                             </div>
                         </div>
                         

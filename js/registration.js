@@ -257,6 +257,16 @@ document.addEventListener('DOMContentLoaded', function() {
                         const airportFields = document.getElementById('airportFields');
                         if (airportFields) {
                             airportFields.style.display = 'none';
+                            const airportField = document.getElementById('airport_of_origin');
+                            if (airportField) {
+                                airportField.required = false;
+                            }
+                        }
+                        
+                        // Make passport file optional for non-delegates
+                        const passportFileField = document.getElementById('passport_file');
+                        if (passportFileField) {
+                            passportFileField.required = false;
                         }
                         
                         // Update participant fields
@@ -308,6 +318,16 @@ document.addEventListener('DOMContentLoaded', function() {
                         const airportFields = document.getElementById('airportFields');
                         if (airportFields) {
                             airportFields.style.display = 'block';
+                            const airportField = document.getElementById('airport_of_origin');
+                            if (airportField) {
+                                airportField.required = true;
+                            }
+                        }
+                        
+                        // Make passport file required for delegates
+                        const passportFileField = document.getElementById('passport_file');
+                        if (passportFileField) {
+                            passportFileField.required = true;
                         }
                         
                         // Update participant fields
@@ -411,6 +431,16 @@ document.addEventListener('DOMContentLoaded', function() {
                         const airportFields = document.getElementById('airportFields');
                         if (airportFields) {
                             airportFields.style.display = 'none';
+                            const airportField = document.getElementById('airport_of_origin');
+                            if (airportField) {
+                                airportField.required = false;
+                            }
+                        }
+                        
+                        // Make passport file optional for non-delegates
+                        const passportFileField = document.getElementById('passport_file');
+                        if (passportFileField) {
+                            passportFileField.required = false;
                         }
                         
                         // Update participant fields
@@ -472,6 +502,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 const airportFields = document.getElementById('airportFields');
                 if (airportFields) {
                     airportFields.style.display = 'none';
+                    const airportField = document.getElementById('airport_of_origin');
+                    if (airportField) {
+                        airportField.required = false;
+                    }
+                }
+                
+                // Make passport file optional for side events
+                const passportFileField = document.getElementById('passport_file');
+                if (passportFileField) {
+                    passportFileField.required = false;
                 }
                 
                 // Update participant fields
@@ -532,6 +572,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 const airportFields = document.getElementById('airportFields');
                 if (airportFields) {
                     airportFields.style.display = 'none';
+                    const airportField = document.getElementById('airport_of_origin');
+                    if (airportField) {
+                        airportField.required = false;
+                    }
+                }
+                
+                // Make passport file optional for exhibitions
+                const passportFileField = document.getElementById('passport_file');
+                if (passportFileField) {
+                    passportFileField.required = false;
                 }
                 
                 // Update participant fields
@@ -629,7 +679,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     console.log('Countries loaded:', countries.length);
                     // Only populate if no package is selected yet
                     if (!selectedPackage) {
-                        populateNationalitySelect();
+                populateNationalitySelect();
                     }
                     return data.countries;
                 } else {
@@ -1511,6 +1561,16 @@ document.addEventListener('DOMContentLoaded', function() {
             
             participantAirportFields.forEach(field => {
                 field.style.display = 'block';
+                const airportField = field.querySelector('input[name*="[airport_of_origin]"]');
+                if (airportField) {
+                    airportField.required = true;
+                }
+            });
+            
+            // Make passport files required for delegate participants
+            const participantPassportFields = document.querySelectorAll('input[name*="[passport_file]"]');
+            participantPassportFields.forEach(field => {
+                field.required = true;
             });
         } else {
             // Show organization fields, hide student and delegate fields
@@ -1546,6 +1606,16 @@ document.addEventListener('DOMContentLoaded', function() {
             
             participantAirportFields.forEach(field => {
                 field.style.display = 'none';
+                const airportField = field.querySelector('input[name*="[airport_of_origin]"]');
+                if (airportField) {
+                    airportField.required = false;
+                }
+            });
+            
+            // Make passport files optional for non-delegate participants
+            const participantPassportFields = document.querySelectorAll('input[name*="[passport_file]"]');
+            participantPassportFields.forEach(field => {
+                field.required = false;
             });
         }
     }
