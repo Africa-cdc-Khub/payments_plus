@@ -58,15 +58,9 @@ document.addEventListener('DOMContentLoaded', function() {
         showAlert('info', message, title);
     }
 
-    // Load countries data and populate nationality dropdown
+    // Load countries data and initialize
     loadCountries().then(() => {
-        // Load all nationalities for initial population
-        console.log('Countries loaded, loading nationalities for initial population');
-        return loadNationalities();
-    }).then(() => {
-        // Populate nationality dropdown with all nationalities on page load
-        console.log('Nationalities loaded, populating nationality select');
-        populateNationalitySelect();
+        console.log('Countries loaded, initializing form');
         
         // Initialize email validation
         initializeEmailValidation();
@@ -74,22 +68,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Restore package selection if form data exists
         restorePackageSelection();
     }).catch(error => {
-        console.error('Error loading countries/nationalities:', error);
-        // Fallback: populate with basic options
-        const nationalitySelect = document.getElementById('nationality');
-        if (nationalitySelect) {
-            nationalitySelect.innerHTML = `
-                <option value="">Select Nationality</option>
-                <option value="Algerian">Algeria (Algerian)</option>
-                <option value="Ghanaian">Ghana (Ghanaian)</option>
-                <option value="Nigerian">Nigeria (Nigerian)</option>
-                <option value="South African">South Africa (South African)</option>
-                <option value="Kenyan">Kenya (Kenyan)</option>
-                <option value="American">United States (American)</option>
-                <option value="British">United Kingdom (British)</option>
-                <option value="Other">Other (Other)</option>
-            `;
-        }
+        console.error('Error loading countries:', error);
     });
 
     // Check if elements exist
@@ -682,6 +661,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (data.success) {
                     countries = data.countries;
                     console.log('Countries loaded:', countries.length);
+                    // Only populate if no package is selected yet
+                    if (!selectedPackage) {
+                populateNationalitySelect();
+                    }
                     return data.countries;
                 } else {
                     throw new Error(data.error || 'Failed to load countries');
@@ -738,32 +721,21 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('populateNationalitySelect called');
         console.log('selectedPackage:', selectedPackage);
         
-        // Get the current selected value before clearing
-        const currentValue = nationalitySelect.value;
-        
-        // If no package selected and we have nationalities loaded, use them
-        if (!selectedPackage && nationalities.length > 0) {
-            console.log('Using pre-loaded nationalities:', nationalities.length);
-            nationalitySelect.innerHTML = '<option value="">Select Nationality</option>';
-            
-            nationalities.forEach(nationality => {
-                const option = document.createElement('option');
-                option.value = nationality.nationality;
-                option.textContent = `${nationality.country_name} (${nationality.nationality})`;
-                if (nationality.nationality === currentValue) {
-                    option.selected = true;
-                }
-                nationalitySelect.appendChild(option);
-            });
-            
-            console.log('Nationality select populated with', nationalities.length, 'nationalities');
+        // If no package selected, keep the original options (all nationalities)
+        if (!selectedPackage) {
+            console.log('No package selected, keeping all nationalities');
             initializeSelect2();
             return;
         }
         
+        // Get the current selected value before clearing
+        const currentValue = nationalitySelect.value;
+        
         // Load nationalities based on selected package
-        const packageId = selectedPackage ? selectedPackage.id : null;
-        const packageName = selectedPackage ? selectedPackage.name : null;
+        const packageId = selectedPackage.id;
+        const packageName = selectedPackage.name;
+        
+        console.log('Loading nationalities for package:', packageName);
         
         loadNationalities(packageId, packageName).then(nationalities => {
             console.log('Nationalities loaded for nationality select:', nationalities.length);
@@ -786,14 +758,8 @@ document.addEventListener('DOMContentLoaded', function() {
             initializeSelect2();
         }).catch(error => {
             console.error('Error loading nationalities for select:', error);
-            // Fallback to basic options
-            nationalitySelect.innerHTML = `
-                <option value="">Select Nationality</option>
-                <option value="Ghanaian">Ghana (Ghanaian)</option>
-                <option value="Nigerian">Nigeria (Nigerian)</option>
-                <option value="South African">South Africa (South African)</option>
-                <option value="Kenyan">Kenya (Kenyan)</option>
-            `;
+            // Keep original options as fallback
+            console.log('Error loading nationalities, keeping original options');
             initializeSelect2();
         });
     }
@@ -1532,19 +1498,43 @@ document.addEventListener('DOMContentLoaded', function() {
         // Populate nationality dropdown for this participant
         const packageId = selectedPackage ? selectedPackage.id : null;
         const packageName = selectedPackage ? selectedPackage.name : null;
-        loadNationalities(packageId, packageName).then(nationalities => {
-            const nationalitySelect = participantDiv.querySelector('.participant-nationality');
-            nationalitySelect.innerHTML = '<option value="">Select Nationality</option>';
-            
-            nationalities.forEach(nationality => {
-                const option = document.createElement('option');
-                option.value = nationality.nationality;
-                option.textContent = `${nationality.country_name} (${nationality.nationality})`;
-                nationalitySelect.appendChild(option);
+        
+        if (packageId && packageName) {
+            loadNationalities(packageId, packageName).then(nationalities => {
+                const nationalitySelect = participantDiv.querySelector('.participant-nationality');
+                nationalitySelect.innerHTML = '<option value="">Select Nationality</option>';
+                
+                nationalities.forEach(nationality => {
+                    const option = document.createElement('option');
+                    option.value = nationality.nationality;
+                    option.textContent = `${nationality.country_name} (${nationality.nationality})`;
+                    nationalitySelect.appendChild(option);
+                });
+                
+                // Reinitialize Select2 after populating options
+                $(nationalitySelect).select2('destroy').select2({
+                    theme: 'bootstrap-5',
+                    placeholder: 'Select Nationality',
+                    allowClear: true,
+                    width: '100%'
+                }).on('change', function() {
+                    const registrationType = document.querySelector('input[name="registration_type"]:checked');
+                    if (registrationType && registrationType.value === 'group') {
+                        checkGroupPricing();
+                        const numPeople = parseInt(numPeopleInput.value) || 0;
+                        if (numPeople > 0) {
+                            updateCostEstimation(numPeople);
+                        }
+                    }
+                });
+            }).catch(error => {
+                console.error('Error loading nationalities for participant:', error);
             });
-            
-            // Reinitialize Select2 after populating options
-            $(nationalitySelect).select2('destroy').select2({
+        } else {
+            // No package selected, keep original options (all nationalities)
+            const nationalitySelect = participantDiv.querySelector('.participant-nationality');
+            // The options are already populated from PHP, just initialize Select2
+            $(nationalitySelect).select2({
                 theme: 'bootstrap-5',
                 placeholder: 'Select Nationality',
                 allowClear: true,
@@ -1559,9 +1549,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 }
             });
-        }).catch(error => {
-            console.error('Error loading nationalities for participant:', error);
-        });
+        }
         
         // Show/hide fields for group participants based on selected package
         updateParticipantFields();
