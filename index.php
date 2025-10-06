@@ -65,8 +65,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $package = getPackageById($_POST['package_id']);
     }
     
-    // For Students, Africa CDC Sponsored Delegates, and Non African nationals packages, allow any nationality
-    $isFixedPricePackage = $package && in_array(strtolower($package['name']), ['students', 'africa cdc sponsored delegates', 'non african nationals']);
+    // For Students, Delegates, and Non African nationals packages, allow any nationality
+    $isFixedPricePackage = $package && in_array(strtolower($package['name']), ['students', 'delegates', 'non african nationals']);
     
     if (!empty($_POST['nationality']) && !$isFixedPricePackage && !validateNationality($_POST['nationality'])) {
         $errors[] = "Please select a valid nationality";
@@ -81,7 +81,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = "Please enter a valid passport number";
     }
     
-    // For Students and Africa CDC Sponsored Delegates packages, allow any organization name
+    // For Students and Delegates packages, allow any organization name
     if (!empty($_POST['organization']) && !$isFixedPricePackage && !validateOrganization($_POST['organization'])) {
         $errors[] = "Please enter a valid organization name";
     }
@@ -94,7 +94,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (empty($_FILES['student_id_file']['name'])) {
                 $errors[] = "Student ID document is required for student registration";
             }
-        } elseif ($package && strtolower($package['name']) === 'africa cdc sponsored delegates') {
+        } elseif ($package && strtolower($package['name']) === 'delegates') {
             if (empty($_POST['delegate_category'])) {
                 $errors[] = "Delegate Category is required for delegate registration";
             }
@@ -176,8 +176,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
              // Check if this is an exhibition package
              $isExhibition = ($package['type'] === 'exhibition');
              
-             // Check if this is a fixed-price package (Students, Africa CDC Sponsored Delegates, Side Events, Exhibitions)
-             $isFixedPricePackage = in_array(strtolower($package['name']), ['students', 'africa cdc sponsored delegates']) || 
+             // Check if this is a fixed-price package (Students, Delegates, Side Events, Exhibitions)
+             $isFixedPricePackage = in_array(strtolower($package['name']), ['students', 'delegates']) || 
                                    $isSideEvent || $isExhibition;
              
              if ($isFixedPricePackage) {
@@ -189,7 +189,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
              } else if ($isExhibition) {
                      $registrationType = 'exhibition';
                  } else {
-                     $registrationType = 'individual'; // Students and Africa CDC Sponsored Delegates are individual only
+                     $registrationType = 'individual'; // Students and Delegates are individual only
                  }
             } else if ($_POST['registration_type'] === 'individual') {
                 // Regular individual registration - use African/Non-African pricing
@@ -313,7 +313,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $errors[] = "Registration created but failed to send confirmation email. Please contact support.";
                 }
             } else if ($isFixedPricePackage) {
-                // For fixed-price packages (Students, Africa CDC Sponsored Delegates), send normal registration emails
+                // For fixed-price packages (Students, Delegates), send normal registration emails
                 if (sendRegistrationEmails($user, $registrationId, $package, $totalAmount, $participants)) {
                     $success = true;
                 } else {
@@ -1025,7 +1025,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                             </div>
                         </div>
                         
-                        <!-- Delegate Category and Airport fields (only for Africa CDC Sponsored Delegates package) - Right column -->
+                        <!-- Delegate Category and Airport fields (only for Delegates package) - Right column -->
                         <div id="delegateFields" class="row" style="display: none;">
                             <div class="col-md-6 mb-3">
                                 <!-- Empty left column for delegates -->
@@ -1045,7 +1045,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                             </div>
                         </div>
                         
-                        <!-- Airport of Origin field (only for Africa CDC Sponsored Delegates package) - Right column -->
+                        <!-- Airport of Origin field (only for Delegates package) - Right column -->
                         <div id="airportFields" class="row" style="display: none;">
                             <div class="col-md-6 mb-3">
                                 <!-- Empty left column for delegates -->

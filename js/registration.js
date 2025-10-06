@@ -191,10 +191,10 @@ document.addEventListener('DOMContentLoaded', function() {
             const groupRadio = document.querySelector('input[name="registration_type"][value="group"]');
             
             if (selectedPackage.type === 'individual') {
-                // Check if this is Students or Africa CDC Sponsored Delegates package
-                if (selectedPackage.name.toLowerCase() === 'students' || selectedPackage.name.toLowerCase() === 'africa cdc sponsored delegates') {
-                    // Students/Africa CDC Sponsored Delegates package - only allow individual registration
-                    console.log('Students/Africa CDC Sponsored Delegates package selected - disabling group registration');
+                // Check if this is Students or Delegates package
+                if (selectedPackage.name.toLowerCase() === 'students' || selectedPackage.name.toLowerCase() === 'delegates') {
+                    // Students/Delegates package - only allow individual registration
+                    console.log('Students/Delegates package selected - disabling group registration');
                     individualRadio.checked = true;
                     individualRadio.disabled = false;
                     groupRadio.disabled = true;
@@ -261,8 +261,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         
                         // Update participant fields
                         updateParticipantFields();
-                    } else if (selectedPackage.name.toLowerCase() === 'africa cdc sponsored delegates') {
-                        // Show organization fields for Africa CDC Sponsored Delegates
+                    } else if (selectedPackage.name.toLowerCase() === 'delegates') {
+                        // Show organization fields for delegates
                         const organizationFields = document.getElementById('organizationFields');
                         if (organizationFields) {
                             organizationFields.style.display = 'block';
@@ -833,7 +833,7 @@ document.addEventListener('DOMContentLoaded', function() {
             filteredCountries = countries.filter(country => !isAfricanNational(country.nationality));
             console.log('Non-African Nationals package - showing', filteredCountries.length, 'non-African countries');
         } else {
-            // Students, Africa CDC Sponsored Delegates, Side events, Exhibitions - show all countries
+            // Students, Delegates, Side events, Exhibitions - show all countries
             console.log('Other package (' + packageName + ') - showing all', countries.length, 'countries');
         }
         // For other packages (side events, exhibitions), show all countries
@@ -1062,10 +1062,10 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        // Check if this is a fixed-price package (Students, Africa CDC Sponsored Delegates, Side Events, Exhibitions)
+        // Check if this is a fixed-price package (Students, Delegates, Side Events, Exhibitions)
         const isFixedPricePackage = selectedPackage && (
             selectedPackage.name.toLowerCase() === 'students' || 
-            selectedPackage.name.toLowerCase() === 'africa cdc sponsored delegates' ||
+            selectedPackage.name.toLowerCase() === 'delegates' ||
             selectedPackage.type === 'side_event' || 
             selectedPackage.type === 'exhibition'
         );
@@ -1077,7 +1077,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (selectedPackage.type === 'side_event') packageType = 'Side Event';
             else if (selectedPackage.type === 'exhibition') packageType = 'Exhibition';
             else if (selectedPackage.name.toLowerCase() === 'students') packageType = 'Student';
-            else if (selectedPackage.name.toLowerCase() === 'africa cdc sponsored delegates') packageType = 'Africa CDC Sponsored Delegate';
+            else if (selectedPackage.name.toLowerCase() === 'delegates') packageType = 'Delegate';
             
             costEstimation.innerHTML = `
                 <strong>Total: $${totalCost.toLocaleString()}</strong>
@@ -1315,7 +1315,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
                 <div class="row participant-delegate-fields" style="display: none;">
                     <div class="col-md-6 mb-3">
-                        <!-- Empty left column for Africa CDC Sponsored Delegates -->
+                        <!-- Empty left column for delegates -->
                     </div>
                     <div class="col-md-6 mb-3">
                         <label class="form-label">Delegate Category *</label>
@@ -1333,7 +1333,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
                 <div class="row participant-airport-fields" style="display: none;">
                     <div class="col-md-6 mb-3">
-                        <!-- Empty left column for Africa CDC Sponsored Delegates -->
+                        <!-- Empty left column for delegates -->
                     </div>
                     <div class="col-md-6 mb-3">
                         <label class="form-label">Airport of Origin</label>
@@ -1451,7 +1451,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     institutionField.required = true;
                 }
             });
-        } else if (selectedPackage && selectedPackage.name.toLowerCase() === 'africa cdc sponsored delegates') {
+        } else if (selectedPackage && selectedPackage.name.toLowerCase() === 'delegates') {
             // Show organization and delegate fields, hide student fields
             participantOrganizationFields.forEach(field => {
                 field.style.display = 'block';
@@ -1542,10 +1542,10 @@ document.addEventListener('DOMContentLoaded', function() {
         let actualPackage = selectedPackage;
         let pricingNote = '';
         
-        // Check if this is a fixed-price package (Students, Africa CDC Sponsored Delegates, Side Events, Exhibitions)
+        // Check if this is a fixed-price package (Students, Delegates, Side Events, Exhibitions)
         const isFixedPricePackage = selectedPackage && (
             selectedPackage.name.toLowerCase() === 'students' || 
-            selectedPackage.name.toLowerCase() === 'africa cdc sponsored delegates' ||
+            selectedPackage.name.toLowerCase() === 'delegates' ||
             selectedPackage.type === 'side_event' || 
             selectedPackage.type === 'exhibition'
         );
@@ -1603,7 +1603,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Calculate total amount based on package type
         let totalAmount;
         if (isFixedPricePackage) {
-            // For fixed-price packages (Students, Africa CDC Sponsored Delegates, Side Events, Exhibitions), use exact package price
+            // For fixed-price packages (Students, Delegates, Side Events, Exhibitions), use exact package price
             totalAmount = selectedPackage.price;
         } else if (registrationType.value === 'group') {
             // For regular group registration, calculate based on participant nationalities
