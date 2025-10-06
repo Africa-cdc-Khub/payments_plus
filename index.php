@@ -859,6 +859,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                                 <?php if ($selectedPackage['price'] > 0): ?>
                                     <div class="package-price"><?php echo formatCurrency($selectedPackage['price']); ?></div>
                                 <?php endif; ?>
+                                <div class="package-description mt-3" id="packageDescription" style="display: none;">
+                                    <small class="text-muted" id="packageDescriptionText">Loading description...</small>
+                                </div>
                             </div>
                         <?php endif; ?>
                     <?php endif; ?>
@@ -868,33 +871,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
             <div class="row mb-4">
                 <div class="col-12 text-center">
                     <h2 class="mb-0">Complete Your Registration</h2>
-                </div>
-            </div>
-            
-            <!-- Package Description Card -->
-            <div class="row mb-4" id="packageDescriptionCard" style="display: none;">
-                <div class="col-12">
-                    <div class="card border-primary">
-                        <div class="card-header bg-primary text-white">
-                            <h5 class="mb-0">
-                                <i class="fas fa-info-circle me-2"></i>
-                                <span id="packageDescriptionTitle">Package Information</span>
-                            </h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-md-2 text-center">
-                                    <div class="package-icon mb-2">
-                                        <i id="packageDescriptionIcon" class="fas fa-ticket-alt text-primary fa-2x"></i>
-                                    </div>
-                                </div>
-                                <div class="col-md-10">
-                                    <h6 class="text-primary mb-2" id="packageDescriptionName">Package Name</h6>
-                                    <p class="mb-0" id="packageDescriptionText">Package description will appear here...</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
             

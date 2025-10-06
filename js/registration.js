@@ -137,10 +137,10 @@ document.addEventListener('DOMContentLoaded', function() {
             registrationForm.style.display = 'none';
             selectedPackage = null;
             
-            // Hide package description card
-            const packageDescriptionCard = document.getElementById('packageDescriptionCard');
-            if (packageDescriptionCard) {
-                packageDescriptionCard.style.display = 'none';
+            // Hide package description
+            const packageDescription = document.getElementById('packageDescription');
+            if (packageDescription) {
+                packageDescription.style.display = 'none';
             }
         });
     }
@@ -593,32 +593,27 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .then(response => response.json())
         .then(data => {
-            const packageDescriptionCard = document.getElementById('packageDescriptionCard');
-            const packageDescriptionTitle = document.getElementById('packageDescriptionTitle');
-            const packageDescriptionIcon = document.getElementById('packageDescriptionIcon');
-            const packageDescriptionName = document.getElementById('packageDescriptionName');
+            const packageDescription = document.getElementById('packageDescription');
             const packageDescriptionText = document.getElementById('packageDescriptionText');
             
-            if (packageDescriptionCard && data.success && data.description) {
-                // Update the description card
-                packageDescriptionTitle.textContent = 'Package Information';
-                packageDescriptionIcon.className = `${selectedPackage.icon} ${selectedPackage.color || 'text-primary'} fa-2x`;
-                packageDescriptionName.textContent = selectedPackage.name;
-                packageDescriptionText.textContent = data.description;
-                
-                // Show the card
-                packageDescriptionCard.style.display = 'block';
-            } else {
-                // Hide the card if no description available
-                packageDescriptionCard.style.display = 'none';
+            if (packageDescription && packageDescriptionText) {
+                if (data.success && data.description) {
+                    // Update the description text
+                    packageDescriptionText.textContent = data.description;
+                    // Show the description
+                    packageDescription.style.display = 'block';
+                } else {
+                    // Hide the description if no description available
+                    packageDescription.style.display = 'none';
+                }
             }
         })
         .catch(error => {
             console.error('Error fetching package description:', error);
-            // Hide the card on error
-            const packageDescriptionCard = document.getElementById('packageDescriptionCard');
-            if (packageDescriptionCard) {
-                packageDescriptionCard.style.display = 'none';
+            // Hide the description on error
+            const packageDescription = document.getElementById('packageDescription');
+            if (packageDescription) {
+                packageDescription.style.display = 'none';
             }
         });
     }
