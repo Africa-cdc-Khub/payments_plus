@@ -571,7 +571,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="selected-package-card">
                     ${iconDisplay}
                     <h4>${selectedPackage.name}</h4>
-                    <p>${selectedPackage.type.charAt(0).toUpperCase() + selectedPackage.type.slice(1)} Package</p>
                     ${priceDisplay}
                     <div class="package-description mt-3" id="packageDescription" style="display: none;">
                         <small class="text-muted" id="packageDescriptionText">Loading description...</small>

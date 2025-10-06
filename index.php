@@ -855,7 +855,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                                     <i class="<?php echo htmlspecialchars($selectedPackage['icon'] ?? 'fas fa-ticket-alt'); ?> <?php echo htmlspecialchars($selectedPackage['color'] ?? 'text-primary'); ?> fa-2x"></i>
                                 </div>
                                 <h4><?php echo htmlspecialchars($selectedPackage['name']); ?></h4>
-                                <p><?php echo ucfirst($selectedPackage['type']); ?> Package</p>
                                 <?php if ($selectedPackage['price'] > 0): ?>
                                     <div class="package-price"><?php echo formatCurrency($selectedPackage['price']); ?></div>
                                 <?php endif; ?>
