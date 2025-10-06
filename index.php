@@ -1102,10 +1102,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                                     // Load countries from database
                                     $countriesData = getAllCountries();
                                     if ($countriesData) {
-                                            foreach ($countriesData as $country) {
-                                                $selected = (isset($formData['country']) && $formData['country'] === $country['name']) ? 'selected' : '';
-                                                echo '<option value="' . htmlspecialchars($country['name']) . '" ' . $selected . '>' . htmlspecialchars($country['name']) . '</option>';
-                                            }
+                                        foreach ($countriesData as $country) {
+                                            $selected = (isset($formData['country']) && $formData['country'] === $country['name']) ? 'selected' : '';
+                                            echo '<option value="' . htmlspecialchars($country['name']) . '" ' . $selected . '>' . htmlspecialchars($country['name']) . '</option>';
                                         }
                                     }
                                     ?>
