@@ -10,7 +10,7 @@ define('SECRET_KEY',  CYBERSOURCE_SECRET_KEY);
 define('DF_ORG_ID', 'k8vif92e');
 
 // PAYMENT URL
-define('CYBS_BASE_URL', 'https://secureacceptance.cybersource.com');
+define('CYBS_BASE_URL', CYBERSOURCE_BASE_URL);
 
 define('PAYMENT_URL', CYBS_BASE_URL . '/pay');
 //define('PAYMENT_URL', '/sa-sop/debug.php');
