@@ -682,10 +682,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (data.success) {
                     countries = data.countries;
                     console.log('Countries loaded:', countries.length);
-                    // Only populate if no package is selected yet
-                    if (!selectedPackage) {
-                populateNationalitySelect();
-                    }
                     return data.countries;
                 } else {
                     throw new Error(data.error || 'Failed to load countries');
