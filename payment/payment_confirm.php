@@ -4,24 +4,50 @@
  * Handles both registration preview and payment confirmation
  */
 
-// Check if we have registration data (from checkout_payment.php flow)
+// Check if we have registration data (from checkout.php flow)
+$registrationId = null;
+$token = null;
+$registration = null;
+
+// Check for GET parameters (from direct links)
 if (isset($_GET['registration_id']) && isset($_GET['token'])) {
+    $registrationId = $_GET['registration_id'];
+    $token = $_GET['token'];
+}
+// Check for POST parameters (from checkout form)
+elseif (isset($_POST['registration_id']) && isset($_POST['token'])) {
+    $registrationId = $_POST['registration_id'];
+    $token = $_POST['token'];
+}
+
+if ($registrationId && $token) {
     require_once '../bootstrap.php';
     require_once '../functions.php';
     
-    $registrationId = $_GET['registration_id'];
-    $token = $_GET['token'];
-    
-    // Verify the payment token
-    $pdo = getConnection();
-    $stmt = $pdo->prepare("SELECT r.*, u.first_name, u.last_name, u.email as user_email, u.address_line1, u.city, u.state, u.country, u.postal_code,
-                          p.name as package_name, p.type
-                          FROM registrations r 
-                          JOIN users u ON r.user_id = u.id 
-                          JOIN packages p ON r.package_id = p.id 
-                          WHERE r.id = ? AND r.payment_token = ?");
-    $stmt->execute([$registrationId, $token]);
-    $registration = $stmt->fetch();
+    // For POST data, we don't need to verify payment_token since it's a fresh token
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        // Get registration data directly
+        $pdo = getConnection();
+        $stmt = $pdo->prepare("SELECT r.*, u.first_name, u.last_name, u.email as user_email, u.address_line1, u.city, u.state, u.country, u.postal_code,
+                              p.name as package_name, p.type
+                              FROM registrations r 
+                              JOIN users u ON r.user_id = u.id 
+                              JOIN packages p ON r.package_id = p.id 
+                              WHERE r.id = ?");
+        $stmt->execute([$registrationId]);
+        $registration = $stmt->fetch();
+    } else {
+        // For GET data, verify the payment token
+        $pdo = getConnection();
+        $stmt = $pdo->prepare("SELECT r.*, u.first_name, u.last_name, u.email as user_email, u.address_line1, u.city, u.state, u.country, u.postal_code,
+                              p.name as package_name, p.type
+                              FROM registrations r 
+                              JOIN users u ON r.user_id = u.id 
+                              JOIN packages p ON r.package_id = p.id 
+                              WHERE r.id = ? AND r.payment_token = ?");
+        $stmt->execute([$registrationId, $token]);
+        $registration = $stmt->fetch();
+    }
     
     if (!$registration) {
         die('Invalid payment link or registration not found.');

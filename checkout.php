@@ -146,8 +146,10 @@ $referenceNumber = generateReferenceNumber();
                 <!-- Payment Form -->
                 <div class="payment-section">
                     <h2>Payment Information</h2>
-                    <form id="paymentForm" method="POST" action="sa-sop/payment_confirm.php">
+                    <form id="paymentForm" method="POST" action="payment/payment_confirm.php">
                         <!-- Hidden fields for payment processing -->
+                        <input type="hidden" name="registration_id" value="<?php echo $registrationId ?>">
+                        <input type="hidden" name="token" value="<?php echo base64_encode($registrationId . '_' . time()) ?>">
                         <input type="hidden" name="profile_id" value="<?php echo PROFILE_ID ?>">
                         <input type="hidden" name="access_key" value="<?php echo ACCESS_KEY ?>">
                         <input type="hidden" name="transaction_uuid" value="<?php echo uniqid() ?>">
