@@ -679,7 +679,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     console.log('Countries loaded:', countries.length);
                     // Only populate if no package is selected yet
                     if (!selectedPackage) {
-                populateNationalitySelect();
+                        populateNationalitySelect();
                     }
                     return data.countries;
                 } else {
@@ -701,42 +701,76 @@ document.addEventListener('DOMContentLoaded', function() {
             });
     }
 
+    function loadNationalities(packageId = null, packageName = null) {
+        const url = new URL('api/get_countries.php', window.location.origin);
+        url.searchParams.set('nationalities_only', 'true');
+        if (packageId) url.searchParams.set('package_id', packageId);
+        if (packageName) url.searchParams.set('package_name', packageName);
+        
+        return fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    console.log('Nationalities loaded:', data.nationalities.length, 'for package:', packageName);
+                    return data.nationalities;
+                } else {
+                    throw new Error(data.error || 'Failed to load nationalities');
+                }
+            })
+            .catch(error => {
+                console.error('Error loading nationalities:', error);
+                // Fallback to basic options
+                return [
+                    { nationality: 'Ghanaian', country_name: 'Ghana', country_code: 'GH' },
+                    { nationality: 'Nigerian', country_name: 'Nigeria', country_code: 'NG' },
+                    { nationality: 'South African', country_name: 'South Africa', country_code: 'ZA' },
+                    { nationality: 'Kenyan', country_name: 'Kenya', country_code: 'KE' }
+                ];
+            });
+    }
+
     function populateNationalitySelect() {
         console.log('populateNationalitySelect called');
         console.log('selectedPackage:', selectedPackage);
-        console.log('countries.length:', countries.length);
         
         // Get the current selected value before clearing
         const currentValue = nationalitySelect.value;
         
-        // Filter countries based on selected package
-        const filteredCountries = selectedPackage ? 
-            filterCountriesByPackage(selectedPackage.id, selectedPackage.name) : 
-            countries;
+        // Load nationalities based on selected package
+        const packageId = selectedPackage ? selectedPackage.id : null;
+        const packageName = selectedPackage ? selectedPackage.name : null;
         
-        console.log('filteredCountries.length:', filteredCountries.length);
-        
-        nationalitySelect.innerHTML = '<option value="">Select Nationality</option>';
-        
-        // Remove duplicates based on nationality
-        const uniqueCountries = filteredCountries.filter((country, index, self) => 
-            index === self.findIndex(c => c.nationality === country.nationality)
-        );
-        
-        uniqueCountries.forEach(country => {
-            const option = document.createElement('option');
-            option.value = country.nationality;
-            option.textContent = `${country.name} (${country.nationality})`;
-            if (country.nationality === currentValue) {
-                option.selected = true;
-            }
-            nationalitySelect.appendChild(option);
+        loadNationalities(packageId, packageName).then(nationalities => {
+            console.log('Nationalities loaded for nationality select:', nationalities.length);
+            
+            nationalitySelect.innerHTML = '<option value="">Select Nationality</option>';
+            
+            nationalities.forEach(nationality => {
+                const option = document.createElement('option');
+                option.value = nationality.nationality;
+                option.textContent = `${nationality.country_name} (${nationality.nationality})`;
+                if (nationality.nationality === currentValue) {
+                    option.selected = true;
+                }
+                nationalitySelect.appendChild(option);
+            });
+            
+            console.log('Nationality select populated with', nationalities.length, 'nationalities');
+            
+            // Initialize Select2 after populating options
+            initializeSelect2();
+        }).catch(error => {
+            console.error('Error loading nationalities for select:', error);
+            // Fallback to basic options
+            nationalitySelect.innerHTML = `
+                <option value="">Select Nationality</option>
+                <option value="Ghanaian">Ghana (Ghanaian)</option>
+                <option value="Nigerian">Nigeria (Nigerian)</option>
+                <option value="South African">South Africa (South African)</option>
+                <option value="Kenyan">Kenya (Kenyan)</option>
+            `;
+            initializeSelect2();
         });
-        
-        console.log('Nationality select populated with', uniqueCountries.length, 'unique options (filtered from', filteredCountries.length, 'total)');
-        
-        // Initialize Select2 after populating options
-        initializeSelect2();
     }
 
     // Initialize Select2 for nationality and country dropdowns
@@ -1356,14 +1390,6 @@ document.addEventListener('DOMContentLoaded', function() {
                         <label class="form-label">Nationality *</label>
                         <select name="participants[${participantCount - 1}][nationality]" class="form-select participant-nationality" required>
                             <option value="">Select Nationality</option>
-                            ${(() => {
-                                const countriesToUse = selectedPackage ? filterCountriesByPackage(selectedPackage.id, selectedPackage.name) : countries;
-                                // Remove duplicates based on nationality
-                                const uniqueCountries = countriesToUse.filter((country, index, self) => 
-                                    index === self.findIndex(c => c.nationality === country.nationality)
-                                );
-                                return uniqueCountries.map(country => `<option value="${country.nationality}">${country.name} (${country.nationality})</option>`).join('');
-                            })()}
                         </select>
                     </div>
                 </div>
@@ -1476,6 +1502,40 @@ document.addEventListener('DOMContentLoaded', function() {
                     updateCostEstimation(numPeople);
                 }
             }
+        });
+        
+        // Populate nationality dropdown for this participant
+        const packageId = selectedPackage ? selectedPackage.id : null;
+        const packageName = selectedPackage ? selectedPackage.name : null;
+        loadNationalities(packageId, packageName).then(nationalities => {
+            const nationalitySelect = participantDiv.querySelector('.participant-nationality');
+            nationalitySelect.innerHTML = '<option value="">Select Nationality</option>';
+            
+            nationalities.forEach(nationality => {
+                const option = document.createElement('option');
+                option.value = nationality.nationality;
+                option.textContent = `${nationality.country_name} (${nationality.nationality})`;
+                nationalitySelect.appendChild(option);
+            });
+            
+            // Reinitialize Select2 after populating options
+            $(nationalitySelect).select2('destroy').select2({
+                theme: 'bootstrap-5',
+                placeholder: 'Select Nationality',
+                allowClear: true,
+                width: '100%'
+            }).on('change', function() {
+                const registrationType = document.querySelector('input[name="registration_type"]:checked');
+                if (registrationType && registrationType.value === 'group') {
+                    checkGroupPricing();
+                    const numPeople = parseInt(numPeopleInput.value) || 0;
+                    if (numPeople > 0) {
+                        updateCostEstimation(numPeople);
+                    }
+                }
+            });
+        }).catch(error => {
+            console.error('Error loading nationalities for participant:', error);
         });
         
         // Show/hide fields for group participants based on selected package

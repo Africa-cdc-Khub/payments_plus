@@ -25,6 +25,7 @@ try {
     $continent = $_GET['continent'] ?? null;
     $packageId = $_GET['package_id'] ?? null;
     $packageName = $_GET['package_name'] ?? null;
+    $nationalitiesOnly = $_GET['nationalities_only'] ?? false;
     
     // Get countries based on filters
     if ($continent) {
@@ -54,9 +55,30 @@ try {
     // Re-index array after filtering
     $countries = array_values($countries);
     
-    $response['success'] = true;
-    $response['countries'] = $countries;
-    $response['count'] = count($countries);
+    // If nationalities only requested, return unique nationalities
+    if ($nationalitiesOnly) {
+        $nationalities = [];
+        $seenNationalities = [];
+        
+        foreach ($countries as $country) {
+            if (!empty($country['nationality']) && !in_array($country['nationality'], $seenNationalities)) {
+                $nationalities[] = [
+                    'nationality' => $country['nationality'],
+                    'country_name' => $country['name'],
+                    'country_code' => $country['code']
+                ];
+                $seenNationalities[] = $country['nationality'];
+            }
+        }
+        
+        $response['success'] = true;
+        $response['nationalities'] = $nationalities;
+        $response['count'] = count($nationalities);
+    } else {
+        $response['success'] = true;
+        $response['countries'] = $countries;
+        $response['count'] = count($countries);
+    }
     
 } catch (Exception $e) {
     $response['error'] = 'Failed to retrieve countries: ' . $e->getMessage();
