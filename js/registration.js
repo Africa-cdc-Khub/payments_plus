@@ -621,16 +621,20 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function loadCountries() {
-        return fetch('data/countries.json')
+        return fetch('api/get_countries.php')
             .then(response => response.json())
             .then(data => {
-                countries = data;
-                console.log('Countries loaded:', countries.length);
-                // Only populate if no package is selected yet
-                if (!selectedPackage) {
-                populateNationalitySelect();
+                if (data.success) {
+                    countries = data.countries;
+                    console.log('Countries loaded:', countries.length);
+                    // Only populate if no package is selected yet
+                    if (!selectedPackage) {
+                        populateNationalitySelect();
+                    }
+                    return data.countries;
+                } else {
+                    throw new Error(data.error || 'Failed to load countries');
                 }
-                return data;
             })
             .catch(error => {
                 console.error('Error loading countries:', error);
@@ -810,7 +814,29 @@ document.addEventListener('DOMContentLoaded', function() {
         return africanNationalities.includes(nationality);
     }
 
-    // Function to filter countries based on package type
+    // Function to load countries filtered by package type
+    function loadCountriesByPackage(packageId, packageName) {
+        const url = new URL('api/get_countries.php', window.location.origin);
+        if (packageId) url.searchParams.set('package_id', packageId);
+        if (packageName) url.searchParams.set('package_name', packageName);
+        
+        return fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    console.log('Filtered countries loaded:', data.countries.length, 'for package:', packageName);
+                    return data.countries;
+                } else {
+                    throw new Error(data.error || 'Failed to load filtered countries');
+                }
+            })
+            .catch(error => {
+                console.error('Error loading filtered countries:', error);
+                return countries; // Fallback to all countries
+            });
+    }
+
+    // Legacy function for backward compatibility
     function filterCountriesByPackage(packageId, packageName) {
         if (!countries || countries.length === 0) return countries;
         

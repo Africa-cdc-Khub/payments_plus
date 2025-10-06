@@ -1099,11 +1099,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                                 <select class="form-control" name="country" id="country" required>
                                     <option value="">Select Country</option>
                                     <?php
-                                    // Load countries from JSON file
-                                    $countriesFile = 'data/countries.json';
-                                    if (file_exists($countriesFile)) {
-                                        $countriesData = json_decode(file_get_contents($countriesFile), true);
-                                        if ($countriesData) {
+                                    // Load countries from database
+                                    $countriesData = getAllCountries();
+                                    if ($countriesData) {
                                             foreach ($countriesData as $country) {
                                                 $selected = (isset($formData['country']) && $formData['country'] === $country['name']) ? 'selected' : '';
                                                 echo '<option value="' . htmlspecialchars($country['name']) . '" ' . $selected . '>' . htmlspecialchars($country['name']) . '</option>';

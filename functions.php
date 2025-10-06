@@ -781,24 +781,61 @@ function getAfricanStatus($nationality) {
     return isAfricanNational($nationality) ? 'African' : 'Non-African';
 }
 
-// Function to get country code from country name
-function getCountryCode($countryName) {
+// Function to get all countries from database
+function getAllCountries() {
     static $countries = null;
     
     if ($countries === null) {
-        $countriesFile = __DIR__ . '/data/countries.json';
-        if (file_exists($countriesFile)) {
-            $countriesData = json_decode(file_get_contents($countriesFile), true);
-            if ($countriesData) {
-                $countries = [];
-                foreach ($countriesData as $country) {
-                    $countries[$country['name']] = $country['code'];
-                }
-            }
+        $pdo = getConnection();
+        $stmt = $pdo->query("SELECT code, name, nationality, continent, iso2_code, iso3_code FROM countries ORDER BY name");
+        $countries = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+    
+    return $countries;
+}
+
+// Function to get countries by continent
+function getCountriesByContinent($continent) {
+    $pdo = getConnection();
+    $stmt = $pdo->prepare("SELECT code, name, nationality, continent, iso2_code, iso3_code FROM countries WHERE continent = ? ORDER BY name");
+    $stmt->execute([$continent]);
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+// Function to get African countries
+function getAfricanCountries() {
+    return getCountriesByContinent('Africa');
+}
+
+// Function to get country code from country name
+function getCountryCode($countryName) {
+    static $countryCodes = null;
+    
+    if ($countryCodes === null) {
+        $countries = getAllCountries();
+        $countryCodes = [];
+        foreach ($countries as $country) {
+            $countryCodes[$country['name']] = $country['code'];
         }
     }
     
-    return $countries[$countryName] ?? $countryName; // Return country name as fallback
+    return $countryCodes[$countryName] ?? $countryName; // Return country name as fallback
+}
+
+// Function to get country by name
+function getCountryByName($countryName) {
+    $pdo = getConnection();
+    $stmt = $pdo->prepare("SELECT * FROM countries WHERE name = ?");
+    $stmt->execute([$countryName]);
+    return $stmt->fetch(PDO::FETCH_ASSOC);
+}
+
+// Function to get country by code
+function getCountryByCode($countryCode) {
+    $pdo = getConnection();
+    $stmt = $pdo->prepare("SELECT * FROM countries WHERE code = ?");
+    $stmt->execute([$countryCode]);
+    return $stmt->fetch(PDO::FETCH_ASSOC);
 }
 
 // Function to send side event confirmation email
