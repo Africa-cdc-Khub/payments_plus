@@ -136,6 +136,12 @@ document.addEventListener('DOMContentLoaded', function() {
             packageSelection.style.display = 'block';
             registrationForm.style.display = 'none';
             selectedPackage = null;
+            
+            // Hide package description card
+            const packageDescriptionCard = document.getElementById('packageDescriptionCard');
+            if (packageDescriptionCard) {
+                packageDescriptionCard.style.display = 'none';
+            }
         });
     }
 
@@ -171,6 +177,9 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Update selected package info
             updateSelectedPackageInfo();
+            
+            // Show package description
+            showPackageDescription();
             
             // Show registration form
             console.log('Hiding package selection, showing registration form');
@@ -567,6 +576,51 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
             `;
         }
+    }
+
+    function showPackageDescription() {
+        if (!selectedPackage) return;
+        
+        // Get package description from the database via AJAX
+        fetch('get_package_description.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                package_id: selectedPackage.id
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            const packageDescriptionCard = document.getElementById('packageDescriptionCard');
+            const packageDescriptionTitle = document.getElementById('packageDescriptionTitle');
+            const packageDescriptionIcon = document.getElementById('packageDescriptionIcon');
+            const packageDescriptionName = document.getElementById('packageDescriptionName');
+            const packageDescriptionText = document.getElementById('packageDescriptionText');
+            
+            if (packageDescriptionCard && data.success && data.description) {
+                // Update the description card
+                packageDescriptionTitle.textContent = 'Package Information';
+                packageDescriptionIcon.className = `${selectedPackage.icon} ${selectedPackage.color || 'text-primary'} fa-2x`;
+                packageDescriptionName.textContent = selectedPackage.name;
+                packageDescriptionText.textContent = data.description;
+                
+                // Show the card
+                packageDescriptionCard.style.display = 'block';
+            } else {
+                // Hide the card if no description available
+                packageDescriptionCard.style.display = 'none';
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching package description:', error);
+            // Hide the card on error
+            const packageDescriptionCard = document.getElementById('packageDescriptionCard');
+            if (packageDescriptionCard) {
+                packageDescriptionCard.style.display = 'none';
+            }
+        });
     }
 
     function loadCountries() {
