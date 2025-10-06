@@ -394,7 +394,7 @@ if (strtolower($decision) === 'accept' && $registrationId) {
                             echo '<i class="fas fa-list me-2"></i>All Registrations';
                             echo '</a>';
                         } else {
-                            echo '<a href="../checkout_payment.php?registration_id=' . urlencode($registrationId) . '" class="btn-action">';
+                            echo '<a href="../checkout.php?registration_id=' . urlencode($registrationId) . '" class="btn-action">';
                             echo '<i class="fas fa-redo me-2"></i>Try Payment Again';
                             echo '</a>';
                             echo '<a href="../registration_lookup.php" class="btn-action btn-secondary">';
