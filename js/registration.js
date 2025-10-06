@@ -744,15 +744,16 @@ document.addEventListener('DOMContentLoaded', function() {
             // Package selected - filter based on package
             const packageName = selectedPackage.name.toLowerCase();
             console.log('Filtering nationalities for package:', packageName);
+            console.log('Selected package name:', selectedPackage.name);
             
             allOptions.forEach(option => {
                 const nationality = option.value;
                 let shouldShow = true;
                 
-                if (packageName === 'african nationals') {
+                if (packageName.includes('african nationals') && !packageName.includes('non')) {
                     // Show only African nationalities
                     shouldShow = isAfricanNational(nationality);
-                } else if (packageName === 'non african nationals') {
+                } else if (packageName.includes('non') && packageName.includes('african nationals')) {
                     // Show only non-African nationalities
                     shouldShow = !isAfricanNational(nationality);
                 }
@@ -937,11 +938,11 @@ document.addEventListener('DOMContentLoaded', function() {
         const normalizedPackageName = packageName ? packageName.toLowerCase().trim() : '';
         console.log('Normalized package name:', normalizedPackageName);
         
-        if (normalizedPackageName === 'african nationals') {
+        if (normalizedPackageName.includes('african nationals') && !normalizedPackageName.includes('non')) {
             // African Nationals package - show only African countries
             filteredCountries = countries.filter(country => isAfricanNational(country.nationality));
             console.log('African Nationals package - showing', filteredCountries.length, 'African countries');
-        } else if (normalizedPackageName === 'non african nationals') {
+        } else if (normalizedPackageName.includes('non') && normalizedPackageName.includes('african nationals')) {
             // Non-African Nationals package - show only non-African countries
             filteredCountries = countries.filter(country => !isAfricanNational(country.nationality));
             console.log('Non-African Nationals package - showing', filteredCountries.length, 'non-African countries');
@@ -1562,10 +1563,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 const nationality = option.value;
                 let shouldShow = true;
                 
-                if (packageName === 'african nationals') {
+                if (packageName.includes('african nationals') && !packageName.includes('non')) {
                     // Show only African nationalities
                     shouldShow = isAfricanNational(nationality);
-                } else if (packageName === 'non african nationals') {
+                } else if (packageName.includes('non') && packageName.includes('african nationals')) {
                     // Show only non-African nationalities
                     shouldShow = !isAfricanNational(nationality);
                 }
