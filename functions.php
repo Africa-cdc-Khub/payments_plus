@@ -781,6 +781,26 @@ function getAfricanStatus($nationality) {
     return isAfricanNational($nationality) ? 'African' : 'Non-African';
 }
 
+// Function to get country code from country name
+function getCountryCode($countryName) {
+    static $countries = null;
+    
+    if ($countries === null) {
+        $countriesFile = __DIR__ . '/data/countries.json';
+        if (file_exists($countriesFile)) {
+            $countriesData = json_decode(file_get_contents($countriesFile), true);
+            if ($countriesData) {
+                $countries = [];
+                foreach ($countriesData as $country) {
+                    $countries[$country['name']] = $country['code'];
+                }
+            }
+        }
+    }
+    
+    return $countries[$countryName] ?? $countryName; // Return country name as fallback
+}
+
 // Function to send side event confirmation email
 function sendSideEventConfirmationEmail($user, $registrationId, $package, $amount) {
     $emailQueue = new \Cphia2025\EmailQueue();

@@ -105,7 +105,7 @@ if ($showRegistrationPreview) {
         'bill_to_address_line2' => '',
         'bill_to_address_city' => $registration['city'] ?? '',
         'bill_to_address_state' => $registration['state'] ?? '',
-        'bill_to_address_country' => substr(strtoupper($registration['country'] ?? ''), 0, 2),
+        'bill_to_address_country' => getCountryCode($registration['country']),
         'bill_to_address_postal_code' => $registration['postal_code'] ?? '1234',
         
         // Device fingerprinting and security
