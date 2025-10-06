@@ -300,6 +300,8 @@ if (strtolower($decision) === 'accept' && $registrationId) {
             <div class="response-content">
                 <?php
                 $response = $_REQUEST;
+
+                print_r($response);
                 $amount = @$response['auth_amount'];
                 $currency = @$response['req_currency'];
                 $referenceNumber = @$response['req_reference_number'];
