@@ -67,13 +67,9 @@ $referenceNumber = generateReferenceNumber();
         <header class="header">
             <div class="header-content">
                 <div class="logo">
-                    <img src="images/logo.png" alt="CPHIA 2025" class="logo-img">
+                    <img src="images/logo.png" alt="CPHIA 2025" class="logo-img" style="filter: brightness(0) invert(1);">
                 </div>
                        <div class="header-text">
-                           <div class="au-branding">
-                               <img src="images/au-logo.svg" alt="African Union" class="au-logo">
-                               <span class="au-text">African Union</span>
-                           </div>
                            <h1><?php echo CONFERENCE_NAME; ?></h1>
                            <h2><?php echo CONFERENCE_SHORT_NAME; ?></h2>
                            <p class="conference-dates"><?php echo CONFERENCE_DATES; ?> • <?php echo CONFERENCE_LOCATION; ?></p>
