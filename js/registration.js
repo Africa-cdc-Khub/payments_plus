@@ -732,7 +732,6 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('No package selected, showing all nationalities');
             allOptions.forEach(option => {
                 option.style.display = '';
-                option.disabled = false;
             });
         } else {
             // Package selected - filter based on package
@@ -754,10 +753,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 if (shouldShow) {
                     option.style.display = '';
-                    option.disabled = false;
                 } else {
                     option.style.display = 'none';
-                    option.disabled = true;
                 }
             });
         }
@@ -1543,7 +1540,6 @@ document.addEventListener('DOMContentLoaded', function() {
             // No package selected - show all nationalities
             allOptions.forEach(option => {
                 option.style.display = '';
-                option.disabled = false;
             });
         } else {
             // Package selected - filter based on package
@@ -1564,10 +1560,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 if (shouldShow) {
                     option.style.display = '';
-                    option.disabled = false;
                 } else {
                     option.style.display = 'none';
-                    option.disabled = true;
                 }
             });
         }
