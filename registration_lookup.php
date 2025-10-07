@@ -186,7 +186,7 @@ if (isset($_GET['view']) && is_numeric($_GET['view'])) {
                                                 <?php endif; ?>
                                             </div>
                                         </div>
-                                        <div class="d-flex gap-2">
+                                        <div class="d-flex gap-2 flex-wrap">
                                             <a href="?view=<?php echo $registration['id']; ?>" class="btn btn-outline-primary btn-sm">
                                                 <i class="fas fa-eye me-1"></i>View Details
                                             </a>
@@ -198,10 +198,20 @@ if (isset($_GET['view']) && is_numeric($_GET['view'])) {
                                             
                                             if (($registration['payment_status'] ?? '') !== 'completed' && $registration['total_amount'] > 0): ?>
                                                 <a href="?action=pay&id=<?php echo $registration['id']; ?>" class="btn btn-success btn-sm">
-                                                    <i class="fas fa-credit-card me-1"></i>Complete Payment
+                                                    <i class="fas fa-credit-card me-1"></i>Pay Now
+                                                </a>
+                                                <button onclick="requestInvoice(<?php echo $registration['id']; ?>)" class="btn btn-outline-primary btn-sm">
+                                                    <i class="fas fa-file-invoice me-1"></i>Request Invoice
+                                                </button>
+                                                <a href="invoice.php?id=<?php echo $registration['id']; ?>&email=<?php echo urlencode($registration['email']); ?>" class="btn btn-outline-info btn-sm" target="_blank">
+                                                    <i class="fas fa-eye me-1"></i>View Invoice
                                                 </a>
                                             <?php elseif ($registration['total_amount'] == 0): ?>
                                                 <span class="badge bg-success">No Payment Required</span>
+                                            <?php else: ?>
+                                                <a href="invoice.php?id=<?php echo $registration['id']; ?>&email=<?php echo urlencode($registration['email']); ?>" class="btn btn-outline-info btn-sm" target="_blank">
+                                                    <i class="fas fa-file-invoice me-1"></i>View Invoice
+                                                </a>
                                             <?php endif; ?>
                                         </div>
                                     </div>
@@ -320,6 +330,64 @@ if (isset($_GET['view']) && is_numeric($_GET['view'])) {
                         </div>
                         <?php endif; ?>
 
+                        <!-- Payment Section -->
+                        <div class="mt-4">
+                            <h6 class="fw-bold">Payment Information</h6>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <table class="table table-sm">
+                                        <tr>
+                                            <td><strong>Payment Status:</strong></td>
+                                            <td>
+                                                <?php 
+                                                $paymentStatus = $registrationDetails['payment_status'] ?? '';
+                                                if ($paymentStatus === 'completed'): ?>
+                                                    <span class="badge bg-success">Paid</span>
+                                                <?php else: ?>
+                                                    <span class="badge bg-warning">Pending Payment</span>
+                                                <?php endif; ?>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Amount Due:</strong></td>
+                                            <td><?php echo formatCurrency($registrationDetails['total_amount'], $registrationDetails['currency']); ?></td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                            
+                            <?php if (($registrationDetails['payment_status'] ?? '') !== 'completed' && $registrationDetails['total_amount'] > 0): ?>
+                            <div class="mt-3">
+                                <h6 class="fw-bold">Payment Options</h6>
+                                <div class="d-flex gap-2 flex-wrap">
+                                    <a href="?action=pay&id=<?php echo $registrationDetails['id']; ?>" class="btn btn-success">
+                                        <i class="fas fa-credit-card me-2"></i>Pay Now
+                                    </a>
+                                    <button onclick="requestInvoice(<?php echo $registrationDetails['id']; ?>)" class="btn btn-outline-primary">
+                                        <i class="fas fa-file-invoice me-2"></i>Request Invoice
+                                    </button>
+                                    <a href="invoice.php?id=<?php echo $registrationDetails['id']; ?>&email=<?php echo urlencode($registrationDetails['email']); ?>" class="btn btn-outline-info" target="_blank">
+                                        <i class="fas fa-eye me-2"></i>View Invoice
+                                    </a>
+                                </div>
+                                <div class="mt-2">
+                                    <small class="text-muted">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        You can pay immediately or request an invoice to be sent to your email for later payment.
+                                    </small>
+                                </div>
+                            </div>
+                            <?php elseif ($registrationDetails['total_amount'] == 0): ?>
+                            <div class="mt-3">
+                                <span class="badge bg-success fs-6">No Payment Required</span>
+                            </div>
+                            <?php else: ?>
+                            <div class="mt-3">
+                                <span class="badge bg-success fs-6">Payment Completed</span>
+                            </div>
+                            <?php endif; ?>
+                        </div>
+
                         <div class="mt-4">
                             <a href="registration_lookup.php" class="btn btn-outline-secondary">
                                 <i class="fas fa-arrow-left me-2"></i>Back to Search
@@ -348,6 +416,74 @@ if (isset($_GET['view']) && is_numeric($_GET['view'])) {
                 });
             }
         });
+
+        // Function to request invoice
+        function requestInvoice(registrationId) {
+            const button = event.target;
+            const originalText = button.innerHTML;
+            
+            // Show loading state
+            button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Sending...';
+            button.disabled = true;
+            
+            // Send AJAX request
+            fetch('send_payment_link.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    registration_id: registrationId
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Show success message
+                    button.innerHTML = '<i class="fas fa-check me-2"></i>Invoice Sent!';
+                    button.classList.remove('btn-outline-primary');
+                    button.classList.add('btn-success');
+                    
+                    // Show success alert
+                    showAlert('Invoice sent successfully! Check your email.', 'success');
+                } else {
+                    // Show error message
+                    button.innerHTML = originalText;
+                    button.disabled = false;
+                    showAlert('Failed to send invoice. Please try again.', 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                button.innerHTML = originalText;
+                button.disabled = false;
+                showAlert('An error occurred. Please try again.', 'danger');
+            });
+        }
+        
+        // Function to show alerts
+        function showAlert(message, type) {
+            // Create alert element
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            
+            // Insert at the top of the main content
+            const mainContent = document.querySelector('.container-fluid');
+            if (mainContent) {
+                mainContent.insertBefore(alertDiv, mainContent.firstChild);
+                
+                // Auto-dismiss after 5 seconds
+                setTimeout(() => {
+                    if (alertDiv.parentNode) {
+                        alertDiv.remove();
+                    }
+                }, 5000);
+            }
+        }
     </script>
     
     <!-- Footer -->
