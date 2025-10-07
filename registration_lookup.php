@@ -160,64 +160,75 @@ if (isset($_GET['view']) && is_numeric($_GET['view'])) {
                         <h5 class="mb-0"><i class="fas fa-list me-2"></i>Your Registrations</h5>
                     </div>
                     <div class="card-body">
-                        <div class="row">
-                            <?php foreach ($registrations as $registration): ?>
-                            <div class="col-md-6 mb-3">
-                                <div class="card h-100">
-                                    <div class="card-body">
-                                        <div class="d-flex justify-content-between align-items-start mb-2">
-                                            <h6 class="card-title mb-0"><?php echo htmlspecialchars($registration['package_name']); ?></h6>
-                                            <span class="badge bg-<?php echo $registration['status'] == 'paid' ? 'success' : ($registration['status'] == 'pending' ? 'warning' : 'secondary'); ?>">
-                                                <?php echo ucfirst($registration['status']); ?>
-                                            </span>
-                                        </div>
-                                        <div class="text-muted small mb-3">
-                                            <div><strong>Registration ID:</strong> #<?php echo $registration['id']; ?></div>
-                                            <div><strong>Type:</strong> <?php echo ucfirst($registration['registration_type']); ?></div>
-                                            <div><strong>Date:</strong> <?php echo date('M j, Y \a\t g:i A', strtotime($registration['created_at'])); ?></div>
-                                            <div><strong>Amount:</strong> <?php echo formatCurrency($registration['total_amount'], $registration['currency']); ?></div>
-                                            <div><strong>Payment Status:</strong> 
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Package</th>
+                                        <th>Type</th>
+                                        <th>Amount</th>
+                                        <th>Status</th>
+                                        <th>Date</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($registrations as $registration): ?>
+                                    <tr>
+                                        <td class="fw-bold">#<?php echo $registration['id']; ?></td>
+                                        <td><?php echo htmlspecialchars($registration['package_name']); ?></td>
+                                        <td><?php echo ucfirst($registration['registration_type']); ?></td>
+                                        <td class="fw-bold"><?php echo formatCurrency($registration['total_amount'], $registration['currency']); ?></td>
+                                        <td>
+                                            <?php 
+                                            $paymentStatus = $registration['payment_status'] ?? '';
+                                            if ($paymentStatus === 'completed'): ?>
+                                                <span class="badge bg-success">Paid</span>
+                                            <?php else: ?>
+                                                <span class="badge bg-warning">Pending Payment</span>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td><?php echo date('M j, Y', strtotime($registration['created_at'])); ?></td>
+                                        <td>
+                                            <div class="d-flex gap-1 flex-wrap">
+                                                <a href="?view=<?php echo $registration['id']; ?>" class="btn btn-outline-primary btn-sm">
+                                                    <i class="fas fa-eye me-1"></i>View
+                                                </a>
                                                 <?php 
-                                                $paymentStatus = $registration['payment_status'] ?? '';
-                                                if ($paymentStatus === 'completed'): ?>
-                                                    <span class="badge bg-success">Paid</span>
+                                                if (($registration['payment_status'] ?? '') !== 'completed' && $registration['total_amount'] > 0): ?>
+                                                    <a href="?action=pay&id=<?php echo $registration['id']; ?>" class="btn btn-success btn-sm">
+                                                        <i class="fas fa-credit-card me-1"></i>Pay
+                                                    </a>
+                                                    <button onclick="requestInvoice(<?php echo $registration['id']; ?>)" class="btn btn-outline-primary btn-sm">
+                                                        <i class="fas fa-file-invoice me-1"></i>Invoice
+                                                    </button>
+                                                    <a href="invoice.php?id=<?php echo $registration['id']; ?>&email=<?php echo urlencode($registration['email']); ?>" class="btn btn-outline-info btn-sm" target="_blank">
+                                                        <i class="fas fa-eye me-1"></i>View Invoice
+                                                    </a>
+                                                <?php elseif ($registration['total_amount'] == 0): ?>
+                                                    <span class="badge bg-success">No Payment Required</span>
                                                 <?php else: ?>
-                                                    <span class="badge bg-warning">Pending Payment</span>
+                                                    <a href="invoice.php?id=<?php echo $registration['id']; ?>&email=<?php echo urlencode($registration['email']); ?>" class="btn btn-outline-info btn-sm" target="_blank">
+                                                        <i class="fas fa-file-invoice me-1"></i>View Invoice
+                                                    </a>
                                                 <?php endif; ?>
                                             </div>
-                                        </div>
-                                        <div class="d-flex gap-2 flex-wrap">
-                                            <a href="?view=<?php echo $registration['id']; ?>" class="btn btn-outline-primary btn-sm">
-                                                <i class="fas fa-eye me-1"></i>View Details
-                                            </a>
-                                            <?php 
-                                            // Debug: Log payment status for troubleshooting
-                                            if ($registration['id'] == 20) {
-                                                error_log("Registration #20 payment_status: " . ($registration['payment_status'] ?? 'NULL') . " (type: " . gettype($registration['payment_status']) . ")");
-                                            }
-                                            
-                                            if (($registration['payment_status'] ?? '') !== 'completed' && $registration['total_amount'] > 0): ?>
-                                                <a href="?action=pay&id=<?php echo $registration['id']; ?>" class="btn btn-success btn-sm">
-                                                    <i class="fas fa-credit-card me-1"></i>Pay Now
-                                                </a>
-                                                <button onclick="requestInvoice(<?php echo $registration['id']; ?>)" class="btn btn-outline-primary btn-sm">
-                                                    <i class="fas fa-file-invoice me-1"></i>Request Invoice
-                                                </button>
-                                                <a href="invoice.php?id=<?php echo $registration['id']; ?>&email=<?php echo urlencode($registration['email']); ?>" class="btn btn-outline-info btn-sm" target="_blank">
-                                                    <i class="fas fa-eye me-1"></i>View Invoice
-                                                </a>
-                                            <?php elseif ($registration['total_amount'] == 0): ?>
-                                                <span class="badge bg-success">No Payment Required</span>
-                                            <?php else: ?>
-                                                <a href="invoice.php?id=<?php echo $registration['id']; ?>&email=<?php echo urlencode($registration['email']); ?>" class="btn btn-outline-info btn-sm" target="_blank">
-                                                    <i class="fas fa-file-invoice me-1"></i>View Invoice
-                                                </a>
-                                            <?php endif; ?>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <?php endforeach; ?>
+                                        </td>
+                                    </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- Bank Transfer Notice -->
+                        <div class="alert alert-info mt-3">
+                            <h6 class="alert-heading"><i class="fas fa-university me-2"></i>Bank Transfer Payment Option</h6>
+                            <p class="mb-2">If you prefer to pay by bank transfer instead of online payment, please contact our support team:</p>
+                            <p class="mb-0">
+                                <strong>Email:</strong> <a href="mailto:<?php echo SUPPORT_EMAIL; ?>" class="text-decoration-none"><?php echo SUPPORT_EMAIL; ?></a><br>
+                                <strong>Include:</strong> Your Registration ID and preferred payment method in your email.
+                            </p>
                         </div>
                     </div>
                 </div>
