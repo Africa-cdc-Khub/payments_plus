@@ -75,10 +75,13 @@ document.addEventListener('DOMContentLoaded', function() {
         // Initialize email validation
         initializeEmailValidation();
         
+        // Initialize field requirements based on current state
+        initializeFieldRequirements();
+        
         // Restore package selection if form data exists
         restorePackageSelection();
     }).catch(error => {
-        console.error('Error loading countries/nationalities:', error);
+        console.error('Error loading countries nationalities:', error);
     });
 
     // Check if elements exist
@@ -619,8 +622,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         const nationalityValue = $nat.val() || '';
                         $nat.empty().append('<option value="">Select Nationality</option>');
                         (data.nationalities || []).forEach(n => {
-                            const sel = nationalityValue && nationalityValue === n.country_code ? ' selected' : '';
-                            $nat.append(`<option value="${n.country_code}" data-continent="${n.continent}"${sel}>${n.country_name} (${n.nationality})</option>`);
+                            const sel = nationalityValue && nationalityValue === n.nationality ? ' selected' : '';
+                            $nat.append(`<option value="${n.nationality}" data-continent="${n.continent}"${sel}>${n.country_name} (${n.nationality})</option>`);
                         });
                         // Repopulate country select
                         const countryValue = $country.val() || '';
@@ -661,8 +664,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 const nationalityValue = $('#nationality').val() || '';
                 $('#nationality').empty().append('<option value="">Select Nationality</option>');
                 (data.nationalities || []).forEach(n => {
-                    const isSelected = nationalityValue && nationalityValue === n.country_code ? ' selected' : '';
-                    $('#nationality').append(`<option value="${n.country_code}" data-continent="${n.continent}"${isSelected}>${n.country_name} (${n.nationality})</option>`);
+                    const isSelected = nationalityValue && nationalityValue === n.nationality ? ' selected' : '';
+                    $('#nationality').append(`<option value="${n.nationality}" data-continent="${n.continent}"${isSelected}>${n.country_name} (${n.nationality})</option>`);
                 });
                 // Repopulate country
                 const countryValue = $('#country').val() || '';
@@ -1027,6 +1030,78 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
     }
+    
+    // Initialize field requirements based on current state
+    function initializeFieldRequirements() {
+        // Set delegate_category as not required by default
+        const delegateCategoryField = document.getElementById('delegate_category');
+        if (delegateCategoryField) {
+            delegateCategoryField.required = false;
+        }
+        
+        // Set airport_of_origin as not required by default
+        const airportField = document.getElementById('airport_of_origin');
+        if (airportField) {
+            airportField.required = false;
+        }
+        
+        // Set student_id_file as not required by default
+        const studentIdFile = document.getElementById('student_id_file');
+        if (studentIdFile) {
+            studentIdFile.required = false;
+        }
+        
+        // Hide delegate fields by default
+        const delegateFields = document.getElementById('delegateFields');
+        if (delegateFields) {
+            delegateFields.style.display = 'none';
+        }
+        
+        // Hide airport fields by default
+        const airportFields = document.getElementById('airportFields');
+        if (airportFields) {
+            airportFields.style.display = 'none';
+        }
+        
+        // Hide student fields by default
+        const studentFields = document.getElementById('studentFields');
+        if (studentFields) {
+            studentFields.style.display = 'none';
+        }
+    }
+    
+    // Update participant field requirements based on selected package
+    function updateParticipantFieldRequirements(participantDiv) {
+        if (!selectedPackage) return;
+        
+        const packageName = selectedPackage.name ? selectedPackage.name.toLowerCase() : '';
+        
+        // Get participant fields
+        const studentIdFile = participantDiv.querySelector('input[name*="[student_id_file]"]');
+        const delegateCategoryField = participantDiv.querySelector('select[name*="[delegate_category]"]');
+        const airportField = participantDiv.querySelector('input[name*="[airport_of_origin]"]');
+        const institutionField = participantDiv.querySelector('input[name*="[institution]"]');
+        
+        // Set student_id_file requirement
+        if (studentIdFile) {
+            studentIdFile.required = packageName === 'students';
+        }
+        
+        // Set delegate_category requirement
+        if (delegateCategoryField) {
+            delegateCategoryField.required = packageName === 'delegates';
+        }
+        
+        // Set airport_of_origin requirement
+        if (airportField) {
+            airportField.required = packageName === 'delegates';
+        }
+        
+        // Set institution requirement
+        if (institutionField) {
+            institutionField.required = packageName === 'students';
+        }
+    }
 
     // Function to check if nationality is African by continent
     function isAfricanByContinent(option) {
@@ -1341,26 +1416,34 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        // Check if this is a fixed-price package (Students, Delegates, Side Events, Exhibitions)
+        // Check if this is a fixed-price package (Students, Delegates, Side Events, Exhibitions, African Nationals, Non-African Nationals)
         const isFixedPricePackage = selectedPackage && (
             selectedPackage.name.toLowerCase() === 'students' || 
             selectedPackage.name.toLowerCase() === 'delegates' ||
             selectedPackage.type === 'side_event' || 
-            selectedPackage.type === 'exhibition'
+            selectedPackage.type === 'exhibition' ||
+            selectedPackage.name.toLowerCase().includes('african nationals')
         );
         
         if (isFixedPricePackage) {
             // For fixed-price packages, use exact package price
-            const totalCost = selectedPackage.price;
+            const totalCost = selectedPackage.price * numPeople;
             let packageType = 'Fixed price';
             if (selectedPackage.type === 'side_event') packageType = 'Side Event';
             else if (selectedPackage.type === 'exhibition') packageType = 'Exhibition';
             else if (selectedPackage.name.toLowerCase() === 'students') packageType = 'Student';
             else if (selectedPackage.name.toLowerCase() === 'delegates') packageType = 'Delegate';
+            else if (selectedPackage.name.toLowerCase().includes('african nationals')) {
+                if (selectedPackage.name.toLowerCase().includes('non')) {
+                    packageType = 'Non-African Nationals';
+                } else {
+                    packageType = 'African Nationals';
+                }
+            }
             
             costEstimation.innerHTML = `
-                <strong>Total: $${totalCost.toLocaleString()}</strong>
-                <br><small class="text-muted">${packageType} package price</small>
+                <strong>${numPeople} people × $${selectedPackage.price.toLocaleString()} = $${totalCost.toLocaleString()}</strong>
+                <br><small class="text-muted">${packageType} package pricing</small>
             `;
             return;
         }
@@ -1392,6 +1475,32 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function calculateGroupCost(numPeople) {
+        // Check if a specific package is selected (African Nationals, Non-African Nationals)
+        if (selectedPackage && selectedPackage.name.toLowerCase().includes('african nationals')) {
+            if (selectedPackage.name.toLowerCase().includes('non')) {
+                // Non-African Nationals package selected - use $400 for all
+                return {
+                    hasParticipants: false,
+                    africanCount: 0,
+                    nonAfricanCount: numPeople,
+                    africanCost: 0,
+                    nonAfricanCost: numPeople * 400,
+                    totalCost: numPeople * 400
+                };
+            } else {
+                // African Nationals package selected - use $200 for all
+                return {
+                    hasParticipants: false,
+                    africanCount: numPeople,
+                    nonAfricanCount: 0,
+                    africanCost: numPeople * 200,
+                    nonAfricanCost: 0,
+                    totalCost: numPeople * 200
+                };
+            }
+        }
+        
+        // No specific package selected - use nationality-based pricing
         const participantNationalities = document.querySelectorAll('.participant-nationality');
         let africanCount = 0;
         let nonAfricanCount = 0;
@@ -1472,14 +1581,14 @@ document.addEventListener('DOMContentLoaded', function() {
         const currentCount = participantsContainer.querySelectorAll('.participant-card').length;
         
         if (participantsNeeded > currentCount) {
-            // Add participants (max 10 for UI)
-            const formsToAdd = Math.min(participantsNeeded, 10) - currentCount;
+            // Add participants (max 20 for UI)
+            const formsToAdd = Math.min(participantsNeeded, 20) - currentCount;
             for (let i = 0; i < formsToAdd; i++) {
                 addParticipantForm();
             }
             
-            if (participantsNeeded > 10) {
-                showInfo(`You can add details for up to 10 additional participants now. The remaining ${participantsNeeded - 10} participants can be added later via email.`, 'Participant Details');
+            if (participantsNeeded > 20) {
+                showInfo(`You can add details for up to 20 additional participants now. The remaining ${participantsNeeded - 20} participants can be added later via email.`, 'Participant Details');
             }
         } else if (participantsNeeded < currentCount) {
             // Remove participants
@@ -1580,7 +1689,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                     <div class="col-md-6 mb-3">
                         <label class="form-label">Student ID Document *</label>
-                        <input type="file" class="form-control" name="participants[${participantCount - 1}][student_id_file]" accept=".pdf,.jpg,.jpeg,.png" required>
+                        <input type="file" class="form-control" name="participants[${participantCount - 1}][student_id_file]" accept=".pdf,.jpg,.jpeg,.png">
                         <div class="form-text small">Upload student ID (PDF, JPG, PNG - max 5MB)</div>
                     </div>
                 </div>
@@ -1616,6 +1725,9 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
         
         participantsContainer.appendChild(participantDiv);
+        
+        // Set field requirements based on selected package
+        updateParticipantFieldRequirements(participantDiv);
         
         // Add email validation for participant
         const participantEmailInput = participantDiv.querySelector('input[name*="[email]"]');
@@ -1804,6 +1916,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (institutionField) {
                     institutionField.required = true;
                 }
+                // Make student_id_file required for student participants
+                const studentIdFile = field.querySelector('input[name*="[student_id_file]"]');
+                if (studentIdFile) {
+                    studentIdFile.required = true;
+                }
             });
         } else if (selectedPackage && selectedPackage.name.toLowerCase() === 'delegates') {
             // Show organization and delegate fields, hide student fields
@@ -1826,6 +1943,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 const institutionField = field.querySelector('input[name*="[institution]"]');
                 if (institutionField) {
                     institutionField.required = false;
+                }
+                // Make student_id_file not required for delegate participants
+                const studentIdFile = field.querySelector('input[name*="[student_id_file]"]');
+                if (studentIdFile) {
+                    studentIdFile.required = false;
                 }
             });
             
@@ -1887,6 +2009,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 const institutionField = field.querySelector('input[name*="[institution]"]');
                 if (institutionField) {
                     institutionField.required = false;
+                }
+                // Make student_id_file not required for non-student participants
+                const studentIdFile = field.querySelector('input[name*="[student_id_file]"]');
+                if (studentIdFile) {
+                    studentIdFile.required = false;
                 }
             });
             
@@ -1979,26 +2106,40 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         } else if (registrationType.value === 'group') {
-            const mainNationality = $('#nationality').val();
-            const isMainAfrican = isAfricanNational(mainNationality);
-            
-            // Check participant nationalities
-            let hasNonAfricanParticipants = false;
-            const participantNationalities = document.querySelectorAll('.participant-nationality');
-            
-            participantNationalities.forEach(select => {
-                const nationality = select.value;
-                if (nationality && !isAfricanNational(nationality)) {
-                    hasNonAfricanParticipants = true;
+            // Check if a specific package is selected (African Nationals, Non-African Nationals)
+            if (selectedPackage && selectedPackage.name.toLowerCase().includes('african nationals')) {
+                if (selectedPackage.name.toLowerCase().includes('non')) {
+                    // Non-African Nationals package selected
+                    actualPackage = { name: 'Non-African Nationals', price: 400 };
+                    pricingNote = ' (Non-African package pricing)';
+                } else {
+                    // African Nationals package selected
+                    actualPackage = { name: 'African Nationals', price: 200 };
+                    pricingNote = ' (African package pricing)';
                 }
-            });
-            
-            if (hasNonAfricanParticipants || !isMainAfrican) {
-                actualPackage = { name: 'Group Registration (Non-African)', price: 400 };
-                pricingNote = ' (Non-African pricing - mixed group)';
             } else {
-                actualPackage = { name: 'Group Registration (African)', price: 200 };
-                pricingNote = ' (African pricing)';
+                // No specific package selected - use nationality-based pricing
+                const mainNationality = $('#nationality').val();
+                const isMainAfrican = isAfricanNational(mainNationality);
+                
+                // Check participant nationalities
+                let hasNonAfricanParticipants = false;
+                const participantNationalities = document.querySelectorAll('.participant-nationality');
+                
+                participantNationalities.forEach(select => {
+                    const nationality = select.value;
+                    if (nationality && !isAfricanNational(nationality)) {
+                        hasNonAfricanParticipants = true;
+                    }
+                });
+                
+                if (hasNonAfricanParticipants || !isMainAfrican) {
+                    actualPackage = { name: 'Group Registration (Non-African)', price: 400 };
+                    pricingNote = ' (Non-African pricing - mixed group)';
+                } else {
+                    actualPackage = { name: 'Group Registration (African)', price: 200 };
+                    pricingNote = ' (African pricing)';
+                }
             }
         }
         

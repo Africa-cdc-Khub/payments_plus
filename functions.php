@@ -152,7 +152,7 @@ function createRegistrationParticipants($registrationId, $participants) {
 function getRegistrationById($id) {
     $pdo = getConnection();
     $stmt = $pdo->prepare("SELECT r.*, p.name as package_name, p.price as package_price, 
-                          u.first_name, u.last_name, u.email as user_email 
+                          u.first_name, u.last_name, u.email as user_email, u.nationality 
                           FROM registrations r 
                           JOIN packages p ON r.package_id = p.id 
                           JOIN users u ON r.user_id = u.id 
@@ -193,59 +193,116 @@ function generatePaymentToken($registrationId) {
     return $token;
 }
 
-// Email notification functions using EmailQueue
-function sendRegistrationEmails($user, $registrationId, $package, $amount, $participants = []) {
-    $emailQueue = new \Cphia2025\EmailQueue();
-    $success = true;
-
-    // Queue registration confirmation to user
+// Generate invoice data for registration
+function generateInvoiceData($user, $registrationId, $package, $amount, $participants = [], $registrationType = 'individual') {
     $userName = $user['first_name'] . ' ' . $user['last_name'];
     
-    // Generate payment status link (no payment link in registration email)
-    $paymentStatusLink = rtrim(APP_URL, '/') . "/payment_status.php?id=" . $registrationId . "&email=" . urlencode($user['email']);
-    $paymentStatus = 'pending'; // All new registrations start as pending
+    // Generate payment link
+    $paymentLink = rtrim(APP_URL, '/') . "/registration_lookup.php?action=pay&id=" . $registrationId;
     
-    $templateData = [
+    // Generate registration lookup URL
+    $registrationLookupUrl = rtrim(APP_URL, '/') . "/registration_lookup.php";
+    
+    // For group registrations, include the main registrant in the participants list
+    $allParticipants = [];
+    if ($registrationType === 'group') {
+        // Add main registrant as first participant
+        $mainRegistrant = [
+            'first_name' => $user['first_name'],
+            'last_name' => $user['last_name'],
+            'email' => $user['email'],
+            'nationality' => $user['nationality'] ?? 'Not specified'
+        ];
+        $allParticipants[] = $mainRegistrant;
+        
+        // Add other participants
+        foreach ($participants as $participant) {
+            $allParticipants[] = $participant;
+        }
+    } else {
+        // For individual registrations, just use the main registrant
+        $allParticipants = [
+            [
+                'first_name' => $user['first_name'],
+                'last_name' => $user['last_name'],
+                'email' => $user['email'],
+                'nationality' => $user['nationality'] ?? 'Not specified'
+            ]
+        ];
+    }
+    
+    // Calculate per-participant amount
+    $numParticipants = count($allParticipants);
+    $perParticipantAmount = $numParticipants > 1 ? $amount / $numParticipants : $amount;
+    
+    // Add amount to each participant
+    $participantsWithAmount = [];
+    foreach ($allParticipants as $participant) {
+        $participant['amount'] = number_format($perParticipantAmount, 2);
+        $participantsWithAmount[] = $participant;
+    }
+    
+    // Format dates
+    $invoiceDate = date('F j, Y');
+    $dueDate = date('F j, Y', strtotime('+30 days')); // 30 days from now
+    
+    return [
         'user_name' => $userName,
+        'user_email' => $user['email'],
+        'organization_name' => $user['organization'] ?? '',
+        'organization_address' => $user['organization_address'] ?? '',
         'registration_id' => $registrationId,
         'package_name' => $package['name'],
-        'amount' => $amount,
-        'participants' => $participants,
+        'registration_type' => ucfirst($registrationType),
+        'num_participants' => $numParticipants,
+        'total_amount' => number_format($amount, 2),
+        'participants' => $participantsWithAmount,
         'conference_name' => CONFERENCE_NAME,
         'conference_short_name' => CONFERENCE_SHORT_NAME,
         'conference_dates' => CONFERENCE_DATES,
         'conference_location' => CONFERENCE_LOCATION,
         'conference_venue' => CONFERENCE_VENUE,
         'logo_url' => EMAIL_LOGO_URL,
-        'payment_status_link' => $paymentStatusLink,
-        'payment_status' => $paymentStatus,
-        'mail_from_address' => MAIL_FROM_ADDRESS,
+        'payment_link' => $paymentLink,
+        'registration_lookup_url' => $registrationLookupUrl,
+        'invoice_date' => $invoiceDate,
+        'due_date' => $dueDate,
         'support_email' => SUPPORT_EMAIL
     ];
+}
 
+// Email notification functions using EmailQueue
+function sendRegistrationEmails($user, $registrationId, $package, $amount, $participants = [], $registrationType = 'individual') {
+    $emailQueue = new \Cphia2025\EmailQueue();
+    $success = true;
+
+    // Generate invoice data
+    $invoiceData = generateInvoiceData($user, $registrationId, $package, $amount, $participants, $registrationType);
+    
+    // Queue invoice email to user
     $result = $emailQueue->addToQueue(
         $user['email'],
-        $userName,
-        CONFERENCE_SHORT_NAME . " - Registration Confirmation #" . $registrationId,
-        'registration_confirmation',
-        $templateData,
-        'registration_confirmation',
+        $invoiceData['user_name'],
+        CONFERENCE_SHORT_NAME . " - Registration Invoice #" . $registrationId,
+        'invoice',
+        $invoiceData,
+        'invoice',
         5
     );
 
     if (!$result) {
         $success = false;
-        error_log("Failed to queue registration confirmation to: " . $user['email']);
+        error_log("Failed to queue invoice to: " . $user['email']);
     }
 
     // Queue admin notification
     $adminTemplateData = [
         'registration_id' => $registrationId,
-        'user_name' => $userName,
+        'user_name' => $invoiceData['user_name'],
         'user_email' => $user['email'],
         'package_name' => $package['name'],
         'amount' => $amount,
-        'registration_type' => 'individual',
+        'registration_type' => $registrationType,
         'participants' => $participants,
         'conference_name' => CONFERENCE_NAME,
         'conference_short_name' => CONFERENCE_SHORT_NAME,
@@ -258,7 +315,7 @@ function sendRegistrationEmails($user, $registrationId, $package, $amount, $part
     $result = $emailQueue->addToQueue(
         ADMIN_EMAIL,
         ADMIN_NAME,
-        "New Registration: #" . $registrationId . " - " . $userName,
+        "New Registration: #" . $registrationId . " - " . $invoiceData['user_name'],
         'admin_registration_notification',
         $adminTemplateData,
         'admin_registration',
@@ -415,23 +472,15 @@ function validateNationality($nationality) {
     // Trim whitespace and normalize the nationality
     $nationality = trim($nationality);
     
-    // Check if nationality is in our allowed list
-    $allowedNationalities = [
-        'Algerian', 'Angolan', 'Beninese', 'Botswanan', 'Burkinabe', 'Burundian',
-        'Cameroonian', 'Cape Verdian', 'Central African', 'Chadian', 'Comoran',
-        'Congolese', 'Ivorian', 'Djibouti', 'Egyptian', 'Equatorial Guinean',
-        'Eritrean', 'Ethiopian', 'Gabonese', 'Gambian', 'Ghanaian', 'Guinean',
-        'Guinea-Bissauan', 'Kenyan', 'Lesotho', 'Liberian', 'Libyan', 'Malagasy',
-        'Malawian', 'Malian', 'Mauritanian', 'Mauritian', 'Moroccan', 'Mozambican',
-        'Namibian', 'Nigerien', 'Nigerian', 'Rwandan', 'Sao Tomean', 'Senegalese',
-        'Seychellois', 'Sierra Leonean', 'Somali', 'South African', 'South Sudanese',
-        'Sudanese', 'Swazi', 'Tanzanian', 'Togolese', 'Tunisian', 'Ugandan',
-        'Zambian', 'Zimbabwean', 'Motswana', 'Mosotho', 'American', 'British',
-        'Canadian', 'French', 'German', 'Italian', 'Spanish', 'Chinese', 'Japanese',
-        'Indian', 'Brazilian', 'Australian', 'Other'
-    ];
+    if (empty($nationality)) {
+        return false;
+    }
     
+    // Get all nationalities from database
+    $nationalities = getAllNationalities();
+    $allowedNationalities = array_column($nationalities, 'nationality');
     
+    // Check if nationality exists in database
     return in_array($nationality, $allowedNationalities);
 }
 

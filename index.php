@@ -320,14 +320,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             } else if ($isFixedPricePackage) {
                 // For fixed-price packages (Students, Delegates), send normal registration emails
-                if (sendRegistrationEmails($user, $registrationId, $package, $totalAmount, $participants)) {
+                if (sendRegistrationEmails($user, $registrationId, $package, $totalAmount, $participants, $registrationType)) {
                     $success = true;
                 } else {
                     $errors[] = "Registration created but failed to queue confirmation email. Please contact support.";
                 }
             } else {
                 // For regular registrations, send normal registration emails
-                if (sendRegistrationEmails($user, $registrationId, $package, $totalAmount, $participants)) {
+                if (sendRegistrationEmails($user, $registrationId, $package, $totalAmount, $participants, $registrationType)) {
                     $success = true;
                 } else {
                     $errors[] = "Registration created but failed to queue confirmation email. Please contact support.";
@@ -645,13 +645,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                                                     <?php endif; ?>
                                                 </h6>
                                                 <div class="d-flex flex-column align-items-end">
-                                                    <?php if ($registration['payment_status'] === 'completed'): ?>
+                                                    <?php 
+                                                    $dbStatus = strtolower($registration['status'] ?? '');
+                                                    $paymentStatus = $registration['payment_status'] ?? '';
+                                                    $amount = $registration['total_amount'] ?? 0;
+                                                    
+                                                    if ($paymentStatus === 'completed'): ?>
                                                         <span class="badge bg-success mb-1">
                                                             <i class="fas fa-check-circle me-1"></i>Paid
                                                         </span>
-                                                    <?php else: ?>
+                                                    <?php elseif ($amount == 0): ?>
+                                                        <span class="badge bg-info mb-1">
+                                                            <i class="fas fa-hourglass-half me-1"></i>Awaiting Approval
+                                                        </span>
+                                                    <?php elseif ($dbStatus === 'pending payment'): ?>
                                                         <span class="badge bg-warning mb-1">
                                                             <i class="fas fa-clock me-1"></i>Pending Payment
+                                                        </span>
+                                                    <?php else: ?>
+                                                        <span class="badge bg-primary mb-1">
+                                                            <i class="fas fa-info-circle me-1"></i><?php echo ucfirst($registration['status']); ?>
                                                         </span>
                                                     <?php endif; ?>
                                                     <small class="text-muted"><?php echo ucfirst($registration['status']); ?></small>
@@ -757,13 +770,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                                 <div class="d-flex justify-content-between align-items-start mb-2">
                                     <h6 class="card-title mb-0"><?php echo htmlspecialchars($registration['package_name']); ?></h6>
                                     <div class="d-flex flex-column align-items-end">
-                                        <?php if ($registration['payment_status'] === 'completed'): ?>
+                                        <?php 
+                                        $dbStatus = strtolower($registration['status'] ?? '');
+                                        $paymentStatus = $registration['payment_status'] ?? '';
+                                        $amount = $registration['total_amount'] ?? 0;
+                                        
+                                        if ($paymentStatus === 'completed'): ?>
                                             <span class="badge bg-success mb-1">
                                                 <i class="fas fa-check-circle me-1"></i>Paid
                                     </span>
-                                        <?php else: ?>
+                                        <?php elseif ($amount == 0): ?>
+                                            <span class="badge bg-info mb-1">
+                                                <i class="fas fa-hourglass-half me-1"></i>Awaiting Approval
+                                            </span>
+                                        <?php elseif ($dbStatus === 'pending payment'): ?>
                                             <span class="badge bg-warning mb-1">
                                                 <i class="fas fa-clock me-1"></i>Pending Payment
+                                            </span>
+                                        <?php else: ?>
+                                            <span class="badge bg-primary mb-1">
+                                                <i class="fas fa-info-circle me-1"></i><?php echo ucfirst($registration['status']); ?>
                                             </span>
                                         <?php endif; ?>
                                         <small class="text-muted"><?php echo ucfirst($registration['status']); ?></small>
@@ -978,8 +1004,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                                     $nationalitiesData = getAllNationalities();
                                     if ($nationalitiesData) {
                                         foreach ($nationalitiesData as $nationality) {
-                                            $selected = (isset($formData['nationality']) && $formData['nationality'] === $nationality['code']) ? 'selected' : '';
-                                            echo '<option value="' . htmlspecialchars($nationality['code']) . '" data-continent="' . htmlspecialchars($nationality['continent']) . '" ' . $selected . '>' . htmlspecialchars($nationality['country_name']) . ' (' . htmlspecialchars($nationality['nationality']) . ')</option>';
+                                            $selected = (isset($formData['nationality']) && $formData['nationality'] === $nationality['nationality']) ? 'selected' : '';
+                                            echo '<option value="' . htmlspecialchars($nationality['nationality']) . '" data-continent="' . htmlspecialchars($nationality['continent']) . '" ' . $selected . '>' . htmlspecialchars($nationality['country_name']) . ' (' . htmlspecialchars($nationality['nationality']) . ')</option>';
                                         }
                                     }
                                     ?>
@@ -1032,14 +1058,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                             </div>
                         </div>
                         
-                        <!-- Delegate Category and Airport fields (only for Delegates package) - Right column -->
+                        <!-- 1and Airport fields (only for Delegates package) - Right column -->
                         <div id="delegateFields" class="row" style="display: none;">
                             <div class="col-md-6 mb-3">
                                 <!-- Empty left column for delegates -->
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label for="delegate_category" class="form-label">Delegate Category <span class="asterisk">*</span></label>
-                                <select class="form-select" name="delegate_category" id="delegate_category" required>
+                                <select class="form-select" name="delegate_category" id="delegate_category">
                                     <option value="">Select Category</option>
                                     <option value="Oral abstract presenter" <?php echo (($formData['delegate_category'] ?? '') === 'Oral abstract presenter') ? 'selected' : ''; ?>>Oral abstract presenter</option>
                                     <option value="Invited speaker/Moderator" <?php echo (($formData['delegate_category'] ?? '') === 'Invited speaker/Moderator') ? 'selected' : ''; ?>>Invited speaker/Moderator</option>
@@ -1047,6 +1073,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                                     <option value="Secretariat" <?php echo (($formData['delegate_category'] ?? '') === 'Secretariat') ? 'selected' : ''; ?>>Secretariat</option>
                                     <option value="Media Partner" <?php echo (($formData['delegate_category'] ?? '') === 'Media Partner') ? 'selected' : ''; ?>>Media Partner</option>
                                     <option value="Side event focal person" <?php echo (($formData['delegate_category'] ?? '') === 'Side event focal person') ? 'selected' : ''; ?>>Side event focal person</option>
+                                    <option value="Youth Program Participant" <?php echo (($formData['delegate_category'] ?? '') === 'Youth Program Participant') ? 'selected' : ''; ?>>Youth Program Participant</option>
                                 </select>
                                 <div class="form-text">Required for delegate registration</div>
                             </div>
@@ -1111,7 +1138,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                                     if ($countriesData) {
                                         foreach ($countriesData as $country) {
                                             $selected = (isset($formData['country']) && $formData['country'] === $country['name']) ? 'selected' : '';
-                                            echo '<option value="' . htmlspecialchars($country['name']) . '" data-continent="' . htmlspecialchars($country['continent']) . '" ' . $selected . '>' . htmlspecialchars($country['name']) . '</option>';
+                                            echo '<option value="' . $country['name'] .' ' . $selected . '>' . htmlspecialchars($country['name']) . '</option>';
                                         }
                                     }
                                     ?>

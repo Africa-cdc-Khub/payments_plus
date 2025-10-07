@@ -8,13 +8,25 @@
     ?>
     <div class="alert alert-success">
         <h3>Registration Successful!</h3>
-        <p>Thank you for registering for CPHIA 2025. <?php if ($package['price'] > 0): ?>A payment link has been sent to your email address.<?php else: ?>Your registration is complete - no payment required.<?php endif; ?></p>
+        <p>Thank you for registering for CPHIA 2025. <?php if ($package['price'] > 0): ?>A detailed invoice has been sent to your email address.<?php else: ?>Your registration is complete - no payment required.<?php endif; ?></p>
         <?php if (isset($registrationId) && !$isSideEvent && !$isExhibition && $package['price'] > 0): ?>
             <div class="mt-4">
                 <h5>Complete Your Registration</h5>
                 <p class="mb-3">Choose how you'd like to complete your payment:</p>
                 <div class="row">
-                    <div class="col-md-6 mb-3">
+                    <div class="col-md-4 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body text-center">
+                                <i class="fas fa-file-invoice fa-3x text-info mb-3"></i>
+                                <h6 class="card-title">View Invoice</h6>
+                                <p class="card-text small">View and print your detailed registration invoice.</p>
+                                <a href="invoice.php?id=<?php echo $registrationId; ?>&email=<?php echo urlencode($userData['email']); ?>" class="btn btn-info" target="_blank">
+                                    <i class="fas fa-file-invoice me-2"></i>View Invoice
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
                         <div class="card h-100">
                             <div class="card-body text-center">
                                 <i class="fas fa-credit-card fa-3x text-success mb-3"></i>
@@ -26,14 +38,14 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-6 mb-3">
+                    <div class="col-md-4 mb-3">
                         <div class="card h-100">
                             <div class="card-body text-center">
                                 <i class="fas fa-envelope fa-3x text-primary mb-3"></i>
                                 <h6 class="card-title">Pay Later</h6>
-                                <p class="card-text small">We'll send you a payment link via email so you can pay when convenient.</p>
+                                <p class="card-text small">We'll send you a detailed invoice via email so you can pay when convenient.</p>
                                 <button onclick="sendPaymentLink(<?php echo $registrationId; ?>)" class="btn btn-outline-primary">
-                                    <i class="fas fa-envelope me-2"></i>Send Payment Link
+                                    <i class="fas fa-envelope me-2"></i>Send Invoice
                                 </button>
                             </div>
                         </div>

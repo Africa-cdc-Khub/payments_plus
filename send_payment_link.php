@@ -56,45 +56,42 @@ try {
     
     $amount = $registration['total_amount'];
     
-    // Send payment link email
+    // Get participants if group registration
+    $participants = [];
+    if ($registration['registration_type'] === 'group') {
+        $participants = getRegistrationParticipants($registrationId);
+    }
+    
+    // Generate invoice data
+    $invoiceData = generateInvoiceData(
+        $user, 
+        $registrationId, 
+        $package, 
+        $amount, 
+        $participants, 
+        $registration['registration_type']
+    );
+    
+    // Send invoice email
     $emailQueue = new \Cphia2025\EmailQueue();
-    $userName = $user['first_name'] . ' ' . $user['last_name'];
-    
-    $templateData = [
-        'user_name' => $userName,
-        'registration_id' => $registrationId,
-        'package_name' => $package['name'],
-        'amount' => $amount,
-        'participants' => [],
-        'conference_name' => CONFERENCE_NAME,
-        'conference_short_name' => CONFERENCE_SHORT_NAME,
-        'conference_dates' => CONFERENCE_DATES,
-        'conference_location' => CONFERENCE_LOCATION,
-        'conference_venue' => CONFERENCE_VENUE,
-        'logo_url' => EMAIL_LOGO_URL,
-        'payment_link' => $paymentLink,
-        'payment_status' => 'pending',
-        'mail_from_address' => MAIL_FROM_ADDRESS
-    ];
-    
     $result = $emailQueue->addToQueue(
         $user['email'],
-        $userName,
-        CONFERENCE_SHORT_NAME . " - Payment Link for Registration #" . $registrationId,
-        'payment_link',
-        $templateData,
-        'payment_link',
+        $invoiceData['user_name'],
+        CONFERENCE_SHORT_NAME . " - Registration Invoice #" . $registrationId,
+        'invoice',
+        $invoiceData,
+        'invoice',
         5
     );
     
     if ($result) {
         echo json_encode([
             'success' => true, 
-            'message' => 'Payment link sent successfully',
-            'payment_link' => $paymentLink
+            'message' => 'Invoice sent successfully',
+            'payment_link' => $invoiceData['payment_link']
         ]);
     } else {
-        echo json_encode(['success' => false, 'message' => 'Failed to send payment link']);
+        echo json_encode(['success' => false, 'message' => 'Failed to send invoice']);
     }
     
 } catch (Exception $e) {
