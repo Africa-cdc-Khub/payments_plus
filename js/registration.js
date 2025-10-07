@@ -1467,6 +1467,32 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function calculateGroupCost(numPeople) {
+        // Check if a specific package is selected (African Nationals, Non-African Nationals)
+        if (selectedPackage && selectedPackage.name.toLowerCase().includes('african nationals')) {
+            if (selectedPackage.name.toLowerCase().includes('non')) {
+                // Non-African Nationals package selected - use $400 for all
+                return {
+                    hasParticipants: false,
+                    africanCount: 0,
+                    nonAfricanCount: numPeople,
+                    africanCost: 0,
+                    nonAfricanCost: numPeople * 400,
+                    totalCost: numPeople * 400
+                };
+            } else {
+                // African Nationals package selected - use $200 for all
+                return {
+                    hasParticipants: false,
+                    africanCount: numPeople,
+                    nonAfricanCount: 0,
+                    africanCost: numPeople * 200,
+                    nonAfricanCost: 0,
+                    totalCost: numPeople * 200
+                };
+            }
+        }
+        
+        // No specific package selected - use nationality-based pricing
         const participantNationalities = document.querySelectorAll('.participant-nationality');
         let africanCount = 0;
         let nonAfricanCount = 0;
@@ -2072,26 +2098,40 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         } else if (registrationType.value === 'group') {
-            const mainNationality = $('#nationality').val();
-            const isMainAfrican = isAfricanNational(mainNationality);
-            
-            // Check participant nationalities
-            let hasNonAfricanParticipants = false;
-            const participantNationalities = document.querySelectorAll('.participant-nationality');
-            
-            participantNationalities.forEach(select => {
-                const nationality = select.value;
-                if (nationality && !isAfricanNational(nationality)) {
-                    hasNonAfricanParticipants = true;
+            // Check if a specific package is selected (African Nationals, Non-African Nationals)
+            if (selectedPackage && selectedPackage.name.toLowerCase().includes('african nationals')) {
+                if (selectedPackage.name.toLowerCase().includes('non')) {
+                    // Non-African Nationals package selected
+                    actualPackage = { name: 'Non-African Nationals', price: 400 };
+                    pricingNote = ' (Non-African package pricing)';
+                } else {
+                    // African Nationals package selected
+                    actualPackage = { name: 'African Nationals', price: 200 };
+                    pricingNote = ' (African package pricing)';
                 }
-            });
-            
-            if (hasNonAfricanParticipants || !isMainAfrican) {
-                actualPackage = { name: 'Group Registration (Non-African)', price: 400 };
-                pricingNote = ' (Non-African pricing - mixed group)';
             } else {
-                actualPackage = { name: 'Group Registration (African)', price: 200 };
-                pricingNote = ' (African pricing)';
+                // No specific package selected - use nationality-based pricing
+                const mainNationality = $('#nationality').val();
+                const isMainAfrican = isAfricanNational(mainNationality);
+                
+                // Check participant nationalities
+                let hasNonAfricanParticipants = false;
+                const participantNationalities = document.querySelectorAll('.participant-nationality');
+                
+                participantNationalities.forEach(select => {
+                    const nationality = select.value;
+                    if (nationality && !isAfricanNational(nationality)) {
+                        hasNonAfricanParticipants = true;
+                    }
+                });
+                
+                if (hasNonAfricanParticipants || !isMainAfrican) {
+                    actualPackage = { name: 'Group Registration (Non-African)', price: 400 };
+                    pricingNote = ' (Non-African pricing - mixed group)';
+                } else {
+                    actualPackage = { name: 'Group Registration (African)', price: 200 };
+                    pricingNote = ' (African pricing)';
+                }
             }
         }
         
