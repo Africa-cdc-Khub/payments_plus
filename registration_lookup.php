@@ -182,15 +182,18 @@ if (isset($_GET['view']) && is_numeric($_GET['view'])) {
                                         <td class="fw-bold"><?php echo formatCurrency($registration['total_amount'], $registration['currency']); ?></td>
                                         <td>
                                             <?php 
+                                            $dbStatus = strtolower($registration['status'] ?? '');
                                             $paymentStatus = $registration['payment_status'] ?? '';
                                             $amount = $registration['total_amount'] ?? 0;
                                             
-                                            if ($amount == 0): ?>
-                                                <span class="badge bg-info">Awaiting Approval</span>
-                                            <?php elseif ($paymentStatus === 'completed'): ?>
+                                            if ($paymentStatus === 'completed'): ?>
                                                 <span class="badge bg-success">Paid</span>
-                                            <?php else: ?>
+                                            <?php elseif ($amount == 0): ?>
+                                                <span class="badge bg-info">Awaiting Approval</span>
+                                            <?php elseif ($dbStatus === 'pending payment'): ?>
                                                 <span class="badge bg-warning">Pending Payment</span>
+                                            <?php else: ?>
+                                                <span class="badge bg-primary"><?php echo ucfirst($registration['status']); ?></span>
                                             <?php endif; ?>
                                         </td>
                                         <td><?php echo date('M j, Y', strtotime($registration['created_at'])); ?></td>
@@ -389,15 +392,18 @@ if (isset($_GET['view']) && is_numeric($_GET['view'])) {
                                             <td class="fw-bold" style="width: 30%;">Payment Status</td>
                                             <td>
                                                 <?php 
+                                                $dbStatus = strtolower($registrationDetails['status'] ?? '');
                                                 $paymentStatus = $registrationDetails['payment_status'] ?? '';
                                                 $amount = $registrationDetails['total_amount'] ?? 0;
                                                 
-                                                if ($amount == 0): ?>
-                                                    <span class="badge bg-info fs-6">Awaiting Approval</span>
-                                                <?php elseif ($paymentStatus === 'completed'): ?>
+                                                if ($paymentStatus === 'completed'): ?>
                                                     <span class="badge bg-success fs-6">Paid</span>
-                                                <?php else: ?>
+                                                <?php elseif ($amount == 0): ?>
+                                                    <span class="badge bg-info fs-6">Awaiting Approval</span>
+                                                <?php elseif ($dbStatus === 'pending payment'): ?>
                                                     <span class="badge bg-warning fs-6">Pending Payment</span>
+                                                <?php else: ?>
+                                                    <span class="badge bg-primary fs-6"><?php echo ucfirst($registrationDetails['status']); ?></span>
                                                 <?php endif; ?>
                                             </td>
                                         </tr>

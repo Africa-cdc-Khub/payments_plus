@@ -645,17 +645,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                                                     <?php endif; ?>
                                                 </h6>
                                                 <div class="d-flex flex-column align-items-end">
-                                                    <?php if ($registration['payment_status'] === 'completed'): ?>
+                                                    <?php 
+                                                    $dbStatus = strtolower($registration['status'] ?? '');
+                                                    $paymentStatus = $registration['payment_status'] ?? '';
+                                                    $amount = $registration['total_amount'] ?? 0;
+                                                    
+                                                    if ($paymentStatus === 'completed'): ?>
                                                         <span class="badge bg-success mb-1">
                                                             <i class="fas fa-check-circle me-1"></i>Paid
                                                         </span>
-                                                    <?php elseif ($registration['total_amount'] == 0): ?>
+                                                    <?php elseif ($amount == 0): ?>
                                                         <span class="badge bg-info mb-1">
                                                             <i class="fas fa-hourglass-half me-1"></i>Awaiting Approval
                                                         </span>
-                                                    <?php else: ?>
+                                                    <?php elseif ($dbStatus === 'pending payment'): ?>
                                                         <span class="badge bg-warning mb-1">
                                                             <i class="fas fa-clock me-1"></i>Pending Payment
+                                                        </span>
+                                                    <?php else: ?>
+                                                        <span class="badge bg-primary mb-1">
+                                                            <i class="fas fa-info-circle me-1"></i><?php echo ucfirst($registration['status']); ?>
                                                         </span>
                                                     <?php endif; ?>
                                                     <small class="text-muted"><?php echo ucfirst($registration['status']); ?></small>
@@ -761,17 +770,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                                 <div class="d-flex justify-content-between align-items-start mb-2">
                                     <h6 class="card-title mb-0"><?php echo htmlspecialchars($registration['package_name']); ?></h6>
                                     <div class="d-flex flex-column align-items-end">
-                                        <?php if ($registration['payment_status'] === 'completed'): ?>
+                                        <?php 
+                                        $dbStatus = strtolower($registration['status'] ?? '');
+                                        $paymentStatus = $registration['payment_status'] ?? '';
+                                        $amount = $registration['total_amount'] ?? 0;
+                                        
+                                        if ($paymentStatus === 'completed'): ?>
                                             <span class="badge bg-success mb-1">
                                                 <i class="fas fa-check-circle me-1"></i>Paid
                                     </span>
-                                        <?php elseif ($registration['total_amount'] == 0): ?>
+                                        <?php elseif ($amount == 0): ?>
                                             <span class="badge bg-info mb-1">
                                                 <i class="fas fa-hourglass-half me-1"></i>Awaiting Approval
                                             </span>
-                                        <?php else: ?>
+                                        <?php elseif ($dbStatus === 'pending payment'): ?>
                                             <span class="badge bg-warning mb-1">
                                                 <i class="fas fa-clock me-1"></i>Pending Payment
+                                            </span>
+                                        <?php else: ?>
+                                            <span class="badge bg-primary mb-1">
+                                                <i class="fas fa-info-circle me-1"></i><?php echo ucfirst($registration['status']); ?>
                                             </span>
                                         <?php endif; ?>
                                         <small class="text-muted"><?php echo ucfirst($registration['status']); ?></small>
