@@ -1069,6 +1069,39 @@ document.addEventListener('DOMContentLoaded', function() {
             studentFields.style.display = 'none';
         }
     }
+    
+    // Update participant field requirements based on selected package
+    function updateParticipantFieldRequirements(participantDiv) {
+        if (!selectedPackage) return;
+        
+        const packageName = selectedPackage.name ? selectedPackage.name.toLowerCase() : '';
+        
+        // Get participant fields
+        const studentIdFile = participantDiv.querySelector('input[name*="[student_id_file]"]');
+        const delegateCategoryField = participantDiv.querySelector('select[name*="[delegate_category]"]');
+        const airportField = participantDiv.querySelector('input[name*="[airport_of_origin]"]');
+        const institutionField = participantDiv.querySelector('input[name*="[institution]"]');
+        
+        // Set student_id_file requirement
+        if (studentIdFile) {
+            studentIdFile.required = packageName === 'students';
+        }
+        
+        // Set delegate_category requirement
+        if (delegateCategoryField) {
+            delegateCategoryField.required = packageName === 'delegates';
+        }
+        
+        // Set airport_of_origin requirement
+        if (airportField) {
+            airportField.required = packageName === 'delegates';
+        }
+        
+        // Set institution requirement
+        if (institutionField) {
+            institutionField.required = packageName === 'students';
+        }
+    }
 
     // Function to check if nationality is African by continent
     function isAfricanByContinent(option) {
@@ -1622,7 +1655,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                     <div class="col-md-6 mb-3">
                         <label class="form-label">Student ID Document *</label>
-                        <input type="file" class="form-control" name="participants[${participantCount - 1}][student_id_file]" accept=".pdf,.jpg,.jpeg,.png" required>
+                        <input type="file" class="form-control" name="participants[${participantCount - 1}][student_id_file]" accept=".pdf,.jpg,.jpeg,.png">
                         <div class="form-text small">Upload student ID (PDF, JPG, PNG - max 5MB)</div>
                     </div>
                 </div>
@@ -1658,6 +1691,9 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
         
         participantsContainer.appendChild(participantDiv);
+        
+        // Set field requirements based on selected package
+        updateParticipantFieldRequirements(participantDiv);
         
         // Add email validation for participant
         const participantEmailInput = participantDiv.querySelector('input[name*="[email]"]');
@@ -1846,6 +1882,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (institutionField) {
                     institutionField.required = true;
                 }
+                // Make student_id_file required for student participants
+                const studentIdFile = field.querySelector('input[name*="[student_id_file]"]');
+                if (studentIdFile) {
+                    studentIdFile.required = true;
+                }
             });
         } else if (selectedPackage && selectedPackage.name.toLowerCase() === 'delegates') {
             // Show organization and delegate fields, hide student fields
@@ -1868,6 +1909,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 const institutionField = field.querySelector('input[name*="[institution]"]');
                 if (institutionField) {
                     institutionField.required = false;
+                }
+                // Make student_id_file not required for delegate participants
+                const studentIdFile = field.querySelector('input[name*="[student_id_file]"]');
+                if (studentIdFile) {
+                    studentIdFile.required = false;
                 }
             });
             
@@ -1929,6 +1975,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 const institutionField = field.querySelector('input[name*="[institution]"]');
                 if (institutionField) {
                     institutionField.required = false;
+                }
+                // Make student_id_file not required for non-student participants
+                const studentIdFile = field.querySelector('input[name*="[student_id_file]"]');
+                if (studentIdFile) {
+                    studentIdFile.required = false;
                 }
             });
             
