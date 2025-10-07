@@ -649,6 +649,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                                                         <span class="badge bg-success mb-1">
                                                             <i class="fas fa-check-circle me-1"></i>Paid
                                                         </span>
+                                                    <?php elseif ($registration['total_amount'] == 0): ?>
+                                                        <span class="badge bg-info mb-1">
+                                                            <i class="fas fa-hourglass-half me-1"></i>Awaiting Approval
+                                                        </span>
                                                     <?php else: ?>
                                                         <span class="badge bg-warning mb-1">
                                                             <i class="fas fa-clock me-1"></i>Pending Payment
@@ -761,6 +765,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                                             <span class="badge bg-success mb-1">
                                                 <i class="fas fa-check-circle me-1"></i>Paid
                                     </span>
+                                        <?php elseif ($registration['total_amount'] == 0): ?>
+                                            <span class="badge bg-info mb-1">
+                                                <i class="fas fa-hourglass-half me-1"></i>Awaiting Approval
+                                            </span>
                                         <?php else: ?>
                                             <span class="badge bg-warning mb-1">
                                                 <i class="fas fa-clock me-1"></i>Pending Payment

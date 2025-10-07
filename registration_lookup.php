@@ -186,7 +186,7 @@ if (isset($_GET['view']) && is_numeric($_GET['view'])) {
                                             $amount = $registration['total_amount'] ?? 0;
                                             
                                             if ($amount == 0): ?>
-                                                <span class="badge bg-info">No Payment Required</span>
+                                                <span class="badge bg-info">Awaiting Approval</span>
                                             <?php elseif ($paymentStatus === 'completed'): ?>
                                                 <span class="badge bg-success">Paid</span>
                                             <?php else: ?>
@@ -204,7 +204,7 @@ if (isset($_GET['view']) && is_numeric($_GET['view'])) {
                                                 $paymentStatus = $registration['payment_status'] ?? '';
                                                 
                                                 if ($amount == 0): ?>
-                                                    <span class="badge bg-success">No Payment Required</span>
+                                                    <span class="badge bg-info">Awaiting Approval</span>
                                                 <?php elseif ($paymentStatus !== 'completed'): ?>
                                                     <a href="?action=pay&id=<?php echo $registration['id']; ?>" class="btn btn-success btn-sm">
                                                         <i class="fas fa-credit-card me-1"></i>Pay
@@ -393,7 +393,7 @@ if (isset($_GET['view']) && is_numeric($_GET['view'])) {
                                                 $amount = $registrationDetails['total_amount'] ?? 0;
                                                 
                                                 if ($amount == 0): ?>
-                                                    <span class="badge bg-info fs-6">No Payment Required</span>
+                                                    <span class="badge bg-info fs-6">Awaiting Approval</span>
                                                 <?php elseif ($paymentStatus === 'completed'): ?>
                                                     <span class="badge bg-success fs-6">Paid</span>
                                                 <?php else: ?>
@@ -421,7 +421,7 @@ if (isset($_GET['view']) && is_numeric($_GET['view'])) {
                             
                             if ($amount == 0): ?>
                             <div class="mt-3">
-                                <span class="badge bg-success fs-6">No Payment Required</span>
+                                <span class="badge bg-info fs-6">Awaiting Approval</span>
                             </div>
                             <?php elseif ($paymentStatus !== 'completed'): ?>
                             <div class="mt-3">
