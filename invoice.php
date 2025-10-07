@@ -485,6 +485,7 @@ $pageTitle = "Invoice #" . $registrationId . " - " . CONFERENCE_SHORT_NAME;
                     <li>Your registration is not complete until payment is received</li>
                     <li>Payment must be completed before the conference date</li>
                     <li>Confirmation will be sent to your email upon successful payment</li>
+                    <li><strong>Cash payments will not be accepted at the venue</strong> - please complete payment online or via bank transfer before the event</li>
                     <li>For questions, contact us at <a href="mailto:<?php echo htmlspecialchars($invoiceData['support_email']); ?>" style="color: #856404;"><?php echo htmlspecialchars($invoiceData['support_email']); ?></a></li>
                 </ul>
             </div>
