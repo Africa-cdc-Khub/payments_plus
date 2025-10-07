@@ -232,24 +232,30 @@ if (isset($_GET['view']) && is_numeric($_GET['view'])) {
                         </h5>
                     </div>
                     <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <h6 class="fw-bold">Registration Information</h6>
-                                <table class="table table-sm">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead class="table-dark">
                                     <tr>
-                                        <td><strong>Registration ID:</strong></td>
+                                        <th colspan="2" class="text-center">
+                                            <h6 class="mb-0">Registration Details - #<?php echo $registrationDetails['id']; ?></h6>
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="fw-bold" style="width: 30%;">Registration ID</td>
                                         <td>#<?php echo $registrationDetails['id']; ?></td>
                                     </tr>
                                     <tr>
-                                        <td><strong>Package:</strong></td>
+                                        <td class="fw-bold">Package</td>
                                         <td><?php echo htmlspecialchars($registrationDetails['package_name']); ?></td>
                                     </tr>
                                     <tr>
-                                        <td><strong>Type:</strong></td>
+                                        <td class="fw-bold">Registration Type</td>
                                         <td><?php echo ucfirst($registrationDetails['registration_type']); ?></td>
                                     </tr>
                                     <tr>
-                                        <td><strong>Status:</strong></td>
+                                        <td class="fw-bold">Status</td>
                                         <td>
                                             <span class="badge bg-<?php echo $registrationDetails['status'] == 'paid' ? 'success' : ($registrationDetails['status'] == 'pending' ? 'warning' : 'secondary'); ?>">
                                                 <?php echo ucfirst($registrationDetails['status']); ?>
@@ -257,40 +263,60 @@ if (isset($_GET['view']) && is_numeric($_GET['view'])) {
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td><strong>Amount:</strong></td>
+                                        <td class="fw-bold">Amount</td>
                                         <td><?php echo formatCurrency($registrationDetails['total_amount'], $registrationDetails['currency']); ?></td>
                                     </tr>
                                     <tr>
-                                        <td><strong>Created:</strong></td>
+                                        <td class="fw-bold">Created Date</td>
                                         <td><?php echo date('M j, Y \a\t g:i A', strtotime($registrationDetails['created_at'])); ?></td>
                                     </tr>
-                                </table>
-                            </div>
-                            <div class="col-md-6">
-                                <h6 class="fw-bold">Contact Information</h6>
-                                <table class="table table-sm">
+                                    <tr class="table-light">
+                                        <td class="fw-bold" colspan="2" style="text-align: center; padding: 15px;">
+                                            <strong>Contact Information</strong>
+                                        </td>
+                                    </tr>
                                     <tr>
-                                        <td><strong>Name:</strong></td>
+                                        <td class="fw-bold">Full Name</td>
                                         <td><?php echo htmlspecialchars($registrationDetails['first_name'] . ' ' . $registrationDetails['last_name']); ?></td>
                                     </tr>
                                     <tr>
-                                        <td><strong>Email:</strong></td>
-                                        <td><?php echo htmlspecialchars($registrationDetails['email']); ?></td>
+                                        <td class="fw-bold">Email Address</td>
+                                        <td>
+                                            <a href="mailto:<?php echo htmlspecialchars($registrationDetails['email']); ?>" class="text-decoration-none">
+                                                <?php echo htmlspecialchars($registrationDetails['email']); ?>
+                                            </a>
+                                        </td>
                                     </tr>
                                     <tr>
-                                        <td><strong>Phone:</strong></td>
-                                        <td><?php echo htmlspecialchars($registrationDetails['phone']); ?></td>
+                                        <td class="fw-bold">Phone Number</td>
+                                        <td>
+                                            <a href="tel:<?php echo htmlspecialchars($registrationDetails['phone']); ?>" class="text-decoration-none">
+                                                <?php echo htmlspecialchars($registrationDetails['phone']); ?>
+                                            </a>
+                                        </td>
                                     </tr>
                                     <tr>
-                                        <td><strong>Nationality:</strong></td>
+                                        <td class="fw-bold">Nationality</td>
                                         <td><?php echo htmlspecialchars($registrationDetails['nationality']); ?></td>
                                     </tr>
                                     <tr>
-                                        <td><strong>Organization:</strong></td>
+                                        <td class="fw-bold">Organization</td>
                                         <td><?php echo htmlspecialchars($registrationDetails['organization']); ?></td>
                                     </tr>
-                                </table>
-                            </div>
+                                    <?php if (!empty($registrationDetails['organization_address'])): ?>
+                                    <tr>
+                                        <td class="fw-bold">Organization Address</td>
+                                        <td><?php echo htmlspecialchars($registrationDetails['organization_address']); ?></td>
+                                    </tr>
+                                    <?php endif; ?>
+                                    <?php if (!empty($registrationDetails['position'])): ?>
+                                    <tr>
+                                        <td class="fw-bold">Position</td>
+                                        <td><?php echo htmlspecialchars($registrationDetails['position']); ?></td>
+                                    </tr>
+                                    <?php endif; ?>
+                                </tbody>
+                            </table>
                         </div>
 
                         <?php if (!empty($participants)): ?>
@@ -332,28 +358,40 @@ if (isset($_GET['view']) && is_numeric($_GET['view'])) {
 
                         <!-- Payment Section -->
                         <div class="mt-4">
-                            <h6 class="fw-bold">Payment Information</h6>
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <table class="table table-sm">
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover">
+                                    <thead class="table-dark">
                                         <tr>
-                                            <td><strong>Payment Status:</strong></td>
+                                            <th colspan="2" class="text-center">
+                                                <h6 class="mb-0">Payment Information</h6>
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td class="fw-bold" style="width: 30%;">Payment Status</td>
                                             <td>
                                                 <?php 
                                                 $paymentStatus = $registrationDetails['payment_status'] ?? '';
                                                 if ($paymentStatus === 'completed'): ?>
-                                                    <span class="badge bg-success">Paid</span>
+                                                    <span class="badge bg-success fs-6">Paid</span>
                                                 <?php else: ?>
-                                                    <span class="badge bg-warning">Pending Payment</span>
+                                                    <span class="badge bg-warning fs-6">Pending Payment</span>
                                                 <?php endif; ?>
                                             </td>
                                         </tr>
                                         <tr>
-                                            <td><strong>Amount Due:</strong></td>
-                                            <td><?php echo formatCurrency($registrationDetails['total_amount'], $registrationDetails['currency']); ?></td>
+                                            <td class="fw-bold">Amount Due</td>
+                                            <td class="fs-5 fw-bold text-success"><?php echo formatCurrency($registrationDetails['total_amount'], $registrationDetails['currency']); ?></td>
                                         </tr>
-                                    </table>
-                                </div>
+                                        <?php if ($paymentStatus === 'completed'): ?>
+                                        <tr>
+                                            <td class="fw-bold">Payment Date</td>
+                                            <td><?php echo date('M j, Y \a\t g:i A', strtotime($registrationDetails['updated_at'])); ?></td>
+                                        </tr>
+                                        <?php endif; ?>
+                                    </tbody>
+                                </table>
                             </div>
                             
                             <?php if (($registrationDetails['payment_status'] ?? '') !== 'completed' && $registrationDetails['total_amount'] > 0): ?>
