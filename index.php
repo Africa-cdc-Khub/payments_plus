@@ -320,14 +320,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             } else if ($isFixedPricePackage) {
                 // For fixed-price packages (Students, Delegates), send normal registration emails
-                if (sendRegistrationEmails($user, $registrationId, $package, $totalAmount, $participants)) {
+                if (sendRegistrationEmails($user, $registrationId, $package, $totalAmount, $participants, $registrationType)) {
                     $success = true;
                 } else {
                     $errors[] = "Registration created but failed to queue confirmation email. Please contact support.";
                 }
             } else {
                 // For regular registrations, send normal registration emails
-                if (sendRegistrationEmails($user, $registrationId, $package, $totalAmount, $participants)) {
+                if (sendRegistrationEmails($user, $registrationId, $package, $totalAmount, $participants, $registrationType)) {
                     $success = true;
                 } else {
                     $errors[] = "Registration created but failed to queue confirmation email. Please contact support.";
@@ -1032,7 +1032,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                             </div>
                         </div>
                         
-                        <!-- Delegate Category and Airport fields (only for Delegates package) - Right column -->
+                        <!-- 1and Airport fields (only for Delegates package) - Right column -->
                         <div id="delegateFields" class="row" style="display: none;">
                             <div class="col-md-6 mb-3">
                                 <!-- Empty left column for delegates -->
@@ -1047,6 +1047,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                                     <option value="Secretariat" <?php echo (($formData['delegate_category'] ?? '') === 'Secretariat') ? 'selected' : ''; ?>>Secretariat</option>
                                     <option value="Media Partner" <?php echo (($formData['delegate_category'] ?? '') === 'Media Partner') ? 'selected' : ''; ?>>Media Partner</option>
                                     <option value="Side event focal person" <?php echo (($formData['delegate_category'] ?? '') === 'Side event focal person') ? 'selected' : ''; ?>>Side event focal person</option>
+                                    <option value="Youth Program Participant" <?php echo (($formData['delegate_category'] ?? '') === 'Youth Program Participant') ? 'selected' : ''; ?>>Youth Program Participant</option>
                                 </select>
                                 <div class="form-text">Required for delegate registration</div>
                             </div>
@@ -1111,7 +1112,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                                     if ($countriesData) {
                                         foreach ($countriesData as $country) {
                                             $selected = (isset($formData['country']) && $formData['country'] === $country['name']) ? 'selected' : '';
-                                            echo '<option value="' . htmlspecialchars($country['name']) . '" data-continent="' . htmlspecialchars($country['continent']) . '" ' . $selected . '>' . htmlspecialchars($country['name']) . '</option>';
+                                            echo '<option value="' . $country['name'] .' ' . $selected . '>' . htmlspecialchars($country['name']) . '</option>';
                                         }
                                     }
                                     ?>

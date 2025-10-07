@@ -107,6 +107,8 @@ if ($showRegistrationPreview) {
         'bill_to_address_state' => $registration['state'] ?? '',
         'bill_to_address_country' => getCountryCode($registration['country']),
         'bill_to_address_postal_code' => $registration['postal_code'] ?? '1234',
+
+    
         
         // Device fingerprinting and security
         'customer_ip_address' => $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1',
@@ -134,6 +136,9 @@ if ($showRegistrationPreview) {
     
     //print_r(json_encode($paymentData));
     //exit();
+    print_r($registration['country']);
+    print_r(getCountryCode($registration['country']));
+    exit();
 
     $signature = sign($paymentData);
 }

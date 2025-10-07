@@ -39,17 +39,17 @@
         .then(data => {
             if (data.success) {
                 // Show success message
-                button.innerHTML = '<i class="fas fa-check me-2"></i>Payment Link Sent!';
+                button.innerHTML = '<i class="fas fa-check me-2"></i>Invoice Sent!';
                 button.classList.remove('btn-outline-primary');
                 button.classList.add('btn-success');
                 
                 // Show success alert
-                showAlert('Payment link sent successfully! Check your email.', 'success');
+                showAlert('Invoice sent successfully! Check your email.', 'success');
             } else {
                 // Show error message
                 button.innerHTML = originalText;
                 button.disabled = false;
-                showAlert('Failed to send payment link. Please try again.', 'danger');
+                showAlert('Failed to send invoice. Please try again.', 'danger');
             }
         })
         .catch(error => {

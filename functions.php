@@ -193,59 +193,84 @@ function generatePaymentToken($registrationId) {
     return $token;
 }
 
-// Email notification functions using EmailQueue
-function sendRegistrationEmails($user, $registrationId, $package, $amount, $participants = []) {
-    $emailQueue = new \Cphia2025\EmailQueue();
-    $success = true;
-
-    // Queue registration confirmation to user
+// Generate invoice data for registration
+function generateInvoiceData($user, $registrationId, $package, $amount, $participants = [], $registrationType = 'individual') {
     $userName = $user['first_name'] . ' ' . $user['last_name'];
     
-    // Generate payment status link (no payment link in registration email)
-    $paymentStatusLink = rtrim(APP_URL, '/') . "/payment_status.php?id=" . $registrationId . "&email=" . urlencode($user['email']);
-    $paymentStatus = 'pending'; // All new registrations start as pending
+    // Generate payment link
+    $paymentLink = rtrim(APP_URL, '/') . "/registration_lookup.php?action=pay&id=" . $registrationId;
     
-    $templateData = [
+    // Calculate per-participant amount for group registrations
+    $numParticipants = count($participants) > 0 ? count($participants) : 1;
+    $perParticipantAmount = $numParticipants > 1 ? $amount / $numParticipants : $amount;
+    
+    // Add amount to each participant
+    $participantsWithAmount = [];
+    foreach ($participants as $participant) {
+        $participant['amount'] = number_format($perParticipantAmount, 2);
+        $participantsWithAmount[] = $participant;
+    }
+    
+    // Format dates
+    $invoiceDate = date('F j, Y');
+    $dueDate = date('F j, Y', strtotime('+30 days')); // 30 days from now
+    
+    return [
         'user_name' => $userName,
+        'user_email' => $user['email'],
+        'organization_name' => $user['organization'] ?? '',
+        'organization_address' => $user['organization_address'] ?? '',
         'registration_id' => $registrationId,
         'package_name' => $package['name'],
-        'amount' => $amount,
-        'participants' => $participants,
+        'registration_type' => ucfirst($registrationType),
+        'num_participants' => $numParticipants,
+        'total_amount' => number_format($amount, 2),
+        'participants' => $participantsWithAmount,
         'conference_name' => CONFERENCE_NAME,
         'conference_short_name' => CONFERENCE_SHORT_NAME,
         'conference_dates' => CONFERENCE_DATES,
         'conference_location' => CONFERENCE_LOCATION,
         'conference_venue' => CONFERENCE_VENUE,
         'logo_url' => EMAIL_LOGO_URL,
-        'payment_status_link' => $paymentStatusLink,
-        'payment_status' => $paymentStatus,
-        'mail_from_address' => MAIL_FROM_ADDRESS,
+        'payment_link' => $paymentLink,
+        'invoice_date' => $invoiceDate,
+        'due_date' => $dueDate,
         'support_email' => SUPPORT_EMAIL
     ];
+}
 
+// Email notification functions using EmailQueue
+function sendRegistrationEmails($user, $registrationId, $package, $amount, $participants = [], $registrationType = 'individual') {
+    $emailQueue = new \Cphia2025\EmailQueue();
+    $success = true;
+
+    // Generate invoice data
+    $invoiceData = generateInvoiceData($user, $registrationId, $package, $amount, $participants, $registrationType);
+    
+    // Queue invoice email to user
     $result = $emailQueue->addToQueue(
         $user['email'],
-        $userName,
-        CONFERENCE_SHORT_NAME . " - Registration Confirmation #" . $registrationId,
-        'registration_confirmation',
-        $templateData,
-        'registration_confirmation',
+        $invoiceData['user_name'],
+        CONFERENCE_SHORT_NAME . " - Registration Invoice #" . $registrationId,
+        'invoice',
+        $invoiceData,
+        'invoice',
         5
     );
 
     if (!$result) {
         $success = false;
-        error_log("Failed to queue registration confirmation to: " . $user['email']);
+        error_log("Failed to queue invoice to: " . $user['email']);
     }
 
     // Queue admin notification
     $adminTemplateData = [
         'registration_id' => $registrationId,
-        'user_name' => $userName,
+        'user_name' => $invoiceData['user_name'],
         'user_email' => $user['email'],
         'package_name' => $package['name'],
         'amount' => $amount,
-        'registration_type' => 'individual',
+        'registration_type' => $registrationType,
         'participants' => $participants,
         'conference_name' => CONFERENCE_NAME,
         'conference_short_name' => CONFERENCE_SHORT_NAME,
@@ -258,7 +283,7 @@ function sendRegistrationEmails($user, $registrationId, $package, $amount, $part
     $result = $emailQueue->addToQueue(
         ADMIN_EMAIL,
         ADMIN_NAME,
-        "New Registration: #" . $registrationId . " - " . $userName,
+        "New Registration: #" . $registrationId . " - " . $invoiceData['user_name'],
         'admin_registration_notification',
         $adminTemplateData,
         'admin_registration',
