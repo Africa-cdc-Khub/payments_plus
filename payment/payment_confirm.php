@@ -138,7 +138,7 @@ if ($showRegistrationPreview) {
     //exit();
     // print_r($registration['country']);
     // print_r(getCountryCode($registration['country']));
-    exit();
+    //exit();
 
     $signature = sign($paymentData);
 }
