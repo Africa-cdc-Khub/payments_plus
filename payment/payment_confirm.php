@@ -136,8 +136,8 @@ if ($showRegistrationPreview) {
     
     //print_r(json_encode($paymentData));
     //exit();
-    print_r($registration['country']);
-    print_r(getCountryCode($registration['country']));
+    // print_r($registration['country']);
+    // print_r(getCountryCode($registration['country']));
     exit();
 
     $signature = sign($paymentData);
