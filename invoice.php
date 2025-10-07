@@ -459,16 +459,23 @@ $pageTitle = "Invoice #" . $registrationId . " - " . CONFERENCE_SHORT_NAME;
                             <li><strong>Registration ID:</strong> #<?php echo htmlspecialchars($invoiceData['registration_id']); ?></li>
                             <li><strong>Package:</strong> <?php echo htmlspecialchars($invoiceData['package_name']); ?></li>
                             <li><strong>Amount Due:</strong> $<?php echo htmlspecialchars($invoiceData['total_amount']); ?></li>
-                            <li><strong>Payment Methods:</strong> Credit Card, Debit Card, Bank Transfer</li>
+                               <li><strong>Payment Methods:</strong> Credit Card, Debit Card, Bank Transfer (contact support for details)</li>
                         </ul>
                     </div>
                     
-                    <div class="contact-info">
-                        <h4>Need Help?</h4>
-                        <p>If you have any questions or need assistance with your payment, please contact us:</p>
-                        <p><strong>Email:</strong> <a href="mailto:<?php echo htmlspecialchars($invoiceData['support_email']); ?>" style="color: #063218;"><?php echo htmlspecialchars($invoiceData['support_email']); ?></a></p>
-                        <p><strong>Phone:</strong> +251-11-552-4177 (Monday - Friday, 9:00 AM - 5:00 PM EAT)</p>
-                    </div>
+                           <div class="contact-info">
+                               <h4>Bank Transfer Payment Option</h4>
+                               <p>If you prefer to pay by bank transfer instead of online payment, please contact our support team for banking details:</p>
+                               <p><strong>Email:</strong> <a href="mailto:<?php echo htmlspecialchars($invoiceData['support_email']); ?>" style="color: #063218;"><?php echo htmlspecialchars($invoiceData['support_email']); ?></a></p>
+                               <p><strong>Include in your email:</strong> Your Registration ID (#<?php echo htmlspecialchars($invoiceData['registration_id']); ?>) and preferred payment method</p>
+                           </div>
+                           
+                           <div class="contact-info" style="background: #f8f9fa; margin-top: 15px;">
+                               <h4>Need Help?</h4>
+                               <p>If you have any questions or need assistance with your payment, please contact us:</p>
+                               <p><strong>Email:</strong> <a href="mailto:<?php echo htmlspecialchars($invoiceData['support_email']); ?>" style="color: #063218;"><?php echo htmlspecialchars($invoiceData['support_email']); ?></a></p>
+                               <p><strong>Phone:</strong> +251-11-552-4177 (Monday - Friday, 9:00 AM - 5:00 PM EAT)</p>
+                           </div>
                 </div>
             </div>
             
