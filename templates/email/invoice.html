@@ -5,50 +5,72 @@
     <title>{{conference_short_name}} - Registration Invoice</title>
     <style>
         body { 
-            font-family: Arial, sans-serif; 
-            line-height: 1.6; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            line-height: 1.4; 
             color: #333; 
             max-width: 800px; 
             margin: 0 auto; 
-            background: #f8f9fa;
+            background: #f5f5f5;
+            font-size: 14px;
         }
         .invoice-container {
             background: white;
             margin: 20px;
-            box-shadow: 0 0 20px rgba(0,0,0,0.1);
-            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            border-radius: 0;
             overflow: hidden;
+            border: 1px solid #ddd;
         }
         .header { 
-            background: linear-gradient(135deg, #063218, #0a4d2e); 
+            background: #063218; 
             color: white; 
-            padding: 30px; 
-            text-align: center; 
+            padding: 25px 30px; 
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 3px solid #0a4d2e;
+        }
+        .header-left {
+            flex: 1;
+        }
+        .header-right {
+            text-align: right;
+            flex: 1;
         }
         .header h1 { 
             color: white; 
-            margin: 0; 
-            font-size: 28px; 
+            margin: 0 0 5px 0; 
+            font-size: 24px; 
             font-weight: bold; 
         }
-        .header p { 
-            color: white; 
-            margin: 5px 0 0 0; 
-            font-size: 16px; 
-            opacity: 0.9; 
+        .header .subtitle { 
+            color: #b8d4c1; 
+            margin: 0; 
+            font-size: 14px; 
+            font-weight: normal;
         }
         .logo-container {
             display: flex;
-            justify-content: center;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
         }
         .logo { 
-            max-height: 60px; 
+            max-height: 50px; 
             background: white; 
-            padding: 10px; 
-            border-radius: 5px; 
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 8px; 
+            border-radius: 4px; 
+            margin-right: 15px;
+        }
+        .invoice-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: white;
+            margin: 0;
+        }
+        .invoice-number {
+            font-size: 16px;
+            color: #b8d4c1;
+            margin: 5px 0 0 0;
         }
         .invoice-details {
             display: flex;
@@ -154,6 +176,68 @@
             background: #0a4d2e;
             color: white;
         }
+        .payment-instructions {
+            background: #f8f9fa;
+            padding: 25px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+        }
+        .payment-instructions h3 {
+            color: #063218;
+            margin: 0 0 20px 0;
+            font-size: 18px;
+            border-bottom: 2px solid #063218;
+            padding-bottom: 10px;
+        }
+        .instructions-content h4 {
+            color: #063218;
+            margin: 20px 0 10px 0;
+            font-size: 16px;
+        }
+        .instructions-content ol {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        .instructions-content li {
+            margin: 8px 0;
+            line-height: 1.5;
+        }
+        .payment-info-box {
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            border-left: 4px solid #063218;
+        }
+        .payment-info-box h4 {
+            color: #063218;
+            margin: 0 0 10px 0;
+            font-size: 14px;
+        }
+        .payment-info-box ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        .payment-info-box li {
+            margin: 5px 0;
+            font-size: 13px;
+        }
+        .contact-info {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        .contact-info h4 {
+            color: #063218;
+            margin: 0 0 10px 0;
+            font-size: 14px;
+        }
+        .contact-info p {
+            margin: 5px 0;
+            font-size: 13px;
+        }
         .footer { 
             text-align: center; 
             padding: 30px; 
@@ -194,22 +278,25 @@
 <body>
     <div class="invoice-container">
         <div class="header">
-            <div class="logo-container">
-                <img src="{{logo_url}}" alt="Africa CDC" class="logo">
+            <div class="header-left">
+                <div class="logo-container">
+                    <img src="{{logo_url}}" alt="Africa CDC" class="logo">
+                    <div>
+                        <h1>{{conference_short_name}}</h1>
+                        <p class="subtitle">{{conference_name}}</p>
+                    </div>
+                </div>
             </div>
-            <h1>{{conference_short_name}}</h1>
-            <p>{{conference_name}}</p>
+            <div class="header-right">
+                <div class="invoice-title">INVOICE</div>
+                <div class="invoice-number">#INV-{{registration_id}}</div>
+                <div style="font-size: 12px; color: #b8d4c1; margin-top: 5px;">
+                    Date: {{invoice_date}}
+                </div>
+            </div>
         </div>
         
         <div class="invoice-details">
-            <div class="invoice-info">
-                <h2>Registration Invoice</h2>
-                <div class="invoice-meta">
-                    <p><strong>Invoice #:</strong> <span class="invoice-number">INV-{{registration_id}}</span></p>
-                    <p><strong>Date:</strong> {{invoice_date}}</p>
-                    <p><strong>Due Date:</strong> {{due_date}}</p>
-                </div>
-            </div>
             <div class="bill-to">
                 <h3>Bill To:</h3>
                 {{#if organization_name}}
@@ -220,6 +307,15 @@
                 {{#if organization_address}}
                 <p>{{organization_address}}</p>
                 {{/if}}
+            </div>
+            <div class="invoice-info">
+                <div class="invoice-meta">
+                    <p><strong>Due Date:</strong> {{due_date}}</p>
+                    <p><strong>Registration Type:</strong> {{registration_type}}</p>
+                    {{#if num_participants}}
+                    <p><strong>Participants:</strong> {{num_participants}}</p>
+                    {{/if}}
+                </div>
             </div>
         </div>
         
@@ -282,6 +378,36 @@
                 <p style="font-size: 12px; color: #666; margin-top: 15px;">
                     Or copy and paste this link: {{payment_link}}
                 </p>
+            </div>
+            
+            <div class="payment-instructions">
+                <h3>Payment Instructions</h3>
+                <div class="instructions-content">
+                    <h4>To Pay Later:</h4>
+                    <ol>
+                        <li><strong>Visit the Registration Portal:</strong> Go to <a href="{{registration_lookup_url}}" style="color: #063218; font-weight: bold;">{{registration_lookup_url}}</a></li>
+                        <li><strong>Enter Your Details:</strong> Provide your email address and registration phone number</li>
+                        <li><strong>Retrieve Registration:</strong> Click "Lookup Registration" to access your registration details</li>
+                        <li><strong>Complete Payment:</strong> Click "Pay Now" to proceed with payment for your registered package</li>
+                    </ol>
+                    
+                    <div class="payment-info-box">
+                        <h4>Payment Information:</h4>
+                        <ul>
+                            <li><strong>Registration ID:</strong> #{{registration_id}}</li>
+                            <li><strong>Package:</strong> {{package_name}}</li>
+                            <li><strong>Amount Due:</strong> ${{total_amount}}</li>
+                            <li><strong>Payment Methods:</strong> Credit Card, Debit Card, Bank Transfer</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="contact-info">
+                        <h4>Need Help?</h4>
+                        <p>If you have any questions or need assistance with your payment, please contact us:</p>
+                        <p><strong>Email:</strong> <a href="mailto:{{support_email}}" style="color: #063218;">{{support_email}}</a></p>
+                        <p><strong>Phone:</strong> +251-11-552-4177 (Monday - Friday, 9:00 AM - 5:00 PM EAT)</p>
+                    </div>
+                </div>
             </div>
             
             <div style="background: #fff3cd; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #ffc107;">

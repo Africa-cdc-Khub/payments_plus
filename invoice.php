@@ -218,6 +218,68 @@ $pageTitle = "Invoice #" . $registrationId . " - " . CONFERENCE_SHORT_NAME;
             background: #0a4d2e;
             color: white;
         }
+        .payment-instructions {
+            background: #f8f9fa;
+            padding: 25px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+        }
+        .payment-instructions h3 {
+            color: #063218;
+            margin: 0 0 20px 0;
+            font-size: 18px;
+            border-bottom: 2px solid #063218;
+            padding-bottom: 10px;
+        }
+        .instructions-content h4 {
+            color: #063218;
+            margin: 20px 0 10px 0;
+            font-size: 16px;
+        }
+        .instructions-content ol {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        .instructions-content li {
+            margin: 8px 0;
+            line-height: 1.5;
+        }
+        .payment-info-box {
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            border-left: 4px solid #063218;
+        }
+        .payment-info-box h4 {
+            color: #063218;
+            margin: 0 0 10px 0;
+            font-size: 14px;
+        }
+        .payment-info-box ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        .payment-info-box li {
+            margin: 5px 0;
+            font-size: 13px;
+        }
+        .contact-info {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        .contact-info h4 {
+            color: #063218;
+            margin: 0 0 10px 0;
+            font-size: 14px;
+        }
+        .contact-info p {
+            margin: 5px 0;
+            font-size: 13px;
+        }
         .footer { 
             text-align: center; 
             padding: 30px; 
@@ -283,22 +345,25 @@ $pageTitle = "Invoice #" . $registrationId . " - " . CONFERENCE_SHORT_NAME;
 
     <div class="invoice-container">
         <div class="header">
-            <div class="logo-container">
-                <img src="<?php echo htmlspecialchars($invoiceData['logo_url']); ?>" alt="Africa CDC" class="logo">
+            <div class="header-left">
+                <div class="logo-container">
+                    <img src="<?php echo htmlspecialchars($invoiceData['logo_url']); ?>" alt="Africa CDC" class="logo">
+                    <div>
+                        <h1><?php echo htmlspecialchars($invoiceData['conference_short_name']); ?></h1>
+                        <p class="subtitle"><?php echo htmlspecialchars($invoiceData['conference_name']); ?></p>
+                    </div>
+                </div>
             </div>
-            <h1><?php echo htmlspecialchars($invoiceData['conference_short_name']); ?></h1>
-            <p><?php echo htmlspecialchars($invoiceData['conference_name']); ?></p>
+            <div class="header-right">
+                <div class="invoice-title">INVOICE</div>
+                <div class="invoice-number">#INV-<?php echo htmlspecialchars($invoiceData['registration_id']); ?></div>
+                <div style="font-size: 12px; color: #b8d4c1; margin-top: 5px;">
+                    Date: <?php echo htmlspecialchars($invoiceData['invoice_date']); ?>
+                </div>
+            </div>
         </div>
         
         <div class="invoice-details">
-            <div class="invoice-info">
-                <h2>Registration Invoice</h2>
-                <div class="invoice-meta">
-                    <p><strong>Invoice #:</strong> <span class="invoice-number">INV-<?php echo htmlspecialchars($invoiceData['registration_id']); ?></span></p>
-                    <p><strong>Date:</strong> <?php echo htmlspecialchars($invoiceData['invoice_date']); ?></p>
-                    <p><strong>Due Date:</strong> <?php echo htmlspecialchars($invoiceData['due_date']); ?></p>
-                </div>
-            </div>
             <div class="bill-to">
                 <h3>Bill To:</h3>
                 <?php if (!empty($invoiceData['organization_name'])): ?>
@@ -309,6 +374,15 @@ $pageTitle = "Invoice #" . $registrationId . " - " . CONFERENCE_SHORT_NAME;
                 <?php if (!empty($invoiceData['organization_address'])): ?>
                 <p><?php echo htmlspecialchars($invoiceData['organization_address']); ?></p>
                 <?php endif; ?>
+            </div>
+            <div class="invoice-info">
+                <div class="invoice-meta">
+                    <p><strong>Due Date:</strong> <?php echo htmlspecialchars($invoiceData['due_date']); ?></p>
+                    <p><strong>Registration Type:</strong> <?php echo htmlspecialchars($invoiceData['registration_type']); ?></p>
+                    <?php if ($invoiceData['num_participants'] > 1): ?>
+                    <p><strong>Participants:</strong> <?php echo htmlspecialchars($invoiceData['num_participants']); ?></p>
+                    <?php endif; ?>
+                </div>
             </div>
         </div>
         
@@ -371,6 +445,36 @@ $pageTitle = "Invoice #" . $registrationId . " - " . CONFERENCE_SHORT_NAME;
                 <p style="font-size: 12px; color: #666; margin-top: 15px;">
                     Or copy and paste this link: <?php echo htmlspecialchars($invoiceData['payment_link']); ?>
                 </p>
+            </div>
+            
+            <div class="payment-instructions">
+                <h3>Payment Instructions</h3>
+                <div class="instructions-content">
+                    <h4>To Pay Later:</h4>
+                    <ol>
+                        <li><strong>Visit the Registration Portal:</strong> Go to <a href="<?php echo htmlspecialchars($invoiceData['registration_lookup_url']); ?>" style="color: #063218; font-weight: bold;"><?php echo htmlspecialchars($invoiceData['registration_lookup_url']); ?></a></li>
+                        <li><strong>Enter Your Details:</strong> Provide your email address and registration phone number</li>
+                        <li><strong>Retrieve Registration:</strong> Click "Lookup Registration" to access your registration details</li>
+                        <li><strong>Complete Payment:</strong> Click "Pay Now" to proceed with payment for your registered package</li>
+                    </ol>
+                    
+                    <div class="payment-info-box">
+                        <h4>Payment Information:</h4>
+                        <ul>
+                            <li><strong>Registration ID:</strong> #<?php echo htmlspecialchars($invoiceData['registration_id']); ?></li>
+                            <li><strong>Package:</strong> <?php echo htmlspecialchars($invoiceData['package_name']); ?></li>
+                            <li><strong>Amount Due:</strong> $<?php echo htmlspecialchars($invoiceData['total_amount']); ?></li>
+                            <li><strong>Payment Methods:</strong> Credit Card, Debit Card, Bank Transfer</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="contact-info">
+                        <h4>Need Help?</h4>
+                        <p>If you have any questions or need assistance with your payment, please contact us:</p>
+                        <p><strong>Email:</strong> <a href="mailto:<?php echo htmlspecialchars($invoiceData['support_email']); ?>" style="color: #063218;"><?php echo htmlspecialchars($invoiceData['support_email']); ?></a></p>
+                        <p><strong>Phone:</strong> +251-11-552-4177 (Monday - Friday, 9:00 AM - 5:00 PM EAT)</p>
+                    </div>
+                </div>
             </div>
             
             <div style="background: #fff3cd; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #ffc107;">

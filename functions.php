@@ -200,6 +200,9 @@ function generateInvoiceData($user, $registrationId, $package, $amount, $partici
     // Generate payment link
     $paymentLink = rtrim(APP_URL, '/') . "/registration_lookup.php?action=pay&id=" . $registrationId;
     
+    // Generate registration lookup URL
+    $registrationLookupUrl = rtrim(APP_URL, '/') . "/registration_lookup.php";
+    
     // Calculate per-participant amount for group registrations
     $numParticipants = count($participants) > 0 ? count($participants) : 1;
     $perParticipantAmount = $numParticipants > 1 ? $amount / $numParticipants : $amount;
@@ -233,6 +236,7 @@ function generateInvoiceData($user, $registrationId, $package, $amount, $partici
         'conference_venue' => CONFERENCE_VENUE,
         'logo_url' => EMAIL_LOGO_URL,
         'payment_link' => $paymentLink,
+        'registration_lookup_url' => $registrationLookupUrl,
         'invoice_date' => $invoiceDate,
         'due_date' => $dueDate,
         'support_email' => SUPPORT_EMAIL
