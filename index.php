@@ -523,18 +523,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
 <body>
     <div class="container">
         <!-- Header -->
-        <header class="header">
-            <div class="header-content text-center">
-                <div class="header-text">
-                    <div class="logo mb-2">
-                        <img src="images/logo.png" alt="CPHIA 2025" class="logo-img" style="filter: brightness(0) invert(1);">
-                    </div>
-                    <h1 class="mb-2"><?php echo CONFERENCE_NAME; ?></h1>
-                    <h2 class="mb-2"><?php echo CONFERENCE_SHORT_NAME; ?></h2>
-                    <p class="conference-dates mb-0"><?php echo CONFERENCE_DATES; ?> • <?php echo CONFERENCE_LOCATION; ?></p>
-                </div>
-            </div>
-        </header>
+        <?php include __DIR__ . '/home/header.php'; ?>
+
+        <div style="padding: 0 5%;">
 
         <!-- Success/Error Messages -->
         <?php if (isset($success) && $success): ?>
@@ -826,7 +817,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                     </div>
                     <?php foreach ($individualPackages as $package): ?>
                         <div class="col-6 col-md-3">
-                            <div class="card package-card h-100" data-package-id="<?php echo $package['id']; ?>" data-type="<?php echo $package['type']; ?>" data-package-name="<?php echo htmlspecialchars($package['name']); ?>">
+                            <div class="card package-card h-100" data-package-id="<?php echo $package['id']; ?>" data-type="<?php echo $package['type']; ?>" data-package-name="<?php echo htmlspecialchars($package['name']); ?>" data-continent="<?php echo htmlspecialchars($package['continent'] ?? 'all'); ?>">
                                 <div class="card-body d-flex flex-column p-3 text-center">
                                     <div class="package-icon mb-3">
                                         <i class="<?php echo htmlspecialchars($package['icon'] ?? 'fas fa-ticket-alt'); ?> <?php echo htmlspecialchars($package['color'] ?? 'text-primary'); ?> fa-3x"></i>
@@ -987,8 +978,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                                     $nationalitiesData = getAllNationalities();
                                     if ($nationalitiesData) {
                                         foreach ($nationalitiesData as $nationality) {
-                                            $selected = (isset($formData['nationality']) && $formData['nationality'] === $nationality['nationality']) ? 'selected' : '';
-                                            echo '<option value="' . htmlspecialchars($nationality['nationality']) . '" data-continent="' . htmlspecialchars($nationality['continent']) . '" ' . $selected . '>' . htmlspecialchars($nationality['country_name']) . ' (' . htmlspecialchars($nationality['nationality']) . ')</option>';
+                                            $selected = (isset($formData['nationality']) && $formData['nationality'] === $nationality['code']) ? 'selected' : '';
+                                            echo '<option value="' . htmlspecialchars($nationality['code']) . '" data-continent="' . htmlspecialchars($nationality['continent']) . '" ' . $selected . '>' . htmlspecialchars($nationality['country_name']) . ' (' . htmlspecialchars($nationality['nationality']) . ')</option>';
                                         }
                                     }
                                     ?>
@@ -1120,7 +1111,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                                     if ($countriesData) {
                                         foreach ($countriesData as $country) {
                                             $selected = (isset($formData['country']) && $formData['country'] === $country['name']) ? 'selected' : '';
-                                            echo '<option value="' . htmlspecialchars($country['name']) . '" ' . $selected . '>' . htmlspecialchars($country['name']) . '</option>';
+                                            echo '<option value="' . htmlspecialchars($country['name']) . '" data-continent="' . htmlspecialchars($country['continent']) . '" ' . $selected . '>' . htmlspecialchars($country['name']) . '</option>';
                                         }
                                     }
                                     ?>
@@ -1243,116 +1234,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                 </div>
             </form>
         </div>
+        </div>
     </div>
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- jQuery -->
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <!-- Select2 JS -->
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-    <!-- Lobibox JS -->
-    <script src="https://cdn.jsdelivr.net/npm/lobibox@1.2.7/dist/js/lobibox.min.js"></script>
-    <!-- reCAPTCHA JS -->
-    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
-    <!-- Custom JS -->
-    <script src="js/registration.js"></script>
-    
-    <!-- Pass form data to JavaScript for restoration -->
-    <script>
-        window.formData = <?php echo json_encode($formData); ?>;
-        window.hasErrors = <?php echo !empty($errors) ? 'true' : 'false'; ?>;
-        
-        // Function to send payment link via email
-        function sendPaymentLink(registrationId) {
-            const button = event.target;
-            const originalText = button.innerHTML;
-            
-            // Show loading state
-            button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Sending...';
-            button.disabled = true;
-            
-            // Send AJAX request
-            fetch('send_payment_link.php', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    registration_id: registrationId
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Show success message
-                    button.innerHTML = '<i class="fas fa-check me-2"></i>Payment Link Sent!';
-                    button.classList.remove('btn-outline-primary');
-                    button.classList.add('btn-success');
-                    
-                    // Show success alert
-                    showAlert('Payment link sent successfully! Check your email.', 'success');
-                } else {
-                    // Show error message
-                    button.innerHTML = originalText;
-                    button.disabled = false;
-                    showAlert('Failed to send payment link. Please try again.', 'danger');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                button.innerHTML = originalText;
-                button.disabled = false;
-                showAlert('An error occurred. Please try again.', 'danger');
-            });
-        }
-        
-        // Function to show alerts
-        function showAlert(message, type) {
-            const alertDiv = document.createElement('div');
-            alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
-            alertDiv.innerHTML = `
-                ${message}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            `;
-            
-            // Insert after the success message
-            const successAlert = document.querySelector('.alert-success');
-            if (successAlert) {
-                successAlert.parentNode.insertBefore(alertDiv, successAlert.nextSibling);
-            }
-        }
-    </script>
+    <?php include __DIR__ . '/home/scripts.php'; ?>
     
     <!-- Footer -->
-    <footer class="py-3 mt-4 mx-3" style="background-color: #f8f9fa; border-top: 1px solid #e9ecef;">
-        <div class="container">
-            <div class="row align-items-center">
-                <div class="col-md-6">
-                    <div class="d-flex align-items-center">
-                        <img src="images/logo.png" 
-                             alt="Africa CDC" 
-                             style="height: 50px; margin-right: 15px;">
-                    </div>
-                </div>
-                <div class="col-md-6 text-md-end">
-                    <div class="d-flex justify-content-md-end gap-3">
-                        <a href="https://africacdc.org" class="text-muted text-decoration-none small" target="_blank">Africa CDC</a>
-                        <a href="https://cphia2025.com" class="text-muted text-decoration-none small" target="_blank">CPHIA 2025</a>
-                        <a href="mailto:<?php echo SUPPORT_EMAIL; ?>" class="text-muted text-decoration-none small">
-                            <i class="fas fa-envelope me-1"></i>Support
-                        </a>
-                    </div>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-12 text-center">
-                    <span class="text-muted small">
-                        © <?php echo date('Y'); ?> Africa CDC. All rights reserved.
-                    </span>
-                </div>
-            </div>
-        </div>
-    </footer>
+    <?php include __DIR__ . '/home/footer.php'; ?>
 </body>
 </html>

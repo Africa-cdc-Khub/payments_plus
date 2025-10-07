@@ -35,7 +35,7 @@ define('APP_URL', $_ENV['APP_URL'] ?? 'http://localhost');
 define('DB_HOST', $_ENV['DB_HOST'] ?? 'localhost');
 define('DB_NAME', $_ENV['DB_NAME'] ?? 'cphia_payments');
 define('DB_USER', $_ENV['DB_USER'] ?? 'root');
-define('DB_PASS', $_ENV['DB_PASS'] ?? 'password');
+define('DB_PASS', $_ENV['DB_PASS'] ?? 'Admin!2025');
 define('DB_CHARSET', $_ENV['DB_CHARSET'] ?? 'utf8');
 
 // Payment Gateway - CyberSource

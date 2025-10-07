@@ -159,6 +159,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 name: card.dataset.packageName || card.querySelector('h5, h6').textContent,
                 price: price,
                 type: card.dataset.type,
+                continent: (card.dataset.continent || 'all').toLowerCase(),
                 icon: icon,
                 color: color,
                 maxPeople: card.querySelector('.package-max') ? 
@@ -592,21 +593,117 @@ document.addEventListener('DOMContentLoaded', function() {
                 groupRadio.dispatchEvent(event);
             }
             
-            // Repopulate nationality select with filtered countries
-            // Ensure countries are loaded first
-            if (countries.length === 0) {
-                console.log('Countries not loaded yet, loading...');
-                loadCountries().then(() => {
-                    console.log('Countries loaded, now populating nationality select');
-                    populateNationalitySelect();
-                });
-            } else {
-                console.log('Countries already loaded, populating nationality select');
+            // Fetch filtered countries and nationalities based on continent policy and repopulate selects
+            (function() {
+                const policy = (selectedPackage && selectedPackage.continent) ? selectedPackage.continent : 'all';
+                const url = new URL('api/get_countries.php', window.location.href);
+                url.searchParams.set('continent_policy', policy);
+                url.searchParams.set('include_nationalities', 'true');
+                console.log('Fetching filtered lists with policy:', policy, url.toString());
+                
+                fetch(url)
+                    .then(r => r.json())
+                    .then(data => {
+                        if (!data.success) throw new Error(data.error || 'Failed to fetch filtered lists');
+                        console.log('Filtered lists received:', {
+                            policy,
+                            countries: (data.countries || []).length,
+                            nationalities: (data.nationalities || []).length
+                        });
+                        const $nat = $('#nationality');
+                        const $country = $('#country');
+                        // Ensure Select2 is destroyed before DOM mutations
+                        if ($nat.hasClass('select2-hidden-accessible')) { $nat.select2('destroy'); }
+                        if ($country.hasClass('select2-hidden-accessible')) { $country.select2('destroy'); }
+                        // Repopulate nationality select
+                        const nationalityValue = $nat.val() || '';
+                        $nat.empty().append('<option value="">Select Nationality</option>');
+                        (data.nationalities || []).forEach(n => {
+                            const sel = nationalityValue && nationalityValue === n.country_code ? ' selected' : '';
+                            $nat.append(`<option value="${n.country_code}" data-continent="${n.continent}"${sel}>${n.country_name} (${n.nationality})</option>`);
+                        });
+                        // Repopulate country select
+                        const countryValue = $country.val() || '';
+                        $country.empty().append('<option value="">Select Country</option>');
+                        (data.countries || []).forEach(c => {
+                            const sel = countryValue && countryValue === c.name ? ' selected' : '';
+                            $country.append(`<option value="${c.name}" data-continent="${c.continent}"${sel}>${c.name}</option>`);
+                        });
+                        // Re-init Select2 directly to avoid double-binding
+                        $nat.select2({ theme: 'bootstrap-5', placeholder: 'Select Nationality', allowClear: true, width: '100%' });
+                        $country.select2({ theme: 'bootstrap-5', placeholder: 'Select Country', allowClear: true, width: '100%' });
+                        // Sync participant nationality selects with main
+                        syncParticipantNationalityOptions();
+                    })
+                    .catch(err => {
+                        console.error('Filtered lists fetch error:', err);
+                        // Fallback (kept for resilience)
                 populateNationalitySelect();
-            }
+                    });
+            })();
         } catch (error) {
             console.error('Error in selectPackage:', error);
         }
+    }
+
+    // Fetch filtered countries/nationalities by continent policy and repopulate selects
+    function fetchFilteredListsAndRepopulate() {
+        const policy = (selectedPackage && selectedPackage.continent) ? selectedPackage.continent : 'all';
+        const url = new URL('api/get_countries.php', window.location.href);
+        url.searchParams.set('continent_policy', policy);
+        url.searchParams.set('include_nationalities', 'true');
+        
+        fetch(url)
+            .then(r => r.json())
+            .then(data => {
+                if (!data.success) throw new Error(data.error || 'Failed to fetch filtered lists');
+                // Repopulate nationality
+                const nationalityValue = $('#nationality').val() || '';
+                $('#nationality').empty().append('<option value="">Select Nationality</option>');
+                (data.nationalities || []).forEach(n => {
+                    const isSelected = nationalityValue && nationalityValue === n.country_code ? ' selected' : '';
+                    $('#nationality').append(`<option value="${n.country_code}" data-continent="${n.continent}"${isSelected}>${n.country_name} (${n.nationality})</option>`);
+                });
+                // Repopulate country
+                const countryValue = $('#country').val() || '';
+                $('#country').empty().append('<option value="">Select Country</option>');
+                (data.countries || []).forEach(c => {
+                    const isSelected = countryValue && countryValue === c.name ? ' selected' : '';
+                    $('#country').append(`<option value="${c.name}" data-continent="${c.continent}"${isSelected}>${c.name}</option>`);
+                });
+                // Re-init Select2
+                initializeSelect2();
+                // Sync participant nationality selects with main
+                syncParticipantNationalityOptions();
+            })
+            .catch(err => {
+                console.error('Filtered lists fetch error:', err);
+                // Fallback to existing populate behavior
+                populateNationalitySelect();
+            });
+    }
+
+    function syncParticipantNationalityOptions() {
+        const mainNationalitySelect = document.getElementById('nationality');
+        const participantSelects = document.querySelectorAll('.participant-nationality');
+        participantSelects.forEach(nationalitySelect => {
+            const current = nationalitySelect.value;
+            nationalitySelect.innerHTML = '<option value="">Select Nationality</option>';
+            Array.from(mainNationalitySelect.options).slice(1).forEach(option => {
+                const newOption = option.cloneNode(true);
+                if (option.hasAttribute('data-continent')) {
+                    newOption.setAttribute('data-continent', option.getAttribute('data-continent'));
+                }
+                nationalitySelect.appendChild(newOption);
+            });
+            // restore value if still present
+            if (current) {
+                const exists = Array.from(nationalitySelect.options).some(o => o.value === current && o.style.display !== 'none');
+                nationalitySelect.value = exists ? current : '';
+            }
+            $(nationalitySelect).select2('destroy').select2({ theme: 'bootstrap-5', placeholder: 'Select Nationality', allowClear: true, width: '100%' });
+            updateParticipantNationalityFilter(nationalitySelect);
+        });
     }
 
     function updateSelectedPackageInfo() {
@@ -698,7 +795,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function loadNationalities(packageId = null, packageName = null) {
-        const url = new URL('api/get_countries.php', window.location.origin);
+        const url = new URL('api/get_countries.php', window.location.href);
         url.searchParams.set('nationalities_only', 'true');
         if (packageId) url.searchParams.set('package_id', packageId);
         if (packageName) url.searchParams.set('package_name', packageName);
@@ -743,12 +840,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 option.style.display = '';
             });
         } else {
-            // Package selected - filter based on package
-            const packageName = selectedPackage.name.toLowerCase();
-            console.log('Filtering nationalities for package:', packageName);
-            console.log('Selected package name:', selectedPackage.name);
-            console.log('Package name includes "african nationals":', packageName.includes('african nationals'));
-            console.log('Package name includes "non":', packageName.includes('non'));
+            // Package selected - filter based on package continent policy
+            const packageContinentPolicy = (selectedPackage.continent || 'all').toString().toLowerCase();
+            const packageName = selectedPackage.name ? selectedPackage.name.toLowerCase() : '';
+            console.log('Filtering nationalities for package continent policy:', packageContinentPolicy);
             
             let visibleCount = 0;
             let hiddenCount = 0;
@@ -757,18 +852,24 @@ document.addEventListener('DOMContentLoaded', function() {
                 const nationality = option.value;
                 let shouldShow = true;
                 
-                if (packageName.includes('african nationals') && !packageName.includes('non')) {
-                    // Show only African nationalities - filter by continent
+                if (packageContinentPolicy === 'africa') {
+                    // Only African nationalities
                     shouldShow = isAfricanByContinent(option);
-                    console.log('African package - nationality:', nationality, 'shouldShow:', shouldShow);
-                } else if (packageName.includes('non') && packageName.includes('african nationals')) {
-                    // Show only non-African nationalities - filter by continent
+                } else if (packageContinentPolicy === 'other') {
+                    // Exclude African nationalities
                     shouldShow = !isAfricanByContinent(option);
-                    console.log('Non-African package - nationality:', nationality, 'shouldShow:', shouldShow);
+                } else if (packageContinentPolicy === 'all') {
+                    shouldShow = true;
                 } else {
-                    console.log('Other package - showing all nationalities for:', nationality);
+                    // Fallback to legacy name-based behavior if policy not set
+                if (packageName.includes('african nationals') && !packageName.includes('non')) {
+                    shouldShow = isAfricanByContinent(option);
+                } else if (packageName.includes('non') && packageName.includes('african nationals')) {
+                    shouldShow = !isAfricanByContinent(option);
+                } else {
+                        shouldShow = true;
                 }
-                // For students, delegates, and other packages, show all nationalities
+                }
                 
                 if (shouldShow) {
                     option.style.display = '';
@@ -784,6 +885,9 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Reinitialize Select2 to reflect changes
         initializeSelect2();
+
+        // Also filter country select by package continent policy
+        filterCountrySelectByPackagePolicy();
     }
 
     // Initialize Select2 for nationality and country dropdowns
@@ -821,6 +925,37 @@ document.addEventListener('DOMContentLoaded', function() {
                 updateCostEstimation(numPeople);
             }
         });
+    }
+
+    // Filter country dropdown based on selectedPackage.continent policy
+    function filterCountrySelectByPackagePolicy() {
+        const countrySelect = document.getElementById('country');
+        if (!countrySelect) return;
+        const options = Array.from(countrySelect.options).slice(1);
+        if (!selectedPackage) {
+            options.forEach(o => { o.style.display = ''; });
+            $('#country').trigger('change.select2');
+            return;
+        }
+        const policy = (selectedPackage.continent || 'all').toString().toLowerCase();
+        options.forEach(option => {
+            const continent = option.getAttribute('data-continent');
+            let show = true;
+            if (policy === 'africa') {
+                show = continent === 'Africa';
+            } else if (policy === 'other') {
+                show = continent !== 'Africa';
+            } else {
+                show = true;
+            }
+            option.style.display = show ? '' : 'none';
+        });
+        // If current value is hidden by filter, reset selection
+        const selectedOption = countrySelect.selectedOptions[0];
+        if (selectedOption && selectedOption.style.display === 'none') {
+            countrySelect.value = '';
+        }
+        $('#country').trigger('change.select2');
     }
 
     // Restore package selection from form data
@@ -934,7 +1069,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Function to load countries filtered by package type
     function loadCountriesByPackage(packageId, packageName) {
-        const url = new URL('api/get_countries.php', window.location.origin);
+        const url = new URL('api/get_countries.php', window.location.href);
         if (packageId) url.searchParams.set('package_id', packageId);
         if (packageName) url.searchParams.set('package_name', packageName);
         
@@ -1590,19 +1725,31 @@ document.addEventListener('DOMContentLoaded', function() {
                 option.style.display = '';
             });
         } else {
-            // Package selected - filter based on package
-            const packageName = selectedPackage.name.toLowerCase();
+            // Package selected - filter based on package continent policy
+            const packageContinentPolicy = (selectedPackage.continent || 'all').toString().toLowerCase();
+            const packageName = selectedPackage.name ? selectedPackage.name.toLowerCase() : '';
             
             allOptions.forEach(option => {
                 const nationality = option.value;
                 let shouldShow = true;
                 
-                if (packageName.includes('african nationals') && !packageName.includes('non')) {
+                if (packageContinentPolicy === 'africa') {
                     // Show only African nationalities - filter by continent
                     shouldShow = isAfricanByContinent(option);
-                } else if (packageName.includes('non') && packageName.includes('african nationals')) {
+                } else if (packageContinentPolicy === 'other') {
                     // Show only non-African nationalities - filter by continent
                     shouldShow = !isAfricanByContinent(option);
+                } else if (packageContinentPolicy === 'all') {
+                    shouldShow = true;
+                } else {
+                    // Fallback to legacy name-based behavior if policy not set
+                    if (packageName.includes('african nationals') && !packageName.includes('non')) {
+                        shouldShow = isAfricanByContinent(option);
+                    } else if (packageName.includes('non') && packageName.includes('african nationals')) {
+                        shouldShow = !isAfricanByContinent(option);
+                    } else {
+                        shouldShow = true;
+                    }
                 }
                 // For students, delegates, and other packages, show all nationalities
                 

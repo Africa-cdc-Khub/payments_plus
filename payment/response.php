@@ -285,7 +285,7 @@ if (strtolower($decision) === 'accept' && $registrationId) {
         </header>
     </div>
 
-    <div class="response-container">
+    <div class="response-container" style="padding: 0 5%;">
         <a href="../registration_lookup.php" class="back-link">
             <i class="fas fa-arrow-left"></i> Back to Registrations
         </a>

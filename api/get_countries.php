@@ -23,6 +23,8 @@ $response = ['success' => false, 'countries' => []];
 try {
     // Get filter parameters
     $continent = $_GET['continent'] ?? null;
+    // New: continent policy: 'africa' | 'other' | 'all' for package filtering
+    $continentPolicy = isset($_GET['continent_policy']) ? strtolower(trim($_GET['continent_policy'])) : null;
     $packageId = $_GET['package_id'] ?? null;
     $packageName = $_GET['package_name'] ?? null;
     $nationalitiesOnly = $_GET['nationalities_only'] ?? false;
@@ -34,19 +36,29 @@ try {
         $countries = getAllCountries();
     }
     
-    // Apply package-based filtering
-    if ($packageName) {
+    // Apply package-based filtering (legacy by name) or by continent policy
+    if ($continentPolicy === 'africa') {
+        $countries = array_values(array_filter($countries, function($country) {
+            return ($country['continent'] ?? '') === 'Africa';
+        }));
+    } elseif ($continentPolicy === 'other') {
+        $countries = array_values(array_filter($countries, function($country) {
+            return ($country['continent'] ?? '') !== 'Africa';
+        }));
+    } elseif ($continentPolicy === 'all') {
+        // no-op
+    } elseif ($packageName) {
         $normalizedPackageName = strtolower(trim($packageName));
         
         if ($normalizedPackageName === 'african nationals') {
             // Filter to African countries only
             $countries = array_filter($countries, function($country) {
-                return $country['continent'] === 'Africa';
+                return ($country['continent'] ?? '') === 'Africa';
             });
         } elseif ($normalizedPackageName === 'non african nationals') {
             // Filter to non-African countries only
             $countries = array_filter($countries, function($country) {
-                return $country['continent'] !== 'Africa';
+                return ($country['continent'] ?? '') !== 'Africa';
             });
         }
         // For other packages (students, delegates, side events, exhibitions), return all countries
@@ -65,7 +77,8 @@ try {
                 $nationalities[] = [
                     'nationality' => $country['nationality'],
                     'country_name' => $country['name'],
-                    'country_code' => $country['code']
+                    'country_code' => $country['code'],
+                    'continent' => $country['continent']
                 ];
                 $seenNationalities[] = $country['nationality'];
             }
@@ -74,6 +87,28 @@ try {
         $response['success'] = true;
         $response['nationalities'] = $nationalities;
         $response['count'] = count($nationalities);
+    } else if (!empty($_GET['include_nationalities'])) {
+        // Return both countries and unique nationalities
+        $nationalities = [];
+        $seenNationalities = [];
+        foreach ($countries as $country) {
+            if (!empty($country['nationality']) && !in_array($country['nationality'], $seenNationalities)) {
+                $nationalities[] = [
+                    'nationality' => $country['nationality'],
+                    'country_name' => $country['name'],
+                    'country_code' => $country['code'],
+                    'continent' => $country['continent']
+                ];
+                $seenNationalities[] = $country['nationality'];
+            }
+        }
+        $response['success'] = true;
+        $response['countries'] = $countries;
+        $response['nationalities'] = $nationalities;
+        $response['count'] = [
+            'countries' => count($countries),
+            'nationalities' => count($nationalities)
+        ];
     } else {
         $response['success'] = true;
         $response['countries'] = $countries;

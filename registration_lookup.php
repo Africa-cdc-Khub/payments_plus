@@ -97,7 +97,7 @@ if (isset($_GET['view']) && is_numeric($_GET['view'])) {
         </div>
     </div>
 
-    <div class="container mt-5">
+    <div class="container mt-5"   style="padding: 0 5%;">
         <div class="row justify-content-center">
             <div class="col-lg-10">
                 <!-- Page Title -->

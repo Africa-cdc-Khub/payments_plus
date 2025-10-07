@@ -364,7 +364,7 @@ if ($showRegistrationPreview) {
         </header>
     </div>
 
-    <div class="payment-container">
+    <div class="payment-container" style="padding: 0 5%;">
         <a href="../registration_lookup.php" class="back-link">
             <i class="fas fa-arrow-left"></i> Back to Registrations
         </a>
