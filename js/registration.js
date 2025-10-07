@@ -75,10 +75,13 @@ document.addEventListener('DOMContentLoaded', function() {
         // Initialize email validation
         initializeEmailValidation();
         
+        // Initialize field requirements based on current state
+        initializeFieldRequirements();
+        
         // Restore package selection if form data exists
         restorePackageSelection();
     }).catch(error => {
-        console.error('Error loading countries/nationalities:', error);
+        console.error('Error loading countries nationalities:', error);
     });
 
     // Check if elements exist
@@ -1025,6 +1028,45 @@ document.addEventListener('DOMContentLoaded', function() {
                     this.classList.remove('is-invalid');
                 }
             });
+        }
+    }
+    
+    // Initialize field requirements based on current state
+    function initializeFieldRequirements() {
+        // Set delegate_category as not required by default
+        const delegateCategoryField = document.getElementById('delegate_category');
+        if (delegateCategoryField) {
+            delegateCategoryField.required = false;
+        }
+        
+        // Set airport_of_origin as not required by default
+        const airportField = document.getElementById('airport_of_origin');
+        if (airportField) {
+            airportField.required = false;
+        }
+        
+        // Set student_id_file as not required by default
+        const studentIdFile = document.getElementById('student_id_file');
+        if (studentIdFile) {
+            studentIdFile.required = false;
+        }
+        
+        // Hide delegate fields by default
+        const delegateFields = document.getElementById('delegateFields');
+        if (delegateFields) {
+            delegateFields.style.display = 'none';
+        }
+        
+        // Hide airport fields by default
+        const airportFields = document.getElementById('airportFields');
+        if (airportFields) {
+            airportFields.style.display = 'none';
+        }
+        
+        // Hide student fields by default
+        const studentFields = document.getElementById('studentFields');
+        if (studentFields) {
+            studentFields.style.display = 'none';
         }
     }
 

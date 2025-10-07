@@ -1039,7 +1039,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label for="delegate_category" class="form-label">Delegate Category <span class="asterisk">*</span></label>
-                                <select class="form-select" name="delegate_category" id="delegate_category" required>
+                                <select class="form-select" name="delegate_category" id="delegate_category">
                                     <option value="">Select Category</option>
                                     <option value="Oral abstract presenter" <?php echo (($formData['delegate_category'] ?? '') === 'Oral abstract presenter') ? 'selected' : ''; ?>>Oral abstract presenter</option>
                                     <option value="Invited speaker/Moderator" <?php echo (($formData['delegate_category'] ?? '') === 'Invited speaker/Moderator') ? 'selected' : ''; ?>>Invited speaker/Moderator</option>
