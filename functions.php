@@ -203,13 +203,41 @@ function generateInvoiceData($user, $registrationId, $package, $amount, $partici
     // Generate registration lookup URL
     $registrationLookupUrl = rtrim(APP_URL, '/') . "/registration_lookup.php";
     
-    // Calculate per-participant amount for group registrations
-    $numParticipants = count($participants) > 0 ? count($participants) : 1;
+    // For group registrations, include the main registrant in the participants list
+    $allParticipants = [];
+    if ($registrationType === 'group') {
+        // Add main registrant as first participant
+        $mainRegistrant = [
+            'first_name' => $user['first_name'],
+            'last_name' => $user['last_name'],
+            'email' => $user['email'],
+            'nationality' => $user['nationality'] ?? 'Not specified'
+        ];
+        $allParticipants[] = $mainRegistrant;
+        
+        // Add other participants
+        foreach ($participants as $participant) {
+            $allParticipants[] = $participant;
+        }
+    } else {
+        // For individual registrations, just use the main registrant
+        $allParticipants = [
+            [
+                'first_name' => $user['first_name'],
+                'last_name' => $user['last_name'],
+                'email' => $user['email'],
+                'nationality' => $user['nationality'] ?? 'Not specified'
+            ]
+        ];
+    }
+    
+    // Calculate per-participant amount
+    $numParticipants = count($allParticipants);
     $perParticipantAmount = $numParticipants > 1 ? $amount / $numParticipants : $amount;
     
     // Add amount to each participant
     $participantsWithAmount = [];
-    foreach ($participants as $participant) {
+    foreach ($allParticipants as $participant) {
         $participant['amount'] = number_format($perParticipantAmount, 2);
         $participantsWithAmount[] = $participant;
     }

@@ -47,6 +47,7 @@ $user = [
     'first_name' => $registration['first_name'],
     'last_name' => $registration['last_name'],
     'email' => $registration['user_email'],
+    'nationality' => $registration['nationality'] ?? '',
     'organization' => $registration['organization'] ?? '',
     'organization_address' => $registration['organization_address'] ?? ''
 ];
