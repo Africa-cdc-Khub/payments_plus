@@ -152,7 +152,7 @@ function createRegistrationParticipants($registrationId, $participants) {
 function getRegistrationById($id) {
     $pdo = getConnection();
     $stmt = $pdo->prepare("SELECT r.*, p.name as package_name, p.price as package_price, 
-                          u.first_name, u.last_name, u.email as user_email 
+                          u.first_name, u.last_name, u.email as user_email, u.nationality 
                           FROM registrations r 
                           JOIN packages p ON r.package_id = p.id 
                           JOIN users u ON r.user_id = u.id 
