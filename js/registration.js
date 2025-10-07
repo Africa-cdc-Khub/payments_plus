@@ -1547,14 +1547,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const currentCount = participantsContainer.querySelectorAll('.participant-card').length;
         
         if (participantsNeeded > currentCount) {
-            // Add participants (max 10 for UI)
-            const formsToAdd = Math.min(participantsNeeded, 10) - currentCount;
+            // Add participants
+            const formsToAdd = participantsNeeded - currentCount;
             for (let i = 0; i < formsToAdd; i++) {
                 addParticipantForm();
-            }
-            
-            if (participantsNeeded > 10) {
-                showInfo(`You can add details for up to 10 additional participants now. The remaining ${participantsNeeded - 10} participants can be added later via email.`, 'Participant Details');
             }
         } else if (participantsNeeded < currentCount) {
             // Remove participants
