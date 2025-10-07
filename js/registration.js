@@ -1416,26 +1416,34 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        // Check if this is a fixed-price package (Students, Delegates, Side Events, Exhibitions)
+        // Check if this is a fixed-price package (Students, Delegates, Side Events, Exhibitions, African Nationals, Non-African Nationals)
         const isFixedPricePackage = selectedPackage && (
             selectedPackage.name.toLowerCase() === 'students' || 
             selectedPackage.name.toLowerCase() === 'delegates' ||
             selectedPackage.type === 'side_event' || 
-            selectedPackage.type === 'exhibition'
+            selectedPackage.type === 'exhibition' ||
+            selectedPackage.name.toLowerCase().includes('african nationals')
         );
         
         if (isFixedPricePackage) {
             // For fixed-price packages, use exact package price
-            const totalCost = selectedPackage.price;
+            const totalCost = selectedPackage.price * numPeople;
             let packageType = 'Fixed price';
             if (selectedPackage.type === 'side_event') packageType = 'Side Event';
             else if (selectedPackage.type === 'exhibition') packageType = 'Exhibition';
             else if (selectedPackage.name.toLowerCase() === 'students') packageType = 'Student';
             else if (selectedPackage.name.toLowerCase() === 'delegates') packageType = 'Delegate';
+            else if (selectedPackage.name.toLowerCase().includes('african nationals')) {
+                if (selectedPackage.name.toLowerCase().includes('non')) {
+                    packageType = 'Non-African Nationals';
+                } else {
+                    packageType = 'African Nationals';
+                }
+            }
             
             costEstimation.innerHTML = `
-                <strong>Total: $${totalCost.toLocaleString()}</strong>
-                <br><small class="text-muted">${packageType} package price</small>
+                <strong>${numPeople} people × $${selectedPackage.price.toLocaleString()} = $${totalCost.toLocaleString()}</strong>
+                <br><small class="text-muted">${packageType} package pricing</small>
             `;
             return;
         }
