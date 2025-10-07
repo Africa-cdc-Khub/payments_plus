@@ -106,16 +106,11 @@ $pageTitle = "Invoice #" . $registrationId . " - " . CONFERENCE_SHORT_NAME;
         }
         .logo-container {
             display: flex;
-            justify-content: center;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
         }
         .logo { 
             max-height: 60px; 
-            background: white; 
-            padding: 10px; 
-            border-radius: 5px; 
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
         .invoice-details {
             display: flex;
