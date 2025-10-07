@@ -183,7 +183,11 @@ if (isset($_GET['view']) && is_numeric($_GET['view'])) {
                                         <td>
                                             <?php 
                                             $paymentStatus = $registration['payment_status'] ?? '';
-                                            if ($paymentStatus === 'completed'): ?>
+                                            $amount = $registration['total_amount'] ?? 0;
+                                            
+                                            if ($amount == 0): ?>
+                                                <span class="badge bg-info">No Payment Required</span>
+                                            <?php elseif ($paymentStatus === 'completed'): ?>
                                                 <span class="badge bg-success">Paid</span>
                                             <?php else: ?>
                                                 <span class="badge bg-warning">Pending Payment</span>
@@ -196,19 +200,21 @@ if (isset($_GET['view']) && is_numeric($_GET['view'])) {
                                                     <i class="fas fa-eye me-1"></i>View
                                                 </a>
                                                 <?php 
-                                                if (($registration['payment_status'] ?? '') !== 'completed' && $registration['total_amount'] > 0): ?>
+                                                $amount = $registration['total_amount'] ?? 0;
+                                                $paymentStatus = $registration['payment_status'] ?? '';
+                                                
+                                                if ($amount == 0): ?>
+                                                    <span class="badge bg-success">No Payment Required</span>
+                                                <?php elseif ($paymentStatus !== 'completed'): ?>
                                                     <a href="?action=pay&id=<?php echo $registration['id']; ?>" class="btn btn-success btn-sm">
                                                         <i class="fas fa-credit-card me-1"></i>Pay
                                                     </a>
                                                     <button onclick="requestInvoice(<?php echo $registration['id']; ?>)" class="btn btn-outline-primary btn-sm">
                                                         <i class="fas fa-file-invoice me-1"></i>Invoice
                                                     </button>
-                                                    <a href="invoice.php?id=<?php echo $registration['id']; ?>&email=<?php echo urlencode($registration['email']); ?>" class="btn btn-outline-info btn-sm" target="_blank">
-                                                        <i class="fas fa-eye me-1"></i>View Invoice
-                                                    </a>
-                                                <?php elseif ($registration['total_amount'] == 0): ?>
-                                                    <span class="badge bg-success">No Payment Required</span>
-                                                <?php else: ?>
+                                                <?php endif; ?>
+                                                
+                                                <?php if ($amount > 0): ?>
                                                     <a href="invoice.php?id=<?php echo $registration['id']; ?>&email=<?php echo urlencode($registration['email']); ?>" class="btn btn-outline-info btn-sm" target="_blank">
                                                         <i class="fas fa-file-invoice me-1"></i>View Invoice
                                                     </a>
@@ -384,7 +390,11 @@ if (isset($_GET['view']) && is_numeric($_GET['view'])) {
                                             <td>
                                                 <?php 
                                                 $paymentStatus = $registrationDetails['payment_status'] ?? '';
-                                                if ($paymentStatus === 'completed'): ?>
+                                                $amount = $registrationDetails['total_amount'] ?? 0;
+                                                
+                                                if ($amount == 0): ?>
+                                                    <span class="badge bg-info fs-6">No Payment Required</span>
+                                                <?php elseif ($paymentStatus === 'completed'): ?>
                                                     <span class="badge bg-success fs-6">Paid</span>
                                                 <?php else: ?>
                                                     <span class="badge bg-warning fs-6">Pending Payment</span>
@@ -405,7 +415,15 @@ if (isset($_GET['view']) && is_numeric($_GET['view'])) {
                                 </table>
                             </div>
                             
-                            <?php if (($registrationDetails['payment_status'] ?? '') !== 'completed' && $registrationDetails['total_amount'] > 0): ?>
+                            <?php 
+                            $amount = $registrationDetails['total_amount'] ?? 0;
+                            $paymentStatus = $registrationDetails['payment_status'] ?? '';
+                            
+                            if ($amount == 0): ?>
+                            <div class="mt-3">
+                                <span class="badge bg-success fs-6">No Payment Required</span>
+                            </div>
+                            <?php elseif ($paymentStatus !== 'completed'): ?>
                             <div class="mt-3">
                                 <h6 class="fw-bold">Payment Options</h6>
                                 <div class="d-flex gap-2 flex-wrap">
@@ -415,9 +433,6 @@ if (isset($_GET['view']) && is_numeric($_GET['view'])) {
                                     <button onclick="requestInvoice(<?php echo $registrationDetails['id']; ?>)" class="btn btn-outline-primary">
                                         <i class="fas fa-file-invoice me-2"></i>Request Invoice
                                     </button>
-                                    <a href="invoice.php?id=<?php echo $registrationDetails['id']; ?>&email=<?php echo urlencode($registrationDetails['email']); ?>" class="btn btn-outline-info" target="_blank">
-                                        <i class="fas fa-eye me-2"></i>View Invoice
-                                    </a>
                                 </div>
                                 <div class="mt-2">
                                     <small class="text-muted">
@@ -426,13 +441,20 @@ if (isset($_GET['view']) && is_numeric($_GET['view'])) {
                                     </small>
                                 </div>
                             </div>
-                            <?php elseif ($registrationDetails['total_amount'] == 0): ?>
-                            <div class="mt-3">
-                                <span class="badge bg-success fs-6">No Payment Required</span>
-                            </div>
                             <?php else: ?>
                             <div class="mt-3">
                                 <span class="badge bg-success fs-6">Payment Completed</span>
+                            </div>
+                            <?php endif; ?>
+                            
+                            <?php if ($amount > 0): ?>
+                            <div class="mt-3">
+                                <h6 class="fw-bold">Invoice</h6>
+                                <div class="d-flex gap-2 flex-wrap">
+                                    <a href="invoice.php?id=<?php echo $registrationDetails['id']; ?>&email=<?php echo urlencode($registrationDetails['email']); ?>" class="btn btn-outline-info" target="_blank">
+                                        <i class="fas fa-file-invoice me-2"></i>View Invoice
+                                    </a>
+                                </div>
                             </div>
                             <?php endif; ?>
                         </div>
