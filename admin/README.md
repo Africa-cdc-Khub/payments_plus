@@ -64,6 +64,50 @@ A comprehensive Laravel-based admin portal for managing CPHIA 2025 conference re
 
 ## Installation
 
+### 🚀 Quick Setup (Recommended)
+
+For a fresh installation, use the automated setup script:
+
+**Windows:**
+```bash
+# Navigate to admin folder
+cd admin
+
+# Double-click setup.bat or run:
+setup.bat
+```
+
+**Linux/Mac:**
+```bash
+# Navigate to admin folder
+cd admin
+
+# Make script executable and run:
+chmod +x setup.sh
+./setup.sh
+
+# Or run directly with PHP:
+php setup.php
+```
+
+The setup script will:
+- ✅ Check system requirements
+- ✅ Create and configure .env file
+- ✅ Install Composer dependencies
+- ✅ Install NPM dependencies
+- ✅ Generate application key
+- ✅ Create required database tables
+- ✅ Seed admin user
+- ✅ Build frontend assets
+
+**After running the setup script, skip to Step 4 (Add PDF Images).**
+
+---
+
+### Manual Setup
+
+If you prefer manual setup or need to troubleshoot, follow these steps:
+
 ### Prerequisites
 - PHP 8.2 or higher
 - Composer
