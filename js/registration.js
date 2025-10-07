@@ -622,8 +622,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         const nationalityValue = $nat.val() || '';
                         $nat.empty().append('<option value="">Select Nationality</option>');
                         (data.nationalities || []).forEach(n => {
-                            const sel = nationalityValue && nationalityValue === n.country_code ? ' selected' : '';
-                            $nat.append(`<option value="${n.country_code}" data-continent="${n.continent}"${sel}>${n.country_name} (${n.nationality})</option>`);
+                            const sel = nationalityValue && nationalityValue === n.nationality ? ' selected' : '';
+                            $nat.append(`<option value="${n.nationality}" data-continent="${n.continent}"${sel}>${n.country_name} (${n.nationality})</option>`);
                         });
                         // Repopulate country select
                         const countryValue = $country.val() || '';
@@ -664,8 +664,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 const nationalityValue = $('#nationality').val() || '';
                 $('#nationality').empty().append('<option value="">Select Nationality</option>');
                 (data.nationalities || []).forEach(n => {
-                    const isSelected = nationalityValue && nationalityValue === n.country_code ? ' selected' : '';
-                    $('#nationality').append(`<option value="${n.country_code}" data-continent="${n.continent}"${isSelected}>${n.country_name} (${n.nationality})</option>`);
+                    const isSelected = nationalityValue && nationalityValue === n.nationality ? ' selected' : '';
+                    $('#nationality').append(`<option value="${n.nationality}" data-continent="${n.continent}"${isSelected}>${n.country_name} (${n.nationality})</option>`);
                 });
                 // Repopulate country
                 const countryValue = $('#country').val() || '';

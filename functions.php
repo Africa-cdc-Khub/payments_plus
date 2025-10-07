@@ -444,23 +444,15 @@ function validateNationality($nationality) {
     // Trim whitespace and normalize the nationality
     $nationality = trim($nationality);
     
-    // Check if nationality is in our allowed list
-    $allowedNationalities = [
-        'Algerian', 'Angolan', 'Beninese', 'Botswanan', 'Burkinabe', 'Burundian',
-        'Cameroonian', 'Cape Verdian', 'Central African', 'Chadian', 'Comoran',
-        'Congolese', 'Ivorian', 'Djibouti', 'Egyptian', 'Equatorial Guinean',
-        'Eritrean', 'Ethiopian', 'Gabonese', 'Gambian', 'Ghanaian', 'Guinean',
-        'Guinea-Bissauan', 'Kenyan', 'Lesotho', 'Liberian', 'Libyan', 'Malagasy',
-        'Malawian', 'Malian', 'Mauritanian', 'Mauritian', 'Moroccan', 'Mozambican',
-        'Namibian', 'Nigerien', 'Nigerian', 'Rwandan', 'Sao Tomean', 'Senegalese',
-        'Seychellois', 'Sierra Leonean', 'Somali', 'South African', 'South Sudanese',
-        'Sudanese', 'Swazi', 'Tanzanian', 'Togolese', 'Tunisian', 'Ugandan',
-        'Zambian', 'Zimbabwean', 'Motswana', 'Mosotho', 'American', 'British',
-        'Canadian', 'French', 'German', 'Italian', 'Spanish', 'Chinese', 'Japanese',
-        'Indian', 'Brazilian', 'Australian', 'Other'
-    ];
+    if (empty($nationality)) {
+        return false;
+    }
     
+    // Get all nationalities from database
+    $nationalities = getAllNationalities();
+    $allowedNationalities = array_column($nationalities, 'nationality');
     
+    // Check if nationality exists in database
     return in_array($nationality, $allowedNationalities);
 }
 

@@ -978,8 +978,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                                     $nationalitiesData = getAllNationalities();
                                     if ($nationalitiesData) {
                                         foreach ($nationalitiesData as $nationality) {
-                                            $selected = (isset($formData['nationality']) && $formData['nationality'] === $nationality['code']) ? 'selected' : '';
-                                            echo '<option value="' . htmlspecialchars($nationality['code']) . '" data-continent="' . htmlspecialchars($nationality['continent']) . '" ' . $selected . '>' . htmlspecialchars($nationality['country_name']) . ' (' . htmlspecialchars($nationality['nationality']) . ')</option>';
+                                            $selected = (isset($formData['nationality']) && $formData['nationality'] === $nationality['nationality']) ? 'selected' : '';
+                                            echo '<option value="' . htmlspecialchars($nationality['nationality']) . '" data-continent="' . htmlspecialchars($nationality['continent']) . '" ' . $selected . '>' . htmlspecialchars($nationality['country_name']) . ' (' . htmlspecialchars($nationality['nationality']) . ')</option>';
                                         }
                                     }
                                     ?>
