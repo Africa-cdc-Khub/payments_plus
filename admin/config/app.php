@@ -124,5 +124,5 @@ return [
     ],
 
     'fully_sponsored_message' => env('FULLY_SPONSORED_MESSAGE', 'Africa CDC is pleased to inform you that your Visa, Accommodation and Registration fees will be fully covered.'),
-
+    'delegate_package_id' => env('DELEGATE_PACKAGE_ID', 29),
 ];

@@ -24,6 +24,9 @@
                 <a href="{{ route('registrations.index') }}" class="block px-6 py-3 hover:bg-gray-700 {{ request()->routeIs('registrations.*') ? 'bg-gray-700' : '' }}">
                     <i class="fas fa-users mr-2"></i> Registrations
                 </a>
+                <a href="{{ route('delegates.index') }}" class="block px-6 py-3 hover:bg-gray-700 {{ request()->routeIs('delegates.*') ? 'bg-gray-700' : '' }}">
+                    <i class="fas fa-user-check mr-2"></i> Manage Delegates
+                </a>
                 <a href="{{ route('payments.index') }}" class="block px-6 py-3 hover:bg-gray-700 {{ request()->routeIs('payments.*') ? 'bg-gray-700' : '' }}">
                     <i class="fas fa-credit-card mr-2"></i> Payments
                 </a>

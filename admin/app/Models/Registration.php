@@ -19,6 +19,7 @@ class Registration extends Model
         'total_amount',
         'currency',
         'status',
+        'rejection_reason',
         'payment_status',
         'payment_completed_at',
         'payment_transaction_id',

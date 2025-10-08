@@ -4,6 +4,10 @@
 @section('page-title', 'Registration #' . $registration->id)
 
 @section('content')
+@php
+    $isDelegate = $registration->package_id == config('app.delegate_package_id');
+    $canReceiveInvitation = $registration->isPaid() || ($isDelegate && $registration->status === 'approved');
+@endphp
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
     <!-- User Information -->
     <div class="bg-white rounded-lg shadow p-6">
@@ -62,6 +66,26 @@
                     @endif
                 </dd>
             </div>
+            @if($isDelegate)
+            <div>
+                <dt class="text-sm font-medium text-gray-500">Delegate Status</dt>
+                <dd class="text-sm">
+                    @if($registration->status === 'approved')
+                        <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                            <i class="fas fa-check mr-1"></i>Approved
+                        </span>
+                    @elseif($registration->status === 'pending')
+                        <span class="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                            <i class="fas fa-clock mr-1"></i>Pending Review
+                        </span>
+                    @elseif($registration->status === 'rejected')
+                        <span class="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+                            <i class="fas fa-times mr-1"></i>Rejected
+                        </span>
+                    @endif
+                </dd>
+            </div>
+            @endif
             @if($registration->payment_completed_at)
             <div>
                 <dt class="text-sm font-medium text-gray-500">Payment Date</dt>
@@ -82,18 +106,39 @@
     </div>
 </div>
 
-@if($registration->isPaid())
+@if($canReceiveInvitation)
 <div class="mt-6 bg-white rounded-lg shadow p-6">
-    <h3 class="text-lg font-semibold mb-4">Invitation Actions</h3>
+    <h3 class="text-lg font-semibold mb-4 flex items-center">
+        <i class="fas fa-envelope mr-2 text-blue-600"></i>
+        Invitation Actions
+        @if($isDelegate && $registration->status === 'approved')
+            <span class="ml-3 px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                <i class="fas fa-info-circle mr-1"></i>Approved Delegate
+            </span>
+        @endif
+    </h3>
+    <p class="text-sm text-gray-600 mb-4">
+        @if($registration->isPaid())
+            Generate and send the official invitation letter for this paid registration.
+        @elseif($isDelegate && $registration->status === 'approved')
+            Generate and send the official invitation letter for this approved delegate.
+        @endif
+    </p>
     <div class="flex space-x-4">
+        <button type="button" 
+                onclick="openPdfModal({{ $registration->id }})" 
+                class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
+            <i class="fas fa-file-pdf"></i> Preview Invitation Letter
+        </button>
         <a href="{{ route('invitations.download', $registration) }}" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-            <i class="fas fa-download"></i> Download Invitation Letter
+            <i class="fas fa-download"></i> Download PDF
         </a>
         <form method="POST" action="{{ route('invitations.send') }}" class="inline">
             @csrf
             <input type="hidden" name="registration_ids[]" value="{{ $registration->id }}">
-            <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
-                <i class="fas fa-envelope"></i> Send Invitation Email
+            <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                    onclick="return confirm('Are you sure you want to send the invitation email to {{ $registration->user->email }}?')">
+                <i class="fas fa-paper-plane"></i> Send Email
             </button>
         </form>
     </div>
@@ -105,5 +150,9 @@
         <i class="fas fa-arrow-left"></i> Back to Registrations
     </a>
 </div>
+
+<!-- Include PDF Preview Modal -->
+@include('components.invitation-preview-modal')
+
 @endsection
 

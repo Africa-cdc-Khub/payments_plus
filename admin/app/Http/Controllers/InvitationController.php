@@ -25,9 +25,13 @@ class InvitationController extends Controller
         try {
             $registration = Registration::with(['user', 'package'])->findOrFail($request->registration_id);
 
-            if (!$registration->isPaid()) {
+            // Allow if paid OR if it's an approved delegate
+            $isDelegate = $registration->package_id == config('app.delegate_package_id');
+            $canReceiveInvitation = $registration->isPaid() || ($isDelegate && $registration->status === 'approved');
+
+            if (!$canReceiveInvitation) {
                 return response()->json([
-                    'error' => 'Only paid registrations can receive invitations.'
+                    'error' => 'Only paid registrations or approved delegates can receive invitations.'
                 ], 400);
             }
 
@@ -76,8 +80,12 @@ class InvitationController extends Controller
 
     public function download(Registration $registration)
     {
-        if (!$registration->isPaid()) {
-            return redirect()->back()->with('error', 'Only paid registrations can download invitations.');
+        // Allow if paid OR if it's an approved delegate
+        $isDelegate = $registration->package_id == config('app.delegate_package_id');
+        $canReceiveInvitation = $registration->isPaid() || ($isDelegate && $registration->status === 'approved');
+
+        if (!$canReceiveInvitation) {
+            return redirect()->back()->with('error', 'Only paid registrations or approved delegates can download invitations.');
         }
 
         try {
