@@ -43,13 +43,33 @@ if ($registration['registration_type'] === 'group') {
 }
 
 // Prepare user data
+$organizationAddress = '';
+if (!empty($registration['address_line1'])) {
+    $organizationAddress = $registration['address_line1'];
+    if (!empty($registration['address_line2'])) {
+        $organizationAddress .= ', ' . $registration['address_line2'];
+    }
+    if (!empty($registration['city'])) {
+        $organizationAddress .= ', ' . $registration['city'];
+    }
+    if (!empty($registration['state'])) {
+        $organizationAddress .= ', ' . $registration['state'];
+    }
+    if (!empty($registration['country'])) {
+        $organizationAddress .= ', ' . $registration['country'];
+    }
+    if (!empty($registration['postal_code'])) {
+        $organizationAddress .= ' ' . $registration['postal_code'];
+    }
+}
+
 $user = [
     'first_name' => $registration['first_name'],
     'last_name' => $registration['last_name'],
     'email' => $registration['user_email'],
     'nationality' => $registration['nationality'] ?? '',
     'organization' => $registration['organization'] ?? '',
-    'organization_address' => $registration['organization_address'] ?? ''
+    'organization_address' => $organizationAddress
 ];
 
 // Generate invoice data

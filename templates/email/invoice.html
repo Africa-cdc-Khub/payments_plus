@@ -25,17 +25,22 @@
             background: #063218; 
             color: white; 
             padding: 25px 30px; 
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
             border-bottom: 3px solid #0a4d2e;
         }
+        .header-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .header-table td {
+            vertical-align: middle;
+            padding: 0;
+        }
         .header-left {
-            flex: 1;
+            width: 60%;
         }
         .header-right {
             text-align: right;
-            flex: 1;
+            width: 40%;
         }
         .header h1 { 
             color: white; 
@@ -70,10 +75,16 @@
             margin: 5px 0 0 0;
         }
         .invoice-details {
-            display: flex;
-            justify-content: space-between;
             padding: 30px;
             border-bottom: 2px solid #e9ecef;
+        }
+        .invoice-details-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .invoice-details-table td {
+            vertical-align: top;
+            padding: 0;
         }
         .invoice-info h2 {
             color: #063218;
@@ -83,9 +94,10 @@
         .invoice-meta {
             color: #666;
             font-size: 14px;
+            text-align: right;
         }
         .bill-to {
-            text-align: right;
+            text-align: left;
         }
         .bill-to h3 {
             color: #063218;
@@ -275,45 +287,53 @@
 <body>
     <div class="invoice-container">
         <div class="header">
-            <div class="header-left">
-                <div class="logo-container">
-                    <img src="{{logo_url}}" alt="Africa CDC" class="logo">
-                    <div>
-                        <h1>{{conference_short_name}}</h1>
-                        <p class="subtitle">{{conference_name}}</p>
-                    </div>
-                </div>
-            </div>
-            <div class="header-right">
-                <div class="invoice-title">INVOICE</div>
-                <div class="invoice-number">#INV-{{registration_id}}</div>
-                <div style="font-size: 12px; color: #b8d4c1; margin-top: 5px;">
-                    Date: {{invoice_date}}
-                </div>
-            </div>
+            <table class="header-table">
+                <tr>
+                    <td class="header-left">
+                        <div class="logo-container">
+                            <img src="{{logo_url}}" alt="Africa CDC" class="logo">
+                            <div>
+                                <h1>{{conference_short_name}}</h1>
+                                <p class="subtitle">{{conference_name}}</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="header-right">
+                        <div class="invoice-title">INVOICE</div>
+                        <div class="invoice-number">#INV-{{registration_id}}</div>
+                        <div style="font-size: 12px; color: #b8d4c1; margin-top: 5px;">
+                            Date: {{invoice_date}}
+                        </div>
+                    </td>
+                </tr>
+            </table>
         </div>
         
         <div class="invoice-details">
-            <div class="bill-to">
-                <h3>Bill To:</h3>
-                {{#if organization_name}}
-                <p><strong>{{organization_name}}</strong></p>
-                {{/if}}
-                <p>{{user_name}}</p>
-                <p>{{user_email}}</p>
-                {{#if organization_address}}
-                <p>{{organization_address}}</p>
-                {{/if}}
-            </div>
-            <div class="invoice-info">
-                <div class="invoice-meta">
-                    <p><strong>Due Date:</strong> {{due_date}}</p>
-                    <p><strong>Registration Type:</strong> {{registration_type}}</p>
-                    {{#if num_participants}}
-                    <p><strong>Participants:</strong> {{num_participants}}</p>
-                    {{/if}}
-                </div>
-            </div>
+            <table class="invoice-details-table">
+                <tr>
+                    <td width="50%" class="bill-to">
+                        <h3>Bill To:</h3>
+                        {{#if organization_name}}
+                        <p><strong>{{organization_name}}</strong></p>
+                        {{/if}}
+                        <p>{{user_name}}</p>
+                        <p>{{user_email}}</p>
+                        {{#if organization_address}}
+                        <p>{{organization_address}}</p>
+                        {{/if}}
+                    </td>
+                    <td width="50%" class="invoice-info">
+                        <div class="invoice-meta">
+                            <p><strong>Due Date:</strong> {{due_date}}</p>
+                            <p><strong>Registration Type:</strong> {{registration_type}}</p>
+                            {{#if num_participants}}
+                            <p><strong>Participants:</strong> {{num_participants}}</p>
+                            {{/if}}
+                        </div>
+                    </td>
+                </tr>
+            </table>
         </div>
         
         <div class="content">
