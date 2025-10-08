@@ -149,7 +149,7 @@ $pageTitle = "Invoice #" . $registrationId . " - " . CONFERENCE_SHORT_NAME;
             font-size: 14px;
         }
         .bill-to {
-            text-align: right;
+            text-align: left;
         }
         .bill-to h3 {
             color: #063218;
@@ -370,7 +370,7 @@ $pageTitle = "Invoice #" . $registrationId . " - " . CONFERENCE_SHORT_NAME;
                     </div>
                 </div>
             </div>
-            <div class="header-right">
+            <div class="header-left">
                 <div class="invoice-title">INVOICE</div>
                 <div class="invoice-number">#INV-<?php echo htmlspecialchars($invoiceData['registration_id']); ?></div>
                 <div style="font-size: 12px; color: #b8d4c1; margin-top: 5px;">
