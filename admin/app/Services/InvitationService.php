@@ -59,9 +59,13 @@ class InvitationService implements InvitationServiceInterface
                 continue;
             }
 
-            if (!$registration->isPaid()) {
+            // Allow if paid OR if it's an approved delegate
+            $isDelegate = $registration->package_id == config('app.delegate_package_id');
+            $canReceiveInvitation = $registration->isPaid() || ($isDelegate && $registration->status === 'approved');
+
+            if (!$canReceiveInvitation) {
                 $results['failed']++;
-                $results['errors'][] = "Registration #{$id} is not paid";
+                $results['errors'][] = "Registration #{$id} is neither paid nor an approved delegate";
                 continue;
             }
 

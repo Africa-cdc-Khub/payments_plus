@@ -40,7 +40,7 @@
             <div class="mb-4 flex justify-between items-center">
                 <div>
                     <button type="button" id="selectAllPaid" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">
-                        <i class="fas fa-check-square"></i> Select All Paid
+                        <i class="fas fa-check-square"></i> Select All Eligible
                     </button>
                     <button type="button" id="deselectAll" class="px-4 py-2 bg-gray-400 text-white rounded-lg hover:bg-gray-500">
                         <i class="fas fa-square"></i> Deselect All
@@ -74,9 +74,13 @@
                     </thead>
                     <tbody class="divide-y divide-gray-200">
                         @forelse($registrations as $registration)
+                        @php
+                            $isDelegate = $registration->package_id == config('app.delegate_package_id');
+                            $canReceiveInvitation = $registration->isPaid() || ($isDelegate && $registration->status === 'approved');
+                        @endphp
                         <tr>
                             <td class="px-6 py-4">
-                                @if($registration->isPaid())
+                                @if($canReceiveInvitation)
                                 <input 
                                     type="checkbox" 
                                     name="registration_ids[]" 
@@ -102,21 +106,51 @@
                                 ${{ number_format($registration->total_amount, 2) }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                @if($registration->isPaid())
-                                    <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Paid</span>
+                                @if($isDelegate)
+                                    {{-- For delegates, show delegate status --}}
+                                    @if($registration->status === 'approved')
+                                        <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                            <i class="fas fa-user-check mr-1"></i>Approved Delegate
+                                        </span>
+                                    @elseif($registration->status === 'rejected')
+                                        <span class="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+                                            <i class="fas fa-user-times mr-1"></i>Rejected Delegate
+                                        </span>
+                                    @else
+                                        <span class="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                            <i class="fas fa-hourglass-half mr-1"></i>Delegate Pending
+                                        </span>
+                                    @endif
                                 @else
-                                    <span class="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">Pending</span>
+                                    {{-- For non-delegates, show payment status --}}
+                                    @if($registration->isPaid())
+                                        <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                            <i class="fas fa-check-circle mr-1"></i>Paid
+                                        </span>
+                                    @else
+                                        <span class="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                            <i class="fas fa-clock mr-1"></i>Pending Payment
+                                        </span>
+                                    @endif
                                 @endif
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm">
                                 <a href="{{ route('registrations.show', $registration) }}" class="text-blue-600 hover:text-blue-900">
                                     <i class="fas fa-eye"></i> View
                                 </a>
-                                @if($registration->isPaid())
-                                <a href="{{ route('invitations.download', $registration) }}" class="ml-3 text-green-600 hover:text-green-900">
-                                    <i class="fas fa-download"></i> PDF
+                                @can('viewInvitation', App\Models\Registration::class)
+                                @if($canReceiveInvitation)
+                                <button type="button" 
+                                        onclick="openPdfModal({{ $registration->id }})" 
+                                        class="ml-3 text-purple-600 hover:text-purple-900"
+                                        title="Preview Invitation">
+                                    <i class="fas fa-file-pdf"></i> Preview
+                                </button>
+                                <a href="{{ route('invitations.download', $registration) }}" class="ml-3 text-green-600 hover:text-green-900" title="Download Invitation Letter">
+                                    <i class="fas fa-download"></i> Download
                                 </a>
                                 @endif
+                                @endcan
                             </td>
                         </tr>
                         @empty
@@ -134,6 +168,9 @@
         </div>
     </div>
 </div>
+
+<!-- Include PDF Preview Modal -->
+@include('components.invitation-preview-modal')
 
 @push('scripts')
 <script>

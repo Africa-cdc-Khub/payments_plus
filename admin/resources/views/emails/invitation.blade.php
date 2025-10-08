@@ -14,7 +14,7 @@
             padding: 20px;
         }
         .header {
-            background: #2563eb;
+            background: #063218;
             color: white;
             padding: 20px;
             text-align: center;
@@ -26,7 +26,7 @@
         .button {
             display: inline-block;
             padding: 12px 24px;
-            background: #2563eb;
+            background: #063218;
             color: white;
             text-decoration: none;
             border-radius: 6px;
@@ -43,6 +43,7 @@
 <body>
     <div class="container">
         <div class="header">
+        <img src="{{public_path('images/logo.png')}}" alt="Africa CDC" class="logo africa-cdc-logo"/>
             <h1>CPHIA 2025</h1>
             <p>Conference on Public Health in Africa</p>
         </div>
@@ -56,15 +57,12 @@
             <ul>
                 <li>Date: October 22-25, 2025</li>
                 <li>Package: {{ $package->name }}</li>
-                <li>Registration ID: REG-{{ $user->registrations()->where('package_id', $package->id)->first()->id ?? 'N/A' }}</li>
+                <li>Registration ID: #{{ $user->registrations()->where('package_id', $package->id)->first()->id ?? 'N/A' }}</li>
             </ul>
             
             <p>Please present this invitation letter along with a valid photo ID at the registration desk upon arrival.</p>
-            
-            @if($user->requires_visa)
-            <p><strong>Visa Application:</strong> The attached invitation letter can be used to support your visa application.</p>
-            @endif
-            
+            <p> The attached invitation letter can be used to support your visa application.</p>
+           
             <p>We look forward to welcoming you to CPHIA 2025!</p>
             
             <p>Best regards,<br>

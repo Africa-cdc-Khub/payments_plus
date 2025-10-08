@@ -105,6 +105,18 @@
     </style>
 </head>
 <body>
+@php
+    $fullySponsoredCategories = config('delegates.fully_sponsored_categories', [
+        'Oral abstract presenter',
+        'Invited speaker/Moderator',
+        'Scientific Program Committee Member',
+        'Secretariat',
+        'Media Partner',
+        'Youth Program Participant'
+    ]);
+    
+    $isFullySponsored = in_array($registration->user->delegate_category ?? '', $fullySponsoredCategories);
+@endphp
     <div class="container">
         <header class="header">
             <img src="{{ public_path('images/banner.png') }}" alt="CPHIA 2025 Logo" />
@@ -112,9 +124,14 @@
 
         <div class="content-wrapper">
             <main class="content">
-            <p><strong>Subject:</strong> Invitation to Participate — 4<sup>th</sup> International Conference on Public Health in Africa (CPHIA 2025), 22—25 October 2025</p>
 
+            <div style="text-align: right; margin-bottom: 20px;">
+                <p style="margin: 0; font-weight: bold;">REF: AU/CDC/CPHIA/LT/{{ $registration->id }}</p>
+                <p style="margin: 5px 0 0 0;">{{ $registration->payment_completed_at ? $registration->payment_completed_at->format('F d, Y') : date('F d, Y') }}</p>
+            </div>
+            
             <p>Dear {{ strtoupper($user->full_name) }}</p>
+            <p><strong><u>Invitation to Participate — 4<sup>th</sup> International Conference on Public Health in Africa (CPHIA 2025), 22—25 October 2025</u></strong> </p>
 
             <p>The Africa Centres for Disease Control and Prevention (Africa CDC) is pleased to invite you to join as a participant at the 4<sup>th</sup> International Conference on Public Health in Africa (CPHIA 2025), scheduled to take place 22—25 October 2025 at the Durban International Convention Centre in Durban, South Africa.</p>
 
@@ -122,6 +139,9 @@
 
             <p>This marks the fourth iteration of the conference, initially held virtually in 2021 and then in-person in 2022 and 2023 in Kigali, Rwanda, and Lusaka, Zambia, respectively. As African Union Member States accelerate the realisation of universal health coverage, annual CPHIAs are helping define how Africa can be more self-reliant in the delivery of quality health care to achieve a healthier, more prosperous Africa – for the continent, and the world.</p>
 
+            @if($isFullySponsored)
+                <p>{{ config('app.fully_sponsored_message') }}</p>
+            @endif
             <p>If you have any questions, do not hesitate to contact the CPHIA 2025 Secretariat support team at <a href="mailto:cphiasecretariat@africacdc.org" class="link">cphiasecretariat@africacdc.org</a>.</p>
 
             <p style="margin-bottom: 32px;">Sincerely,</p>

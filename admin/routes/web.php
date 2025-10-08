@@ -7,6 +7,7 @@ use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\PackageController;
 use App\Http\Controllers\InvitationController;
+use App\Http\Controllers\DelegateController;
 use Illuminate\Support\Facades\Route;
 
 // Authentication Routes
@@ -27,6 +28,7 @@ Route::middleware(['admin.auth'])->group(function () {
     
     // Admins
     Route::resource('admins', AdminController::class);
+    Route::post('admins/{admin}/reset-password', [AdminController::class, 'resetPassword'])->name('admins.reset-password');
     
     // Packages
     Route::resource('packages', PackageController::class);
@@ -35,4 +37,10 @@ Route::middleware(['admin.auth'])->group(function () {
     Route::post('invitations/preview', [InvitationController::class, 'preview'])->name('invitations.preview');
     Route::post('invitations/send', [InvitationController::class, 'send'])->name('invitations.send');
     Route::get('invitations/download/{registration}', [InvitationController::class, 'download'])->name('invitations.download');
+    
+    // Delegates
+    Route::get('delegates', [DelegateController::class, 'index'])->name('delegates.index');
+    Route::get('delegates/{registration}', [DelegateController::class, 'show'])->name('delegates.show');
+    Route::post('delegates/{registration}/approve', [DelegateController::class, 'approve'])->name('delegates.approve');
+    Route::post('delegates/{registration}/reject', [DelegateController::class, 'reject'])->name('delegates.reject');
 });

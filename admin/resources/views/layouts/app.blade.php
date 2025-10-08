@@ -18,21 +18,45 @@
             </div>
             
             <nav class="mt-6">
+                @php
+                    $admin = auth('admin')->user();
+                @endphp
+                
+                @if($admin && in_array($admin->role, ['admin', 'secretariat', 'finance']))
                 <a href="{{ route('dashboard') }}" class="block px-6 py-3 hover:bg-gray-700 {{ request()->routeIs('dashboard') ? 'bg-gray-700' : '' }}">
                     <i class="fas fa-home mr-2"></i> Dashboard
                 </a>
+                @endif
+                
+                @if($admin && in_array($admin->role, ['admin', 'secretariat', 'executive']))
                 <a href="{{ route('registrations.index') }}" class="block px-6 py-3 hover:bg-gray-700 {{ request()->routeIs('registrations.*') ? 'bg-gray-700' : '' }}">
                     <i class="fas fa-users mr-2"></i> Registrations
                 </a>
+                @endif
+                
+                @if($admin && in_array($admin->role, ['admin', 'secretariat']))
+                <a href="{{ route('delegates.index') }}" class="block px-6 py-3 hover:bg-gray-700 {{ request()->routeIs('delegates.*') ? 'bg-gray-700' : '' }}">
+                    <i class="fas fa-user-check mr-2"></i> Manage Delegates
+                </a>
+                @endif
+                
+                @if($admin && in_array($admin->role, ['admin', 'secretariat', 'finance']))
                 <a href="{{ route('payments.index') }}" class="block px-6 py-3 hover:bg-gray-700 {{ request()->routeIs('payments.*') ? 'bg-gray-700' : '' }}">
                     <i class="fas fa-credit-card mr-2"></i> Payments
                 </a>
+                @endif
+                
+                @if($admin && $admin->role === 'admin')
                 <a href="{{ route('packages.index') }}" class="block px-6 py-3 hover:bg-gray-700 {{ request()->routeIs('packages.*') ? 'bg-gray-700' : '' }}">
                     <i class="fas fa-box mr-2"></i> Packages
                 </a>
+                @endif
+                
+                @if($admin && $admin->role === 'admin')
                 <a href="{{ route('admins.index') }}" class="block px-6 py-3 hover:bg-gray-700 {{ request()->routeIs('admins.*') ? 'bg-gray-700' : '' }}">
                     <i class="fas fa-user-shield mr-2"></i> Admins
                 </a>
+                @endif
             </nav>
         </aside>
 

@@ -1,0 +1,714 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "CPHIA 2025 Registrations API",
+        "description": "API for managing conference registrations (localhost only)",
+        "contact": {
+            "email": "admin@cphia2025.com"
+        },
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "http://localhost:8000/api",
+            "description": "Local Development Server"
+        }
+    ],
+    "paths": {
+        "/registrations": {
+            "get": {
+                "tags": [
+                    "Registrations"
+                ],
+                "summary": "List registrations with filters",
+                "description": "Fetch registrations with various filtering options. Only accessible from localhost.",
+                "operationId": "getRegistrations",
+                "parameters": [
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Filter by status",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "pending",
+                                "approved",
+                                "rejected"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "payment_status",
+                        "in": "query",
+                        "description": "Filter by payment status",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "pending",
+                                "paid",
+                                "failed"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "package_id",
+                        "in": "query",
+                        "description": "Filter by package ID",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "delegate_only",
+                        "in": "query",
+                        "description": "Show only delegates",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Search by name or email",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "created_from",
+                        "in": "query",
+                        "description": "Filter from date (YYYY-MM-DD)",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    },
+                    {
+                        "name": "created_to",
+                        "in": "query",
+                        "description": "Filter to date (YYYY-MM-DD)",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    },
+                    {
+                        "name": "sort_by",
+                        "in": "query",
+                        "description": "Sort by field",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "default": "created_at"
+                        }
+                    },
+                    {
+                        "name": "sort_order",
+                        "in": "query",
+                        "description": "Sort order",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "default": "desc",
+                            "enum": [
+                                "asc",
+                                "desc"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Results per page (max 100)",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 15,
+                            "maximum": 100
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Page number",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer",
+                                                        "example": 57
+                                                    },
+                                                    "status": {
+                                                        "type": "string",
+                                                        "example": "approved"
+                                                    },
+                                                    "payment_status": {
+                                                        "type": "string",
+                                                        "example": "pending"
+                                                    },
+                                                    "user": {
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "integer",
+                                                                "example": 123
+                                                            },
+                                                            "full_name": {
+                                                                "type": "string",
+                                                                "example": "John Doe"
+                                                            },
+                                                            "email": {
+                                                                "type": "string",
+                                                                "example": "john@example.com"
+                                                            },
+                                                            "phone": {
+                                                                "type": "string",
+                                                                "example": "+1234567890"
+                                                            },
+                                                            "organization": {
+                                                                "type": "string",
+                                                                "example": "ABC Corp"
+                                                            },
+                                                            "country": {
+                                                                "type": "string",
+                                                                "example": "USA"
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    },
+                                                    "package": {
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "integer",
+                                                                "example": 1
+                                                            },
+                                                            "name": {
+                                                                "type": "string",
+                                                                "example": "Standard Package"
+                                                            },
+                                                            "price": {
+                                                                "type": "string",
+                                                                "example": "500.00"
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    },
+                                                    "amount": {
+                                                        "type": "string",
+                                                        "example": "500.00"
+                                                    },
+                                                    "created_at": {
+                                                        "type": "string",
+                                                        "format": "date-time",
+                                                        "example": "2025-10-08 10:30:45"
+                                                    },
+                                                    "updated_at": {
+                                                        "type": "string",
+                                                        "format": "date-time",
+                                                        "example": "2025-10-08 12:15:30"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        },
+                                        "pagination": {
+                                            "properties": {
+                                                "total": {
+                                                    "type": "integer",
+                                                    "example": 150
+                                                },
+                                                "per_page": {
+                                                    "type": "integer",
+                                                    "example": 15
+                                                },
+                                                "current_page": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "last_page": {
+                                                    "type": "integer",
+                                                    "example": 10
+                                                },
+                                                "from": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "to": {
+                                                    "type": "integer",
+                                                    "example": 15
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "filters": {
+                                            "properties": {
+                                                "status": {
+                                                    "type": "string",
+                                                    "nullable": true
+                                                },
+                                                "payment_status": {
+                                                    "type": "string",
+                                                    "nullable": true
+                                                },
+                                                "package_id": {
+                                                    "type": "integer",
+                                                    "nullable": true
+                                                },
+                                                "search": {
+                                                    "type": "string",
+                                                    "nullable": true
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Access denied - not from localhost",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Access denied. This endpoint is only accessible from localhost."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Failed to fetch registrations"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Error details"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/registrations/{id}": {
+            "get": {
+                "tags": [
+                    "Registrations"
+                ],
+                "summary": "Get a single registration",
+                "description": "Fetch detailed information for a specific registration. Only accessible from localhost.",
+                "operationId": "getRegistrationById",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Registration ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 57
+                                                },
+                                                "status": {
+                                                    "type": "string",
+                                                    "example": "approved"
+                                                },
+                                                "payment_status": {
+                                                    "type": "string",
+                                                    "example": "pending"
+                                                },
+                                                "user": {
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "integer",
+                                                            "example": 123
+                                                        },
+                                                        "full_name": {
+                                                            "type": "string",
+                                                            "example": "John Doe"
+                                                        },
+                                                        "email": {
+                                                            "type": "string",
+                                                            "example": "john@example.com"
+                                                        },
+                                                        "phone": {
+                                                            "type": "string",
+                                                            "example": "+1234567890"
+                                                        },
+                                                        "organization": {
+                                                            "type": "string",
+                                                            "example": "ABC Corp"
+                                                        },
+                                                        "country": {
+                                                            "type": "string",
+                                                            "example": "USA"
+                                                        },
+                                                        "title": {
+                                                            "type": "string",
+                                                            "example": "Mr"
+                                                        },
+                                                        "delegate_category": {
+                                                            "type": "string",
+                                                            "example": "Government Official"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                },
+                                                "package": {
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "integer",
+                                                            "example": 1
+                                                        },
+                                                        "name": {
+                                                            "type": "string",
+                                                            "example": "Standard Package"
+                                                        },
+                                                        "price": {
+                                                            "type": "string",
+                                                            "example": "500.00"
+                                                        },
+                                                        "description": {
+                                                            "type": "string",
+                                                            "example": "Standard package description"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                },
+                                                "amount": {
+                                                    "type": "string",
+                                                    "example": "500.00"
+                                                },
+                                                "rejection_reason": {
+                                                    "type": "string",
+                                                    "nullable": true
+                                                },
+                                                "created_at": {
+                                                    "type": "string",
+                                                    "format": "date-time",
+                                                    "example": "2025-10-08 10:30:45"
+                                                },
+                                                "updated_at": {
+                                                    "type": "string",
+                                                    "format": "date-time",
+                                                    "example": "2025-10-08 12:15:30"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Access denied - not from localhost",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Access denied. This endpoint is only accessible from localhost."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Registration not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Registration not found"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Failed to fetch registration"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Error details"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/registrations/stats": {
+            "get": {
+                "tags": [
+                    "Registrations"
+                ],
+                "summary": "Get registration statistics",
+                "description": "Fetch comprehensive statistics about registrations including status counts, payment totals, and revenue. Only accessible from localhost.",
+                "operationId": "getRegistrationStats",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "total": {
+                                                    "description": "Total number of registrations",
+                                                    "type": "integer",
+                                                    "example": 150
+                                                },
+                                                "by_status": {
+                                                    "properties": {
+                                                        "pending": {
+                                                            "type": "integer",
+                                                            "example": 45
+                                                        },
+                                                        "approved": {
+                                                            "type": "integer",
+                                                            "example": 80
+                                                        },
+                                                        "rejected": {
+                                                            "type": "integer",
+                                                            "example": 25
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                },
+                                                "by_payment_status": {
+                                                    "properties": {
+                                                        "pending": {
+                                                            "type": "integer",
+                                                            "example": 60
+                                                        },
+                                                        "paid": {
+                                                            "type": "integer",
+                                                            "example": 85
+                                                        },
+                                                        "failed": {
+                                                            "type": "integer",
+                                                            "example": 5
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                },
+                                                "delegates": {
+                                                    "properties": {
+                                                        "total": {
+                                                            "type": "integer",
+                                                            "example": 50
+                                                        },
+                                                        "pending": {
+                                                            "type": "integer",
+                                                            "example": 15
+                                                        },
+                                                        "approved": {
+                                                            "type": "integer",
+                                                            "example": 30
+                                                        },
+                                                        "rejected": {
+                                                            "type": "integer",
+                                                            "example": 5
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                },
+                                                "revenue": {
+                                                    "properties": {
+                                                        "total": {
+                                                            "description": "Total revenue from paid registrations",
+                                                            "type": "number",
+                                                            "format": "float",
+                                                            "example": 127500
+                                                        },
+                                                        "pending": {
+                                                            "description": "Pending revenue",
+                                                            "type": "number",
+                                                            "format": "float",
+                                                            "example": 45000
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "generated_at": {
+                                            "type": "string",
+                                            "format": "date-time",
+                                            "example": "2025-10-08 12:30:45"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Access denied - not from localhost",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Access denied. This endpoint is only accessible from localhost."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Failed to fetch statistics"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Error details"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "securitySchemes": {
+            "localhost": {
+                "type": "apiKey",
+                "description": "Only accessible from localhost (127.0.0.1, localhost, ::1)",
+                "name": "X-Forwarded-For",
+                "in": "header"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Registrations",
+            "description": "Registrations"
+        }
+    ]
+}
