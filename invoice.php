@@ -372,7 +372,7 @@ $pageTitle = "Invoice #" . $registrationId . " - " . CONFERENCE_SHORT_NAME;
             </div>
             <div class="header-left">
                 <div class="invoice-title">INVOICE</div>
-                <div class="invoice-number">#INV-<?php echo htmlspecialchars($invoiceData['registration_id']); ?></div>
+                <div class="invoice-number" style="font-size: 12px; color: #b8d4c1; margin-top: 5px;">#INV-<?php echo htmlspecialchars($invoiceData['registration_id']); ?></div>
                 <div style="font-size: 12px; color: #b8d4c1; margin-top: 5px;">
                     Date: <?php echo htmlspecialchars($invoiceData['invoice_date']); ?>
                 </div>
