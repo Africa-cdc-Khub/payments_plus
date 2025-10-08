@@ -3,13 +3,13 @@
 namespace App\Jobs;
 
 use App\Models\Registration;
+use App\Services\ExchangeEmailService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 
 class SendInvitationJob implements ShouldQueue
@@ -48,7 +48,7 @@ class SendInvitationJob implements ShouldQueue
     /**
      * Execute the job.
      */
-    public function handle(): void
+    public function handle(ExchangeEmailService $emailService): void
     {
         try {
             // Load registration with relationships
@@ -59,8 +59,12 @@ class SendInvitationJob implements ShouldQueue
                 return;
             }
 
-            if (!$registration->isPaid()) {
-                Log::warning("Registration #{$this->registrationId} is not paid, skipping invitation");
+            // Allow if paid OR if it's an approved delegate
+            $isDelegate = $registration->package_id == config('app.delegate_package_id');
+            $canReceiveInvitation = $registration->isPaid() || ($isDelegate && $registration->status === 'approved');
+
+            if (!$canReceiveInvitation) {
+                Log::warning("Registration #{$this->registrationId} is neither paid nor an approved delegate, skipping invitation");
                 return;
             }
 
@@ -80,26 +84,33 @@ class SendInvitationJob implements ShouldQueue
             $path = 'invitations/' . $filename;
             Storage::put($path, $pdf->output());
 
-            // Get PDF content
-            $pdfContent = Storage::get($path);
+            // Prepare email body
+            $emailBody = $this->getEmailBody($registration);
 
-            // Send email
-            Mail::send('emails.invitation', [
-                'user' => $registration->user,
-                'package' => $registration->package,
-                'registration' => $registration,
-            ], function ($message) use ($registration, $pdfContent) {
-                $message->to($registration->user->email, $registration->user->full_name)
-                    ->subject('CPHIA 2025 - Invitation Letter')
-                    ->attachData($pdfContent, 'invitation.pdf', [
-                        'mime' => 'application/pdf',
-                    ]);
-            });
+            // Get the full file path for the attachment
+            $filePath = Storage::path($path);
+
+            // Send email using Exchange Email Service with PDF attachment
+            $result = $emailService->sendEmail(
+                $registration->user->email,
+                'CPHIA 2025 - Invitation Letter',
+                $emailBody,
+                true, // isHtml
+                null, // fromEmail (use default)
+                null, // fromName (use default)
+                [], // cc
+                [], // bcc
+                [$filePath] // attachments array
+            );
 
             // Clean up temporary file
             Storage::delete($path);
 
-            Log::info("Invitation sent successfully for registration #{$this->registrationId}");
+            if ($result) {
+                Log::info("Invitation sent successfully for registration #{$this->registrationId} to {$registration->user->email}");
+            } else {
+                throw new \Exception("Email service returned false");
+            }
 
         } catch (\Exception $e) {
             Log::error("Failed to send invitation for registration #{$this->registrationId}: " . $e->getMessage());
@@ -107,6 +118,21 @@ class SendInvitationJob implements ShouldQueue
             // Re-throw to trigger retry mechanism
             throw $e;
         }
+    }
+
+    /**
+     * Get the email body HTML
+     */
+    protected function getEmailBody(Registration $registration): string
+    {
+        $userName = $registration->user->full_name;
+        $packageName = $registration->package->name;
+        
+        return view('emails.invitation', [
+            'user' => $registration->user,
+            'package' => $registration->package,
+            'registration' => $registration,
+        ])->render();
     }
 
     /**
