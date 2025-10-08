@@ -22,6 +22,9 @@ class AdminAuth
             return redirect()->route('login')->with('error', 'Your account has been deactivated.');
         }
 
+        // Set the default guard to 'admin' for authorization checks
+        Auth::shouldUse('admin');
+
         return $next($request);
     }
 }

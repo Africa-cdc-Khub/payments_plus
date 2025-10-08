@@ -67,7 +67,7 @@ function openPdfModal(registrationId) {
     }
     pdfLoadTimeout = setTimeout(function() {
         loader.style.display = 'none';
-    }, 3000);
+    }, 7000);
     
     // Create form and submit to iframe
     setTimeout(function() {

@@ -75,6 +75,7 @@
     </div>
 
     <div class="p-6">
+        @can('sendInvitation', App\Models\Registration::class)
         <form id="invitationForm" method="POST" action="{{ route('invitations.send') }}">
             @csrf
             <div class="mb-4 flex justify-between items-center">
@@ -87,22 +88,29 @@
                     </button>
                 </div>
                 <div>
+                    @can('viewInvitation', App\Models\Registration::class)
                     <button type="button" id="previewBtn" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed" disabled>
                         <i class="fas fa-eye"></i> Preview Invitation
                     </button>
+                    @endcan
                     <button type="submit" id="sendBtn" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed" disabled>
                         <i class="fas fa-paper-plane"></i> Send Invitations
                     </button>
                 </div>
             </div>
+        @else
+            <div class="mb-4"></div>
+        @endcan
 
             <div class="overflow-x-auto">
                 <table class="w-full">
                     <thead class="bg-gray-50">
                         <tr>
+                            @can('sendInvitation', App\Models\Registration::class)
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                 <input type="checkbox" id="selectAll" class="rounded">
                             </th>
+                            @endcan
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
@@ -115,6 +123,7 @@
                     <tbody class="divide-y divide-gray-200">
                         @forelse($delegates as $delegate)
                         <tr>
+                            @can('sendInvitation', App\Models\Registration::class)
                             <td class="px-6 py-4">
                                 @if($delegate->status === 'approved')
                                 <input 
@@ -125,6 +134,7 @@
                                 >
                                 @endif
                             </td>
+                            @endcan
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                 {{ $delegate->id }}
                             </td>
@@ -165,29 +175,35 @@
                                     <i class="fas fa-eye"></i> View
                                 </a>
                                 
-                                @if($delegate->status === 'pending')
-                                    <button type="button" 
-                                            onclick="quickApprove({{ $delegate->id }})" 
-                                            class="ml-3 text-green-600 hover:text-green-900"
-                                            title="Quick Approve">
-                                        <i class="fas fa-check-circle"></i> Approve
-                                    </button>
-                                    <button type="button" 
-                                            onclick="openRejectModal({{ $delegate->id }}, '{{ $delegate->user->full_name }}')" 
-                                            class="ml-3 text-red-600 hover:text-red-900"
-                                            title="Reject">
-                                        <i class="fas fa-times-circle"></i> Reject
-                                    </button>
-                                @elseif($delegate->status === 'approved')
-                                    <button type="button" 
-                                            onclick="openPdfModal({{ $delegate->id }})" 
-                                            class="ml-3 text-purple-600 hover:text-purple-900"
-                                            title="Preview Invitation">
-                                        <i class="fas fa-file-pdf"></i> Preview
-                                    </button>
-                                    <a href="{{ route('invitations.download', $delegate) }}" class="ml-3 text-green-600 hover:text-green-900" title="Download Invitation">
-                                        <i class="fas fa-download"></i> Download
-                                    </a>
+                                @can('manageDelegates', App\Models\Registration::class)
+                                    @if($delegate->status === 'pending')
+                                        <button type="button" 
+                                                onclick="quickApprove({{ $delegate->id }})" 
+                                                class="ml-3 text-green-600 hover:text-green-900"
+                                                title="Quick Approve">
+                                            <i class="fas fa-check-circle"></i> Approve
+                                        </button>
+                                        <button type="button" 
+                                                onclick="openRejectModal({{ $delegate->id }}, '{{ $delegate->user->full_name }}')" 
+                                                class="ml-3 text-red-600 hover:text-red-900"
+                                                title="Reject">
+                                            <i class="fas fa-times-circle"></i> Reject
+                                        </button>
+                                    @endif
+                                @endcan
+                                
+                                @if($delegate->status === 'approved')
+                                    @can('viewInvitation', App\Models\Registration::class)
+                                        <button type="button" 
+                                                onclick="openPdfModal({{ $delegate->id }})" 
+                                                class="ml-3 text-purple-600 hover:text-purple-900"
+                                                title="Preview Invitation">
+                                            <i class="fas fa-file-pdf"></i> Preview
+                                        </button>
+                                        <a href="{{ route('invitations.download', $delegate) }}" class="ml-3 text-green-600 hover:text-green-900" title="Download Invitation">
+                                            <i class="fas fa-download"></i> Download
+                                        </a>
+                                    @endcan
                                 @endif
                             </td>
                         </tr>
@@ -199,7 +215,9 @@
                     </tbody>
                 </table>
             </div>
+        @can('sendInvitation', App\Models\Registration::class)
         </form>
+        @endcan
 
         <div class="mt-6">
             {{ $delegates->links() }}

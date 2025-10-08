@@ -18,6 +18,8 @@ class InvitationController extends Controller
 
     public function preview(Request $request)
     {
+        $this->authorize('viewInvitation', Registration::class);
+        
         $request->validate([
             'registration_id' => ['required', 'exists:registrations,id'],
         ]);
@@ -59,6 +61,8 @@ class InvitationController extends Controller
 
     public function send(Request $request)
     {
+        $this->authorize('sendInvitation', Registration::class);
+        
         $request->validate([
             'registration_ids' => ['required', 'array'],
             'registration_ids.*' => ['exists:registrations,id'],
@@ -80,6 +84,8 @@ class InvitationController extends Controller
 
     public function download(Registration $registration)
     {
+        $this->authorize('viewInvitation', Registration::class);
+        
         // Allow if paid OR if it's an approved delegate
         $isDelegate = $registration->package_id == config('app.delegate_package_id');
         $canReceiveInvitation = $registration->isPaid() || ($isDelegate && $registration->status === 'approved');

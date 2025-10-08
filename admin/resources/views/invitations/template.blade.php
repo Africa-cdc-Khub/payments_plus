@@ -105,19 +105,18 @@
     </style>
 </head>
 <body>
-<?php
-
-$delegateCategories = [
-    "Oral abstract presenter",
-    "Invited speaker/Moderator",
-    "Scientific Program Committee Member",
-    "Secretariat",
-    "Media Partner",
-    "Youth Program Participant"
-];
-
-$isFullySponsored = (in_array($registration->user->delegate_category, $delegateCategories)) ? true : false;
-?>
+@php
+    $fullySponsoredCategories = config('delegates.fully_sponsored_categories', [
+        'Oral abstract presenter',
+        'Invited speaker/Moderator',
+        'Scientific Program Committee Member',
+        'Secretariat',
+        'Media Partner',
+        'Youth Program Participant'
+    ]);
+    
+    $isFullySponsored = in_array($registration->user->delegate_category ?? '', $fullySponsoredCategories);
+@endphp
     <div class="container">
         <header class="header">
             <img src="{{ public_path('images/banner.png') }}" alt="CPHIA 2025 Logo" />

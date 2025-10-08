@@ -106,6 +106,7 @@
     </div>
 </div>
 
+@can('viewInvitation', App\Models\Registration::class)
 @if($canReceiveInvitation)
 <div class="mt-6 bg-white rounded-lg shadow p-6">
     <h3 class="text-lg font-semibold mb-4 flex items-center">
@@ -133,6 +134,7 @@
         <a href="{{ route('invitations.download', $registration) }}" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
             <i class="fas fa-download"></i> Download PDF
         </a>
+        @can('sendInvitation', App\Models\Registration::class)
         <form method="POST" action="{{ route('invitations.send') }}" class="inline">
             @csrf
             <input type="hidden" name="registration_ids[]" value="{{ $registration->id }}">
@@ -141,9 +143,11 @@
                 <i class="fas fa-paper-plane"></i> Send Email
             </button>
         </form>
+        @endcan
     </div>
 </div>
 @endif
+@endcan
 
 <div class="mt-6">
     <a href="{{ route('registrations.index') }}" class="text-blue-600 hover:text-blue-800">

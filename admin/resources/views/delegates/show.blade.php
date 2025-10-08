@@ -36,6 +36,7 @@
             </div>
         </div>
 
+        @can('manageDelegates', App\Models\Registration::class)
         @if($registration->status === 'pending')
         <div class="mt-6 flex gap-3">
             <form method="POST" action="{{ route('delegates.approve', $registration) }}" class="inline">
@@ -54,6 +55,7 @@
             </button>
         </div>
         @endif
+        @endcan
     </div>
 
     <!-- Delegate Information -->
@@ -139,6 +141,7 @@
     </div>
 
     <!-- Invitation Actions (for Approved Delegates) -->
+    @can('viewInvitation', App\Models\Registration::class)
     @if($registration->status === 'approved')
     <div class="bg-white rounded-lg shadow-sm p-6">
         <h4 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
@@ -155,6 +158,7 @@
                class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 inline-flex items-center">
                 <i class="fas fa-download mr-2"></i> Download PDF
             </a>
+            @can('sendInvitation', App\Models\Registration::class)
             <form method="POST" action="{{ route('invitations.send') }}" class="inline">
                 @csrf
                 <input type="hidden" name="registration_ids[]" value="{{ $registration->id }}">
@@ -164,9 +168,11 @@
                     <i class="fas fa-paper-plane mr-2"></i> Send Email
                 </button>
             </form>
+            @endcan
         </div>
     </div>
     @endif
+    @endcan
 
     <!-- Additional Participants -->
     @if($registration->participants->count() > 0)

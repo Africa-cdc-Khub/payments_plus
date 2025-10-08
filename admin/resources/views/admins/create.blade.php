@@ -62,12 +62,21 @@
                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('role') border-red-500 @enderror"
                     required
                 >
-                    <option value="admin" {{ old('role') === 'admin' ? 'selected' : '' }}>Admin</option>
-                    <option value="super_admin" {{ old('role') === 'super_admin' ? 'selected' : '' }}>Super Admin</option>
+                    <option value="">Select Role</option>
+                    <option value="admin" {{ old('role') === 'admin' ? 'selected' : '' }}>Admin (Full Access)</option>
+                    <option value="secretariat" {{ old('role') === 'secretariat' ? 'selected' : '' }}>Secretariat (Delegates & Invitations)</option>
+                    <option value="finance" {{ old('role') === 'finance' ? 'selected' : '' }}>Finance (Payments Only)</option>
+                    <option value="executive" {{ old('role') === 'executive' ? 'selected' : '' }}>Executive (View Only)</option>
                 </select>
                 @error('role')
                     <p class="mt-1 text-sm text-red-500">{{ $message }}</p>
                 @enderror
+                <p class="mt-1 text-xs text-gray-500">
+                    <strong>Admin:</strong> Full system access | 
+                    <strong>Secretariat:</strong> Manage delegates, send invitations | 
+                    <strong>Finance:</strong> View all payments | 
+                    <strong>Executive:</strong> View approved delegates & completed payments only
+                </p>
             </div>
 
             <div>

@@ -138,6 +138,7 @@
                                 <a href="{{ route('registrations.show', $registration) }}" class="text-blue-600 hover:text-blue-900">
                                     <i class="fas fa-eye"></i> View
                                 </a>
+                                @can('viewInvitation', App\Models\Registration::class)
                                 @if($canReceiveInvitation)
                                 <button type="button" 
                                         onclick="openPdfModal({{ $registration->id }})" 
@@ -149,6 +150,7 @@
                                     <i class="fas fa-download"></i> Download
                                 </a>
                                 @endif
+                                @endcan
                             </td>
                         </tr>
                         @empty

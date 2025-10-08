@@ -1,0 +1,56 @@
+<?php
+
+namespace App\Policies;
+
+use App\Models\Admin;
+use App\Models\Registration;
+
+class RegistrationPolicy
+{
+    /**
+     * Determine if the user can view any registrations.
+     */
+    public function viewAny(Admin $admin): bool
+    {
+        return in_array($admin->role, ['admin', 'secretariat', 'finance', 'executive']);
+    }
+
+    /**
+     * Determine if the user can view the registration.
+     */
+    public function view(Admin $admin, Registration $registration): bool
+    {
+        // Executive can only view approved delegates
+        if ($admin->role === 'executive') {
+            return $registration->package_id == config('app.delegate_package_id') 
+                   && $registration->status === 'approved';
+        }
+        
+        return in_array($admin->role, ['admin', 'secretariat', 'finance']);
+    }
+
+    /**
+     * Determine if the user can manage delegates (approve/reject).
+     */
+    public function manageDelegates(Admin $admin): bool
+    {
+        return in_array($admin->role, ['admin', 'secretariat']);
+    }
+
+    /**
+     * Determine if the user can view/download invitations.
+     */
+    public function viewInvitation(Admin $admin): bool
+    {
+        return in_array($admin->role, ['admin', 'secretariat', 'executive']);
+    }
+
+    /**
+     * Determine if the user can send invitations.
+     */
+    public function sendInvitation(Admin $admin): bool
+    {
+        return in_array($admin->role, ['admin', 'secretariat']);
+    }
+}
+

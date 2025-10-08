@@ -34,10 +34,24 @@
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $admin->full_name }}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $admin->email }}</td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                        @if($admin->role === 'super_admin')
-                            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-800">Super Admin</span>
+                        @if($admin->role === 'admin')
+                            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-800">
+                                <i class="fas fa-crown mr-1"></i>Admin
+                            </span>
+                        @elseif($admin->role === 'secretariat')
+                            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                                <i class="fas fa-users mr-1"></i>Secretariat
+                            </span>
+                        @elseif($admin->role === 'finance')
+                            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                <i class="fas fa-dollar-sign mr-1"></i>Finance
+                            </span>
+                        @elseif($admin->role === 'executive')
+                            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                <i class="fas fa-eye mr-1"></i>Executive
+                            </span>
                         @else
-                            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">Admin</span>
+                            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">{{ ucfirst($admin->role) }}</span>
                         @endif
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">

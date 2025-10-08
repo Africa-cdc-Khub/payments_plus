@@ -42,14 +42,34 @@ class Admin extends Authenticatable
         return $this->role === 'admin';
     }
 
-    /**
-     * Get the name of the unique identifier for the user.
-     *
-     * @return string
-     */
-    public function getAuthIdentifierName()
+    public function isSecretariat(): bool
     {
-        return 'username';
+        return $this->role === 'secretariat';
+    }
+
+    public function isFinance(): bool
+    {
+        return $this->role === 'finance';
+    }
+
+    public function isExecutive(): bool
+    {
+        return $this->role === 'executive';
+    }
+
+    public function canManageDelegates(): bool
+    {
+        return in_array($this->role, ['admin', 'secretariat']);
+    }
+
+    public function canViewInvitations(): bool
+    {
+        return in_array($this->role, ['admin', 'secretariat', 'executive']);
+    }
+
+    public function canSendInvitations(): bool
+    {
+        return in_array($this->role, ['admin', 'secretariat']);
     }
 }
 

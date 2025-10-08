@@ -13,6 +13,8 @@ class DelegateController extends Controller
      */
     public function index(Request $request)
     {
+        $this->authorize('manageDelegates', Registration::class);
+        
         $delegatePackageId = config('app.delegate_package_id');
         
         $query = Registration::with(['user', 'package'])
@@ -56,6 +58,8 @@ class DelegateController extends Controller
      */
     public function approve(Registration $registration)
     {
+        $this->authorize('manageDelegates', Registration::class);
+        
         // Verify this is a delegate registration
         if ($registration->package_id != config('app.delegate_package_id')) {
             return redirect()
@@ -75,6 +79,8 @@ class DelegateController extends Controller
      */
     public function reject(Request $request, Registration $registration)
     {
+        $this->authorize('manageDelegates', Registration::class);
+        
         // Verify this is a delegate registration
         if ($registration->package_id != config('app.delegate_package_id')) {
             return redirect()
