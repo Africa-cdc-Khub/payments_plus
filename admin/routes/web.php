@@ -28,6 +28,7 @@ Route::middleware(['admin.auth'])->group(function () {
     
     // Admins
     Route::resource('admins', AdminController::class);
+    Route::post('admins/{admin}/reset-password', [AdminController::class, 'resetPassword'])->name('admins.reset-password');
     
     // Packages
     Route::resource('packages', PackageController::class);

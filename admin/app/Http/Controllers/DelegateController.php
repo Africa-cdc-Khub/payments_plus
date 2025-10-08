@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\SendInvitationJob;
+use App\Jobs\SendDelegateRejectionEmail;
 use App\Models\Registration;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class DelegateController extends Controller
 {
@@ -69,9 +72,21 @@ class DelegateController extends Controller
 
         $registration->update(['status' => 'approved']);
 
-        return redirect()
-            ->route('delegates.index')
-            ->with('success', "Delegate registration for {$registration->user->full_name} has been approved.");
+        // Automatically send invitation email
+        try {
+            SendInvitationJob::dispatch($registration->id);
+            Log::info("Invitation email queued for approved delegate registration #{$registration->id}");
+            
+            return redirect()
+                ->route('delegates.index')
+                ->with('success', "Delegate registration for {$registration->user->full_name} has been approved and invitation email has been queued.");
+        } catch (\Exception $e) {
+            Log::error("Failed to queue invitation email for delegate #{$registration->id}: " . $e->getMessage());
+            
+            return redirect()
+                ->route('delegates.index')
+                ->with('warning', "Delegate registration for {$registration->user->full_name} has been approved, but failed to queue invitation email. You can send it manually.");
+        }
     }
 
     /**
@@ -93,9 +108,21 @@ class DelegateController extends Controller
             'rejection_reason' => $request->input('reason')
         ]);
 
-        return redirect()
-            ->route('delegates.index')
-            ->with('success', "Delegate registration for {$registration->user->full_name} has been rejected.");
+        // Automatically send rejection email
+        try {
+            SendDelegateRejectionEmail::dispatch($registration->id);
+            Log::info("Rejection email queued for delegate registration #{$registration->id}");
+            
+            return redirect()
+                ->route('delegates.index')
+                ->with('success', "Delegate registration for {$registration->user->full_name} has been rejected and notification email has been queued.");
+        } catch (\Exception $e) {
+            Log::error("Failed to queue rejection email for delegate #{$registration->id}: " . $e->getMessage());
+            
+            return redirect()
+                ->route('delegates.index')
+                ->with('warning', "Delegate registration for {$registration->user->full_name} has been rejected, but failed to queue notification email.");
+        }
     }
 
     /**
