@@ -112,9 +112,14 @@
 
         <div class="content-wrapper">
             <main class="content">
-            <p><strong>Subject:</strong> Invitation to Participate — 4<sup>th</sup> International Conference on Public Health in Africa (CPHIA 2025), 22—25 October 2025</p>
 
+            <div style="text-align: right; margin-bottom: 20px;">
+                <p style="margin: 0; font-weight: bold;">REF: AU/CDC/CPHIA/LT/{{ str_pad($registration->id, 5, '0', STR_PAD_LEFT) }}</p>
+                <p style="margin: 5px 0 0 0;">{{ $registration->payment_completed_at ? $registration->payment_completed_at->format('F d, Y') : date('F d, Y') }}</p>
+            </div>
+            
             <p>Dear {{ strtoupper($user->full_name) }}</p>
+            <p><strong><i>Invitation to Participate — 4<sup>th</sup> International Conference on Public Health in Africa (CPHIA 2025), 22—25 October 2025</i></strong> </p>
 
             <p>The Africa Centres for Disease Control and Prevention (Africa CDC) is pleased to invite you to join as a participant at the 4<sup>th</sup> International Conference on Public Health in Africa (CPHIA 2025), scheduled to take place 22—25 October 2025 at the Durban International Convention Centre in Durban, South Africa.</p>
 
