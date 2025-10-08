@@ -60,3 +60,4 @@ laravel_integration_example.php
 oauth_tokens.json
 tokens.json
 *.token
+guidance.txt
