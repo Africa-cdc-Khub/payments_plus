@@ -48,7 +48,7 @@ class SendAdminPasswordReset implements ShouldQueue
             $emailBody = view('emails.admin-password-reset', [
                 'admin' => $this->adminData,
                 'newPassword' => $this->newPassword,
-                'loginUrl' => config('app.url') . '/admin/login',
+                'loginUrl' => rtrim(config('domains.admin_url'), '/') . '/login',
             ])->render();
 
             // Send email

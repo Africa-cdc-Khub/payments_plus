@@ -48,7 +48,7 @@ class SendAdminCredentials implements ShouldQueue
             $emailBody = view('emails.admin-credentials', [
                 'admin' => $this->adminData,
                 'password' => $this->plainPassword,
-                'loginUrl' => config('app.url') . '/admin/login',
+                'loginUrl' => rtrim(config('domains.admin_url'), '/') . '/login',
             ])->render();
 
             // Send email

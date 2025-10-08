@@ -394,7 +394,7 @@ function quickApprove(delegateId) {
     
     const form = document.createElement('form');
     form.method = 'POST';
-    form.action = `/delegates/${delegateId}/approve`;
+    form.action = `{{ url('/delegates/${delegateId}/approve') }}`;
     
     const token = document.createElement('input');
     token.type = 'hidden';
@@ -411,7 +411,7 @@ function openRejectModal(delegateId, delegateName) {
     const form = document.getElementById('rejectForm');
     const nameElement = document.getElementById('delegateName');
     
-    form.action = `/delegates/${delegateId}/reject`;
+    form.action = `{{ url('/delegates/${delegateId}/reject') }}`;
     nameElement.textContent = delegateName;
     modal.classList.remove('hidden');
 }
