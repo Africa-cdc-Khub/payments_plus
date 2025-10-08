@@ -944,13 +944,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                         <div class="row">
                             <div class="col-md-6">
                                 <label for="numPeople" class="form-label">How many additional people are you registering (inlcuding yourself)?</label>
-                                <input type="number" class="form-control form-control-lg" name="num_people" id="numPeople" min="1" placeholder="Enter number of people" value="<?php echo htmlspecialchars($formData['num_people'] ?? ''); ?>" style="font-size: 1.5rem; font-weight: bold;">
+                                <input type="number" class="form-control form-control-lg" name="num_people" id="numPeople" min="1" placeholder="Enter number of people (Maximum 20)" value="<?php echo htmlspecialchars($formData['num_people'] ?? ''); ?>" style="font-size: 1.5rem; font-weight: bold;">
                                 <div class="form-text">This will automatically add/remove participant fields below for easy cost estimation.</div>
                             </div>
                             <div class="col-md-6">
                                 <div class="alert alert-info">
                                     <h6 class="alert-heading">Cost Estimation</h6>
-                                    <p class="mb-0" id="costEstimation">Enter number of people to see estimated cost</p>
+                                    <p class="mb-0" id="costEstimation">Enter number of people to see estimated cost (Maximum 20)</p>
                                 </div>
                             </div>
                         </div>
