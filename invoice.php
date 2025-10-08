@@ -100,6 +100,9 @@ $pageTitle = "Invoice #" . $registrationId . " - " . CONFERENCE_SHORT_NAME;
             margin: 0 auto; 
             background: #f8f9fa;
             padding: 20px;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+            color-adjust: exact;
         }
         .invoice-container {
             background: white;
@@ -346,18 +349,78 @@ $pageTitle = "Invoice #" . $registrationId . " - " . CONFERENCE_SHORT_NAME;
         .print-button:hover {
             background: #0056b3;
         }
+        
+        /* Ensure all elements print with background colors and graphics */
+        * {
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+            color-adjust: exact;
+        }
         @media print {
-            body { background: white; padding: 0; }
-            .invoice-container { margin: 0; box-shadow: none; }
-            .payment-section, .print-actions { display: none; }
+            body { 
+                background: white; 
+                padding: 0; 
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+                color-adjust: exact;
+            }
+            .invoice-container { 
+                margin: 0; 
+                box-shadow: none; 
+            }
+            .payment-section, .print-actions { 
+                display: none; 
+            }
+            /* Ensure all background colors and graphics print */
+            * {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+                color-adjust: exact;
+            }
         }
     </style>
 </head>
 <body>
     <div class="print-actions">
-        <button onclick="window.print()" class="print-button">🖨️ Print Invoice</button>
+        <button onclick="printWithBackgrounds()" class="print-button">🖨️ Print Invoice</button>
         <a href="<?php echo htmlspecialchars($invoiceData['payment_link']); ?>" class="payment-button">💳 Pay Now</a>
     </div>
+    
+    <script>
+        function printWithBackgrounds() {
+            // Create a new window for printing with background graphics enabled
+            const printWindow = window.open('', '_blank');
+            const content = document.documentElement.outerHTML;
+            
+            // Add CSS to ensure background graphics print
+            const printCSS = `
+                <style>
+                    * {
+                        -webkit-print-color-adjust: exact !important;
+                        print-color-adjust: exact !important;
+                        color-adjust: exact !important;
+                    }
+                    @media print {
+                        * {
+                            -webkit-print-color-adjust: exact !important;
+                            print-color-adjust: exact !important;
+                            color-adjust: exact !important;
+                        }
+                    }
+                </style>
+            `;
+            
+            printWindow.document.write(printCSS + content);
+            printWindow.document.close();
+            
+            // Wait for content to load, then print
+            printWindow.onload = function() {
+                printWindow.focus();
+                printWindow.print();
+                printWindow.close();
+            };
+        }
+    </script>
 
     <div class="invoice-container">
         <div class="header">
