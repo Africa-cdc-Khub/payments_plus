@@ -123,4 +123,6 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    'fully_sponsored_message' => env('FULLY_SPONSORED_MESSAGE', 'Africa CDC is pleased to inform you that your Visa, Accommodation and Registration fees will be fully covered.'),
+
 ];
