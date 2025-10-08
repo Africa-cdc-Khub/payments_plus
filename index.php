@@ -1170,13 +1170,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                     </div>
                     <div class="card-body">
                         <div class="mb-3">
-                            <!-- <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="addParticipantsNow">
-                                <label class="form-check-label" for="addParticipantsNow">
-                                    Add participant details now (optional)
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="addParticipantsNow" style="display: none !important;">
+                                <label class="form-check-label" for="addParticipantsNow" style="display: none !important;">
+                                    <!-- Add participant details now (optional) -->
                                 </label>
-                            </div> -->
-                            <div class="form-text">You can skip this step and provide participant details later via email. You will receive an email with your allocated slots.</div>
+                            </div>
+                            <!-- <div class="form-text">You can skip this step and provide participant details later via email. You will receive an email with your allocated slots.</div> -->
                         </div>
                         
                         <div id="participantsDetails" style="display: none;">
