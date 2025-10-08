@@ -43,13 +43,33 @@ if ($registration['registration_type'] === 'group') {
 }
 
 // Prepare user data
+$organizationAddress = '';
+if (!empty($registration['address_line1'])) {
+    $organizationAddress = $registration['address_line1'];
+    if (!empty($registration['address_line2'])) {
+        $organizationAddress .= ', ' . $registration['address_line2'];
+    }
+    if (!empty($registration['city'])) {
+        $organizationAddress .= ', ' . $registration['city'];
+    }
+    if (!empty($registration['state'])) {
+        $organizationAddress .= ', ' . $registration['state'];
+    }
+    if (!empty($registration['country'])) {
+        $organizationAddress .= ', ' . $registration['country'];
+    }
+    if (!empty($registration['postal_code'])) {
+        $organizationAddress .= ' ' . $registration['postal_code'];
+    }
+}
+
 $user = [
     'first_name' => $registration['first_name'],
     'last_name' => $registration['last_name'],
     'email' => $registration['user_email'],
     'nationality' => $registration['nationality'] ?? '',
     'organization' => $registration['organization'] ?? '',
-    'organization_address' => $registration['organization_address'] ?? ''
+    'organization_address' => $organizationAddress
 ];
 
 // Generate invoice data
@@ -80,6 +100,9 @@ $pageTitle = "Invoice #" . $registrationId . " - " . CONFERENCE_SHORT_NAME;
             margin: 0 auto; 
             background: #f8f9fa;
             padding: 20px;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+            color-adjust: exact;
         }
         .invoice-container {
             background: white;
@@ -129,7 +152,7 @@ $pageTitle = "Invoice #" . $registrationId . " - " . CONFERENCE_SHORT_NAME;
             font-size: 14px;
         }
         .bill-to {
-            text-align: right;
+            text-align: left;
         }
         .bill-to h3 {
             color: #063218;
@@ -326,18 +349,78 @@ $pageTitle = "Invoice #" . $registrationId . " - " . CONFERENCE_SHORT_NAME;
         .print-button:hover {
             background: #0056b3;
         }
+        
+        /* Ensure all elements print with background colors and graphics */
+        * {
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+            color-adjust: exact;
+        }
         @media print {
-            body { background: white; padding: 0; }
-            .invoice-container { margin: 0; box-shadow: none; }
-            .payment-section, .print-actions { display: none; }
+            body { 
+                background: white; 
+                padding: 0; 
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+                color-adjust: exact;
+            }
+            .invoice-container { 
+                margin: 0; 
+                box-shadow: none; 
+            }
+            .payment-section, .print-actions { 
+                display: none; 
+            }
+            /* Ensure all background colors and graphics print */
+            * {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+                color-adjust: exact;
+            }
         }
     </style>
 </head>
 <body>
     <div class="print-actions">
-        <button onclick="window.print()" class="print-button">🖨️ Print Invoice</button>
+        <button onclick="printWithBackgrounds()" class="print-button">🖨️ Print Invoice</button>
         <a href="<?php echo htmlspecialchars($invoiceData['payment_link']); ?>" class="payment-button">💳 Pay Now</a>
     </div>
+    
+    <script>
+        function printWithBackgrounds() {
+            // Create a new window for printing with background graphics enabled
+            const printWindow = window.open('', '_blank');
+            const content = document.documentElement.outerHTML;
+            
+            // Add CSS to ensure background graphics print
+            const printCSS = `
+                <style>
+                    * {
+                        -webkit-print-color-adjust: exact !important;
+                        print-color-adjust: exact !important;
+                        color-adjust: exact !important;
+                    }
+                    @media print {
+                        * {
+                            -webkit-print-color-adjust: exact !important;
+                            print-color-adjust: exact !important;
+                            color-adjust: exact !important;
+                        }
+                    }
+                </style>
+            `;
+            
+            printWindow.document.write(printCSS + content);
+            printWindow.document.close();
+            
+            // Wait for content to load, then print
+            printWindow.onload = function() {
+                printWindow.focus();
+                printWindow.print();
+                printWindow.close();
+            };
+        }
+    </script>
 
     <div class="invoice-container">
         <div class="header">
@@ -350,9 +433,9 @@ $pageTitle = "Invoice #" . $registrationId . " - " . CONFERENCE_SHORT_NAME;
                     </div>
                 </div>
             </div>
-            <div class="header-right">
+            <div class="header-left">
                 <div class="invoice-title">INVOICE</div>
-                <div class="invoice-number">#INV-<?php echo htmlspecialchars($invoiceData['registration_id']); ?></div>
+                <div class="invoice-number" style="font-size: 12px; color: #b8d4c1; margin-top: 5px;">#INV-<?php echo htmlspecialchars($invoiceData['registration_id']); ?></div>
                 <div style="font-size: 12px; color: #b8d4c1; margin-top: 5px;">
                     Date: <?php echo htmlspecialchars($invoiceData['invoice_date']); ?>
                 </div>

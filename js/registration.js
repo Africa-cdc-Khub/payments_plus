@@ -2119,26 +2119,26 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             } else {
                 // No specific package selected - use nationality-based pricing
-                const mainNationality = $('#nationality').val();
-                const isMainAfrican = isAfricanNational(mainNationality);
-                
-                // Check participant nationalities
-                let hasNonAfricanParticipants = false;
-                const participantNationalities = document.querySelectorAll('.participant-nationality');
-                
-                participantNationalities.forEach(select => {
-                    const nationality = select.value;
-                    if (nationality && !isAfricanNational(nationality)) {
-                        hasNonAfricanParticipants = true;
-                    }
-                });
-                
-                if (hasNonAfricanParticipants || !isMainAfrican) {
-                    actualPackage = { name: 'Group Registration (Non-African)', price: 400 };
-                    pricingNote = ' (Non-African pricing - mixed group)';
-                } else {
-                    actualPackage = { name: 'Group Registration (African)', price: 200 };
-                    pricingNote = ' (African pricing)';
+            const mainNationality = $('#nationality').val();
+            const isMainAfrican = isAfricanNational(mainNationality);
+            
+            // Check participant nationalities
+            let hasNonAfricanParticipants = false;
+            const participantNationalities = document.querySelectorAll('.participant-nationality');
+            
+            participantNationalities.forEach(select => {
+                const nationality = select.value;
+                if (nationality && !isAfricanNational(nationality)) {
+                    hasNonAfricanParticipants = true;
+                }
+            });
+            
+            if (hasNonAfricanParticipants || !isMainAfrican) {
+                actualPackage = { name: 'Group Registration (Non-African)', price: 400 };
+                pricingNote = ' (Non-African pricing - mixed group)';
+            } else {
+                actualPackage = { name: 'Group Registration (African)', price: 200 };
+                pricingNote = ' (African pricing)';
                 }
             }
         }

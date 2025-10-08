@@ -295,61 +295,61 @@ if (strtolower($decision) === 'accept' && $registrationId) {
             <div class="response-header">
                 <h3><i class="fas fa-credit-card me-2"></i>Payment Response</h3>
                 <p>Transaction Processing Result</p>
-            </div>
-            
+        </div>
+
             <div class="response-content">
-                <?php
-                $response = $_REQUEST;
+            <?php
+            $response = $_REQUEST;
 
                 print_r($response);
-                $amount = @$response['auth_amount'];
-                $currency = @$response['req_currency'];
-                $referenceNumber = @$response['req_reference_number'];
-                $decision = @$response['decision'];
-                $message = @$response['message'];
-                
-                // Determine status styling and icon
-                $statusClass = 'status-warning';
+            $amount = @$response['auth_amount'];
+            $currency = @$response['req_currency'];
+            $referenceNumber = @$response['req_reference_number'];
+            $decision = @$response['decision'];
+            $message = @$response['message'];
+            
+            // Determine status styling and icon
+            $statusClass = 'status-warning';
                 $statusIcon = 'fas fa-clock';
-                $statusText = 'Processing';
-                $statusColor = '#ff8c00';
-                
-                if (strtolower($decision) === 'accept') {
-                    $statusClass = 'status-success';
+            $statusText = 'Processing';
+            $statusColor = '#ff8c00';
+            
+            if (strtolower($decision) === 'accept') {
+                $statusClass = 'status-success';
                     $statusIcon = 'fas fa-check-circle';
-                    $statusText = 'Payment Successful';
-                    $statusColor = '#28a745';
-                } elseif (strtolower($decision) === 'decline' || strtolower($decision) === 'error') {
-                    $statusClass = 'status-error';
+                $statusText = 'Payment Successful';
+                $statusColor = '#28a745';
+            } elseif (strtolower($decision) === 'decline' || strtolower($decision) === 'error') {
+                $statusClass = 'status-error';
                     $statusIcon = 'fas fa-times-circle';
-                    $statusText = 'Payment Failed';
-                    $statusColor = '#dc3545';
-                }
-                ?>
-                
+                $statusText = 'Payment Failed';
+                $statusColor = '#dc3545';
+            }
+            ?>
+            
                 <div class="status-icon <?php echo $statusClass; ?>">
                     <i class="<?php echo $statusIcon; ?>"></i>
-                </div>
-                
+            </div>
+            
                 <h2 class="status-title"><?php echo $statusText; ?></h2>
-                
-                <?php if (!empty($message)): ?>
+            
+            <?php if (!empty($message)): ?>
                     <p class="status-message"><?php echo htmlspecialchars($message); ?></p>
-                <?php endif; ?>
-                
-                <div class="payment-info">
+            <?php endif; ?>
+            
+            <div class="payment-info">
                     <h5 style="color: var(--primary-green); margin-bottom: 20px; font-weight: 600;">
                         <i class="fas fa-receipt me-2"></i>Transaction Details
                     </h5>
                     
-                    <?php if (!empty($amount) && !empty($currency)): ?>
+                <?php if (!empty($amount) && !empty($currency)): ?>
                         <div class="info-item">
                             <span class="info-label">Amount:</span>
                             <span class="info-value"><?php echo htmlspecialchars($amount . ' ' . $currency); ?></span>
-                        </div>
-                    <?php endif; ?>
-                    
-                    <?php if (!empty($referenceNumber)): ?>
+                    </div>
+                <?php endif; ?>
+                
+                <?php if (!empty($referenceNumber)): ?>
                         <div class="info-item">
                             <span class="info-label">Reference Number:</span>
                             <span class="info-value"><?php echo htmlspecialchars($referenceNumber); ?></span>
@@ -364,9 +364,9 @@ if (strtolower($decision) === 'accept' && $registrationId) {
                     <div class="info-item">
                         <span class="info-label">Date:</span>
                         <span class="info-value"><?php echo date('F j, Y \a\t g:i A'); ?></span>
-                    </div>
-                </div>
-                
+            </div>
+        </div>
+
                 <div class="action-buttons">
                     <?php
                     // Extract registration ID from reference number or other parameters
@@ -449,7 +449,7 @@ if (strtolower($decision) === 'accept' && $registrationId) {
                     </span>
                 </div>
             </div>
-        </div>
+    </div>
     </footer>
 </body>
 </html>

@@ -162,15 +162,66 @@ class EmailQueue
      */
     private function processConditionalBlocks($template, $data)
     {
-        // Handle {{#field}}...{{/field}} blocks
-        $pattern = '/\{\{#(\w+)\}\}(.*?)\{\{\/\1\}\}/s';
-        $template = preg_replace_callback($pattern, function($matches) use ($data) {
+        // Handle {{#if field}}...{{/if}} blocks
+        $ifPattern = '/\{\{#if\s+(\w+)\}\}(.*?)\{\{\/if\}\}/s';
+        $template = preg_replace_callback($ifPattern, function($matches) use ($data) {
             $fieldName = $matches[1];
             $content = $matches[2];
             
             // If the field exists and is not empty, show the content
             if (isset($data[$fieldName]) && !empty($data[$fieldName])) {
                 return $content;
+            }
+            
+            // Otherwise, remove the block
+            return '';
+        }, $template);
+        
+        // Handle {{#field}}...{{/field}} blocks (without if)
+        $fieldPattern = '/\{\{#(\w+)\}\}(.*?)\{\{\/\1\}\}/s';
+        $template = preg_replace_callback($fieldPattern, function($matches) use ($data) {
+            $fieldName = $matches[1];
+            $content = $matches[2];
+            
+            // Skip if this is already handled by if/each patterns
+            if (in_array($fieldName, ['if', 'each'])) {
+                return $matches[0];
+            }
+            
+            // If the field exists and is not empty, show the content
+            if (isset($data[$fieldName]) && !empty($data[$fieldName])) {
+                return $content;
+            }
+            
+            // Otherwise, remove the block
+            return '';
+        }, $template);
+        
+        // Handle {{#each field}}...{{/each}} blocks
+        $eachPattern = '/\{\{#each\s+(\w+)\}\}(.*?)\{\{\/each\}\}/s';
+        $template = preg_replace_callback($eachPattern, function($matches) use ($data) {
+            $fieldName = $matches[1];
+            $content = $matches[2];
+            
+            // If the field exists and is an array, process each item
+            if (isset($data[$fieldName]) && is_array($data[$fieldName])) {
+                $result = '';
+                foreach ($data[$fieldName] as $index => $item) {
+                    $itemContent = $content;
+                    
+                    // Replace {{@index}} with the current index
+                    $itemContent = str_replace('{{@index}}', $index + 1, $itemContent);
+                    
+                    // Replace item fields
+                    if (is_array($item)) {
+                        foreach ($item as $key => $value) {
+                            $itemContent = str_replace('{{' . $key . '}}', $value, $itemContent);
+                        }
+                    }
+                    
+                    $result .= $itemContent;
+                }
+                return $result;
             }
             
             // Otherwise, remove the block

@@ -329,6 +329,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // For regular registrations, send normal registration emails
                 if (sendRegistrationEmails($user, $registrationId, $package, $totalAmount, $participants, $registrationType)) {
                     $success = true;
+                    // Clean up old files after successful registration
+                    cleanupOldFiles('uploads/passports/', 86400);
+                    cleanupOldFiles('uploads/student_ids/', 86400);
                 } else {
                     $errors[] = "Registration created but failed to queue confirmation email. Please contact support.";
                 }
@@ -944,13 +947,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                         <div class="row">
                             <div class="col-md-6">
                                 <label for="numPeople" class="form-label">How many additional people are you registering (inlcuding yourself)?</label>
-                                <input type="number" class="form-control form-control-lg" name="num_people" id="numPeople" min="1" placeholder="Enter number of people" value="<?php echo htmlspecialchars($formData['num_people'] ?? ''); ?>" style="font-size: 1.5rem; font-weight: bold;">
+                                <input type="number" class="form-control form-control-lg" name="num_people" id="numPeople" min="1" placeholder="Enter number of people (Maximum 20)" value="<?php echo htmlspecialchars($formData['num_people'] ?? ''); ?>" style="font-size: 1.5rem; font-weight: bold;">
                                 <div class="form-text">This will automatically add/remove participant fields below for easy cost estimation.</div>
                             </div>
                             <div class="col-md-6">
                                 <div class="alert alert-info">
                                     <h6 class="alert-heading">Cost Estimation</h6>
-                                    <p class="mb-0" id="costEstimation">Enter number of people to see estimated cost</p>
+                                    <p class="mb-0" id="costEstimation">Enter number of people to see estimated cost (Maximum 20)</p>
                                 </div>
                             </div>
                         </div>
@@ -1074,6 +1077,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                                     <option value="Media Partner" <?php echo (($formData['delegate_category'] ?? '') === 'Media Partner') ? 'selected' : ''; ?>>Media Partner</option>
                                     <option value="Side event focal person" <?php echo (($formData['delegate_category'] ?? '') === 'Side event focal person') ? 'selected' : ''; ?>>Side event focal person</option>
                                     <option value="Youth Program Participant" <?php echo (($formData['delegate_category'] ?? '') === 'Youth Program Participant') ? 'selected' : ''; ?>>Youth Program Participant</option>
+                                    <option value="Exhibition Focal Person (Bronze+)" <?php echo (($formData['delegate_category'] ?? '') === 'Exhibition Focal Person') ? 'selected' : ''; ?>>Exhibition Focal Person (Bronze+)</option>
                                 </select>
                                 <div class="form-text">Required for delegate registration</div>
                             </div>
@@ -1170,12 +1174,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                     <div class="card-body">
                         <div class="mb-3">
                             <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="addParticipantsNow">
-                                <label class="form-check-label" for="addParticipantsNow">
-                                    Add participant details now (optional)
+                                <input class="form-check-input" type="checkbox" id="addParticipantsNow" style="display: none !important;">
+                                <label class="form-check-label" for="addParticipantsNow" style="display: none !important;">
+                                    <!-- Add participant details now (optional) -->
                                 </label>
                             </div>
-                            <div class="form-text">You can skip this step and provide participant details later via email. You will receive an email with your allocated slots.</div>
+                            <!-- <div class="form-text">You can skip this step and provide participant details later via email. You will receive an email with your allocated slots.</div> -->
                         </div>
                         
                         <div id="participantsDetails" style="display: none;">
