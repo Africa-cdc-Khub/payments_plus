@@ -48,11 +48,19 @@ function handleFileUpload($file, $uploadDir = 'uploads/passports/') {
     $fileType = mime_content_type($file['tmp_name']);
     
     if (!in_array($fileType, $allowedTypes)) {
+        // Clean up temporary file if validation fails
+        if (file_exists($file['tmp_name'])) {
+            unlink($file['tmp_name']);
+        }
         return false;
     }
     
     // Validate file size (5MB max)
     if ($file['size'] > 5 * 1024 * 1024) {
+        // Clean up temporary file if validation fails
+        if (file_exists($file['tmp_name'])) {
+            unlink($file['tmp_name']);
+        }
         return false;
     }
     
@@ -63,10 +71,55 @@ function handleFileUpload($file, $uploadDir = 'uploads/passports/') {
     
     // Move uploaded file
     if (move_uploaded_file($file['tmp_name'], $filepath)) {
+        // Clean up any old files in the upload directory after successful upload
+        cleanupOldFiles($uploadDir, 86400); // Clean files older than 24 hours
         return $filename;
     }
     
+    // Clean up temporary file if move fails
+    if (file_exists($file['tmp_name'])) {
+        unlink($file['tmp_name']);
+    }
+    
     return false;
+}
+
+// Clean up old temporary files and orphaned uploads
+function cleanupOldFiles($uploadDir = 'uploads/passports/', $maxAge = 86400) {
+    if (!is_dir($uploadDir)) {
+        return;
+    }
+    
+    $files = glob($uploadDir . '*');
+    $currentTime = time();
+    
+    foreach ($files as $file) {
+        if (is_file($file)) {
+            $fileAge = $currentTime - filemtime($file);
+            if ($fileAge > $maxAge) {
+                unlink($file);
+                error_log("Cleaned up old file: " . basename($file));
+            }
+        }
+    }
+}
+
+// Clean up PHP temporary files that might be left behind
+function cleanupTempFiles() {
+    $tempDir = sys_get_temp_dir();
+    $pattern = $tempDir . '/php*';
+    $files = glob($pattern);
+    
+    foreach ($files as $file) {
+        if (is_file($file)) {
+            $fileAge = time() - filemtime($file);
+            // Clean up files older than 1 hour
+            if ($fileAge > 3600) {
+                unlink($file);
+                error_log("Cleaned up temp file: " . basename($file));
+            }
+        }
+    }
 }
 
 // User functions

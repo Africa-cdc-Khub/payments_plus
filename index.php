@@ -329,6 +329,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // For regular registrations, send normal registration emails
                 if (sendRegistrationEmails($user, $registrationId, $package, $totalAmount, $participants, $registrationType)) {
                     $success = true;
+                    // Clean up old files after successful registration
+                    cleanupOldFiles('uploads/passports/', 86400);
+                    cleanupOldFiles('uploads/student_ids/', 86400);
                 } else {
                     $errors[] = "Registration created but failed to queue confirmation email. Please contact support.";
                 }
