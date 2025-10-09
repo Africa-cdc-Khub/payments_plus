@@ -221,7 +221,7 @@
                                         onclick="requestPassportEmail({{ $delegate->id }}, '{{ $delegate->user->full_name }}')" 
                                         class="inline-flex items-center px-3 py-1 border border-orange-300 text-xs font-medium rounded-md text-orange-700 bg-orange-50 hover:bg-orange-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
                                     >
-                                        <i class="fas fa-envelope mr-1"></i> Send Request Passport
+                                        <i class="fas fa-envelope mr-1"></i> Send Request For Passport
                                     </button>
                                 @endif
                             </div>
@@ -313,7 +313,7 @@ function requestPassportEmail(delegateId, delegateName) {
         // Create a form to submit the request
         const form = document.createElement('form');
         form.method = 'POST';
-        form.action = `/approved-delegates/${delegateId}/request-passport`;
+        form.action = `{{  url('/approved-delegates/${delegateId}/request-passport') }}`;
         
         // Add CSRF token
         const csrfToken = document.createElement('input');
