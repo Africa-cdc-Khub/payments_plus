@@ -74,11 +74,17 @@
         
         <h3>What's Next?</h3>
         <ul>
+            {{#if is_delegate_package}}
+            <li>Your registration is complete - no payment required</li>
+            {{/if}}
+            {{#if is_not_delegate_package}}
             <li>View your registration status and complete payment</li>
+            {{/if}}
             <li>Conference materials will be sent closer to the event date</li>
             <li>Check your email for regular updates about the conference</li>
         </ul>
         
+        {{#if is_not_delegate_package}}
         <div class="details" style="text-align: center; margin: 30px 0;">
             <h3>View Your Registration Status</h3>
             <p>Click the button below to view your registration details and complete your payment:</p>
@@ -89,6 +95,7 @@
                 Or copy and paste this link: {{payment_status_link}}
             </p>
         </div>
+        {{/if}}
         
         <p>If you have any questions, please don't hesitate to contact us at <a href="mailto:{{support_email}}">{{support_email}}</a></p>
     </div>

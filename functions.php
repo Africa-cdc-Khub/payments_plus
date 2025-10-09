@@ -333,6 +333,40 @@ function sendRegistrationEmails($user, $registrationId, $package, $amount, $part
     // Generate invoice data
     $invoiceData = generateInvoiceData($user, $registrationId, $package, $amount, $participants, $registrationType);
     
+    // Queue registration confirmation email to user
+    $confirmationData = [
+        'user_name' => $invoiceData['user_name'],
+        'registration_id' => $registrationId,
+        'package_name' => $package['name'],
+        'package_id' => $package['id'],
+        'amount' => $amount,
+        'is_delegate_package' => ($package['id'] == DELEGATE_PACKAGE_ID),
+        'is_not_delegate_package' => ($package['id'] != DELEGATE_PACKAGE_ID),
+        'payment_status_link' => $invoiceData['payment_status_link'],
+        'conference_name' => CONFERENCE_NAME,
+        'conference_short_name' => CONFERENCE_SHORT_NAME,
+        'conference_dates' => CONFERENCE_DATES,
+        'conference_location' => CONFERENCE_LOCATION,
+        'conference_venue' => CONFERENCE_VENUE,
+        'logo_url' => EMAIL_LOGO_URL,
+        'support_email' => SUPPORT_EMAIL
+    ];
+
+    $result = $emailQueue->addToQueue(
+        $user['email'],
+        $invoiceData['user_name'],
+        CONFERENCE_SHORT_NAME . " - Registration Confirmation #" . $registrationId,
+        'registration_confirmation',
+        $confirmationData,
+        'registration_confirmation',
+        5
+    );
+
+    if (!$result) {
+        $success = false;
+        error_log("Failed to queue registration confirmation to: " . $user['email']);
+    }
+
     // Queue invoice email to user
     $result = $emailQueue->addToQueue(
         $user['email'],

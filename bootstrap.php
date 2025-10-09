@@ -92,6 +92,9 @@ define('CONFERENCE_DATES', $_ENV['CONFERENCE_DATES'] ?? '22-25 October 2025');
 define('CONFERENCE_LOCATION', $_ENV['CONFERENCE_LOCATION'] ?? 'Durban, South Africa');
 define('CONFERENCE_VENUE', $_ENV['CONFERENCE_VENUE'] ?? 'Durban International Convention Centre');
 
+// Package IDs
+define('DELEGATE_PACKAGE_ID', $_ENV['DELEGATE_PACKAGE_ID'] ?? '29');
+
 // Currency
 define('DEFAULT_CURRENCY', $_ENV['DEFAULT_CURRENCY'] ?? 'USD');
 define('CURRENCY_SYMBOL', $_ENV['CURRENCY_SYMBOL'] ?? '$');
