@@ -14,8 +14,7 @@ class ParticipantsController extends Controller
      */
     public function index(Request $request)
     {
-        $this->authorize('viewAny', Registration::class);
-
+     
         // Get all packages for filter dropdown
         $packages = Package::orderBy('name')->get();
 
@@ -75,7 +74,6 @@ class ParticipantsController extends Controller
      */
     public function export(Request $request)
     {
-        $this->authorize('viewAny', Registration::class);
 
         // Base query for participants
         $query = Registration::with(['user', 'package'])
@@ -127,6 +125,7 @@ class ParticipantsController extends Controller
                 'Phone',
                 'Country',
                 'Package',
+                'Delegate Category',
                 'Registration Date',
                 'Type'
             ];
@@ -149,6 +148,7 @@ class ParticipantsController extends Controller
                     $participant->user->phone ?? '',
                     $participant->user->country ?? '',
                     $participant->package->name ?? '',
+                    $participant->user->delegate_category ?? '',
                     $participant->created_at ? $participant->created_at->format('Y-m-d H:i:s') : '',
                     $type
                 ];
