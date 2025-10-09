@@ -6,6 +6,7 @@ use App\Jobs\SendAdminCredentials;
 use App\Jobs\SendAdminPasswordReset;
 use App\Models\Admin;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -149,6 +150,43 @@ class AdminController extends Controller
                 ->route('admins.index')
                 ->with('warning', "Password reset for '{$admin->full_name}', but failed to send email. Please contact them manually.");
         }
+    }
+
+    /**
+     * Show the change password form for the current admin
+     */
+    public function showChangePasswordForm()
+    {
+        return view('admins.change-password');
+    }
+
+    /**
+     * Change password for the current admin
+     */
+    public function changePassword(Request $request)
+    {
+        $admin = Auth::guard('admin')->user();
+
+        $request->validate([
+            'current_password' => ['required', 'string'],
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
+        ]);
+
+        // Verify current password
+        if (!Hash::check($request->current_password, $admin->password)) {
+            return back()->with('error', 'Current password is incorrect.');
+        }
+
+        // Update password
+        $admin->update([
+            'password' => Hash::make($request->password)
+        ]);
+
+        Log::info("Admin {$admin->username} changed their password");
+
+        return redirect()
+            ->route('change-password')
+            ->with('success', 'Password changed successfully.');
     }
 }
 

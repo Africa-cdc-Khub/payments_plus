@@ -62,7 +62,15 @@ class ApprovedDelegateController extends Controller
             });
         }
 
-        $delegates = $query->orderBy('created_at', 'desc')->paginate(20);
+        // Filter by travel processed status
+        if ($request->filled('travel_processed')) {
+            $query->where('travel_processed', $request->travel_processed);
+        }
+
+        // Order by unprocessed first, then by creation date
+        $delegates = $query->orderBy('travel_processed', 'asc')
+                          ->orderBy('created_at', 'desc')
+                          ->paginate(20);
 
         // Get unique delegate categories for filter - from all users with delegate category
         $delegateCategories = \App\Models\User::whereNotNull('delegate_category')
@@ -132,7 +140,15 @@ class ApprovedDelegateController extends Controller
             });
         }
 
-        $delegates = $query->orderBy('created_at', 'desc')->get();
+        // Filter by travel processed status
+        if ($request->filled('travel_processed')) {
+            $query->where('travel_processed', $request->travel_processed);
+        }
+
+        // Order by unprocessed first, then by creation date
+        $delegates = $query->orderBy('travel_processed', 'asc')
+                          ->orderBy('created_at', 'desc')
+                          ->get();
 
         // Generate CSV
         $filename = 'approved_delegates_' . now()->format('Y-m-d_His') . '.csv';
@@ -165,6 +181,7 @@ class ApprovedDelegateController extends Controller
             if ($isTravels) {
                 $headers[] = 'Passport Number';
                 $headers[] = 'Airport of Origin';
+                $headers[] = 'Travel Status';
             }
             
             $headers = array_merge($headers, [
@@ -196,6 +213,7 @@ class ApprovedDelegateController extends Controller
                 if ($isTravels) {
                     $row[] = $delegate->user->passport_number ?? '';
                     $row[] = $delegate->user->airport_of_origin ?? '';
+                    $row[] = $delegate->travel_processed ? 'Processed' : 'Pending';
                 }
                 
                 $row = array_merge($row, [
@@ -213,5 +231,28 @@ class ApprovedDelegateController extends Controller
         };
 
         return Response::stream($callback, 200, $headers);
+    }
+
+    public function markAsProcessed(Request $request, Registration $registration)
+    {
+        // Only travels role can mark as processed
+        $admin = Auth::guard('admin')->user();
+        if (!$admin || $admin->role !== 'travels') {
+            abort(403, 'Unauthorized access.');
+        }
+
+        // Validate the registration is an approved delegate
+        if ($registration->package_id != config('app.delegate_package_id') || $registration->status !== 'approved') {
+            return redirect()->back()->with('error', 'Invalid registration.');
+        }
+
+        // Toggle the travel_processed status
+        $registration->update([
+            'travel_processed' => !$registration->travel_processed
+        ]);
+
+        $status = $registration->travel_processed ? 'processed' : 'unprocessed';
+        
+        return redirect()->back()->with('success', "Delegate marked as {$status}.");
     }
 }

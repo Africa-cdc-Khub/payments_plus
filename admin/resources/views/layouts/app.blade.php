@@ -75,6 +75,9 @@
                     
                     <div class="flex items-center space-x-4">
                         <span class="text-gray-700">{{ auth('admin')->user()->full_name }}</span>
+                        <a href="{{ route('change-password') }}" class="text-blue-600 hover:text-blue-800">
+                            <i class="fas fa-key mr-1"></i> Change Password
+                        </a>
                         <form method="POST" action="{{ route('logout') }}" class="inline">
                             @csrf
                             <button type="submit" class="text-red-600 hover:text-red-800">

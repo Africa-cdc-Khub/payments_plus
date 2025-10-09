@@ -68,6 +68,20 @@
                         @endforeach
                     </select>
                 </div>
+
+                @if(auth('admin')->user()->role === 'travels')
+                <div class="flex-1 min-w-[200px]">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Travel Status</label>
+                    <select 
+                        name="travel_processed" 
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                        <option value="">All Status</option>
+                        <option value="0" {{ request('travel_processed') === '0' ? 'selected' : '' }}>Unprocessed</option>
+                        <option value="1" {{ request('travel_processed') === '1' ? 'selected' : '' }}>Processed</option>
+                    </select>
+                </div>
+                @endif
             </div>
 
             <div class="flex gap-2 mt-2">
@@ -130,6 +144,9 @@
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Category</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Passport No.</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Airport of Origin</th>
+                    @if(auth('admin')->user()->role === 'travels')
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Travel Status</th>
+                    @endif
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Approved Date</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
                 </tr>
@@ -181,6 +198,19 @@
                             <span class="text-gray-400">••••••••</span>
                         @endif
                     </td>
+                    @if(auth('admin')->user()->role === 'travels')
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        @if($delegate->travel_processed)
+                            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                <i class="fas fa-check-circle"></i> Processed
+                            </span>
+                        @else
+                            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                <i class="fas fa-clock"></i> Pending
+                            </span>
+                        @endif
+                    </td>
+                    @endif
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {{ $delegate->updated_at ? $delegate->updated_at->format('M d, Y') : '-' }}
                     </td>
@@ -197,13 +227,23 @@
                             <i class="fas fa-file-pdf"></i> Invitation
                         </button>
                         @endcan
+
+                        @if(auth('admin')->user()->role === 'travels')
+                        <button type="button"
+                                onclick="openTravelProcessedModal({{ $delegate->id }}, '{{ addslashes($delegate->user->full_name) }}', {{ $delegate->travel_processed ? 'true' : 'false' }})"
+                                class="ml-3 text-{{ $delegate->travel_processed ? 'orange' : 'green' }}-600 hover:text-{{ $delegate->travel_processed ? 'orange' : 'green' }}-900"
+                                title="{{ $delegate->travel_processed ? 'Mark as Unprocessed' : 'Mark as Processed' }}">
+                            <i class="fas fa-{{ $delegate->travel_processed ? 'undo' : 'check' }}"></i> 
+                            {{ $delegate->travel_processed ? 'Unmark Processed' : 'Mark Processed' }}
+                        </button>
+                        @endif
                     </td>
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="10" class="px-6 py-4 text-center text-gray-500">
+                    <td colspan="{{ auth('admin')->user()->role === 'travels' ? '11' : '10' }}" class="px-6 py-4 text-center text-gray-500">
                         No approved delegates found
-                        @if(request()->hasAny(['search', 'delegate_category', 'country']))
+                        @if(request()->hasAny(['search', 'delegate_category', 'country', 'travel_processed']))
                             matching your filters
                         @endif
                     </td>
@@ -220,6 +260,9 @@
 
 <!-- Include PDF Preview Modal -->
 @include('components.invitation-preview-modal')
+
+<!-- Include Mark Travel Processed Modal -->
+@include('components.mark-travel-processed-modal')
 
 @endsection
 

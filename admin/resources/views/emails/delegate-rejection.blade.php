@@ -87,18 +87,10 @@
             
             <div class="action-box">
                 <p><strong>📝 Next Steps - Register with a Different Package</strong></p>
-                <p>We would still love to have you join us at CPHIA 2025! You can register using one of our other available packages:</p>
-                <ul>
-                    <li><strong>Standard Registration</strong> - Full conference access</li>
-                    <li><strong>Early Bird Package</strong> - Discounted registration (if available)</li>
-                    <li><strong>Student Package</strong> - Special rates for students</li>
-                    <li><strong>Virtual Attendance</strong> - Remote participation option</li>
-                </ul>
+                <p>We would still love to have you join us at CPHIA 2025! 
+                You can register using one of our other available packages:</p>
+                <p> <a href="{{ rtrim(config('domains.parent_url'), '/') }}" class="button">Register with Different Package</a></p>
             </div>
-
-            <p style="text-align: center;">
-                <a href="{{ rtrim(config('domains.parent_url'), '/') }}/register" class="button">Register with Different Package</a>
-            </p>
 
             <p><strong>Conference Details:</strong></p>
             <ul>
@@ -106,13 +98,6 @@
                 <li><strong>Date:</strong> October 22-25, 2025</li>
                 <li><strong>Location:</strong> Durban, South Africa</li>
                 <li><strong>Venue:</strong> Durban International Convention Centre</li>
-            </ul>
-
-            <p><strong>Need Assistance?</strong></p>
-            <p>If you have any questions about alternative registration packages or would like assistance with your registration, please don't hesitate to contact us:</p>
-            <ul>
-                <li><strong>Email:</strong> <a href="mailto:{{ config('domains.contact.email') }}">{{ config('domains.contact.email') }}</a></li>
-                <li><strong>Website:</strong> <a href="{{ config('domains.parent_url') }}">{{ config('domains.parent_url') }}</a></li>
             </ul>
 
             <p>We appreciate your understanding and look forward to your participation in CPHIA 2025 through one of our other registration options.</p>
