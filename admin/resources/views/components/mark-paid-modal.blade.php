@@ -126,7 +126,7 @@ function openMarkPaidModal(registrationId, registrantName, registrationAmount = 
     }
     
     // Set form action
-    form.action = `/registrations/${registrationId}/mark-paid`;
+    form.action = `{{ url('registrations') }}/${registrationId}/mark-paid`;
     
     // Set registrant name
     nameElement.textContent = registrantName;

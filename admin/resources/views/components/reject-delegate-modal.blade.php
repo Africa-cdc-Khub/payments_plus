@@ -89,7 +89,7 @@ function openRejectModal(delegateId, delegateName) {
     }
     
     // Set form action
-    form.action = `/delegates/${delegateId}/reject`;
+    form.action = `{{ url('delegates') }}/${delegateId}/reject`;
     
     // Set delegate name
     nameElement.textContent = delegateName;

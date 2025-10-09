@@ -93,7 +93,7 @@ function openTravelProcessedModal(registrationId, delegateName, isProcessed) {
     }
     
     // Set form action
-    form.action = `/approved-delegates/${registrationId}/mark-processed`;
+    form.action = `{{ url('approved-delegates') }}/${registrationId}/mark-processed`;
     
     // Set delegate name
     nameElement.textContent = delegateName;
