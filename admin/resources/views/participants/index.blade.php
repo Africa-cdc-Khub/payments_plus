@@ -226,7 +226,7 @@
         </div>
 
         <div class="p-6">
-            {{ $participants->appends(request()->query())->links() }}
+            {{ $participants->appends(request()->query())->links('vendor.pagination.always-show-numbers') }}
         </div>
     </div>
 </div>

@@ -151,6 +151,23 @@
         </div>
     </div>
 
+    <!-- Showing records info -->
+    <div class="mb-4 mt-2">
+        <p class="text-sm text-gray-700 leading-5">
+            Showing
+            @if ($payments->firstItem())
+                <span class="font-medium">{{ $payments->firstItem() }}</span>
+                to
+                <span class="font-medium">{{ $payments->lastItem() }}</span>
+            @else
+                {{ $payments->count() }}
+            @endif
+            of
+            <span class="font-medium">{{ $payments->total() }}</span>
+            payments
+        </p>
+    </div>
+
     <div class="overflow-x-auto">
         <table class="w-full">
             <thead class="bg-gray-50">

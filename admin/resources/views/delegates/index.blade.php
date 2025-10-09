@@ -144,6 +144,23 @@
     </div>
 
     <div class="p-6">
+        <!-- Showing records info -->
+        <div class="mb-4 mt-2">
+            <p class="text-sm text-gray-700 leading-5">
+                Showing
+                @if ($delegates->firstItem())
+                    <span class="font-medium">{{ $delegates->firstItem() }}</span>
+                    to
+                    <span class="font-medium">{{ $delegates->lastItem() }}</span>
+                @else
+                    {{ $delegates->count() }}
+                @endif
+                of
+                <span class="font-medium">{{ $delegates->total() }}</span>
+                delegates
+            </p>
+        </div>
+        
         <div class="overflow-x-auto">
             <table class="w-full">
                 <thead class="bg-gray-50">

@@ -12,6 +12,23 @@
         </a>
     </div>
 
+    <!-- Showing records info -->
+    <div class="mb-4 mt-2">
+        <p class="text-sm text-gray-700 leading-5">
+            Showing
+            @if ($admins->firstItem())
+                <span class="font-medium">{{ $admins->firstItem() }}</span>
+                to
+                <span class="font-medium">{{ $admins->lastItem() }}</span>
+            @else
+                {{ $admins->count() }}
+            @endif
+            of
+            <span class="font-medium">{{ $admins->total() }}</span>
+            administrators
+        </p>
+    </div>
+
     <div class="overflow-x-auto">
         <table class="w-full">
             <thead class="bg-gray-50">

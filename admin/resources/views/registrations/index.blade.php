@@ -35,6 +35,23 @@
     </div>
 
     <div class="p-6">
+        <!-- Showing records info -->
+        <div class="mb-4 mt-2">
+            <p class="text-sm text-gray-700 leading-5">
+                Showing
+                @if ($registrations->firstItem())
+                    <span class="font-medium">{{ $registrations->firstItem() }}</span>
+                    to
+                    <span class="font-medium">{{ $registrations->lastItem() }}</span>
+                @else
+                    {{ $registrations->count() }}
+                @endif
+                of
+                <span class="font-medium">{{ $registrations->total() }}</span>
+                registrations
+            </p>
+        </div>
+        
         <div class="overflow-x-auto">
             <table class="w-full">
                 <thead class="bg-gray-50">
@@ -161,7 +178,7 @@
             </div>
 
             <div class="mt-6">
-                {{ $registrations->links() }}
+                {{ $registrations->appends(request()->query())->links() }}
             </div>
         </div>
     </div>
