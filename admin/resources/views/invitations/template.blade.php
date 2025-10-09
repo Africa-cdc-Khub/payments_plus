@@ -112,7 +112,8 @@
         'Scientific Program Committee Member',
         'Secretariat',
         'Media Partner',
-        'Youth Program Participant'
+        'Youth Program Participant',
+        'Interpreter/Translators'
     ]);
     
     $isFullySponsored = in_array($registration->user->delegate_category ?? '', $fullySponsoredCategories);
