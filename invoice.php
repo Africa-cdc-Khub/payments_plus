@@ -558,7 +558,6 @@ $pageTitle = "Invoice #" . $registrationId . " - " . CONFERENCE_SHORT_NAME;
                                <h4>Need Help?</h4>
                                <p>If you have any questions or need assistance with your payment, please contact us:</p>
                                <p><strong>Email:</strong> <a href="mailto:<?php echo htmlspecialchars($invoiceData['support_email']); ?>" style="color: #063218;"><?php echo htmlspecialchars($invoiceData['support_email']); ?></a></p>
-                               <p><strong>Phone:</strong> +251-11-552-4177 (Monday - Friday, 9:00 AM - 5:00 PM EAT)</p>
                            </div>
                 </div>
             </div>
