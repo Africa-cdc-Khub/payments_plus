@@ -1078,6 +1078,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                                     <option value="Side event focal person" <?php echo (($formData['delegate_category'] ?? '') === 'Side event focal person') ? 'selected' : ''; ?>>Side event focal person</option>
                                     <option value="Youth Program Participant" <?php echo (($formData['delegate_category'] ?? '') === 'Youth Program Participant') ? 'selected' : ''; ?>>Youth Program Participant</option>
                                     <option value="Exhibition Focal Person (Bronze+)" <?php echo (($formData['delegate_category'] ?? '') === 'Exhibition Focal Person') ? 'selected' : ''; ?>>Exhibition Focal Person (Bronze+)</option>
+                                    <option value="Local Media" <?php echo (($formData['delegate_category'] ?? '') === 'Local Media') ? 'selected' : ''; ?>>Local Media</option>
                                 </select>
                                 <div class="form-text">Required for delegate registration</div>
                             </div>
