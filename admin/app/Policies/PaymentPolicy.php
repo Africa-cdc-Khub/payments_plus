@@ -12,7 +12,7 @@ class PaymentPolicy
      */
     public function viewAny(Admin $admin): bool
     {
-        return in_array($admin->role, ['admin', 'secretariat', 'finance', 'executive', 'travels']);
+        return in_array($admin->role, ['admin', 'secretariat', 'finance', 'executive']);
     }
 
     /**
@@ -20,8 +20,8 @@ class PaymentPolicy
      */
     public function view(Admin $admin, Payment $payment): bool
     {
-        // Executive and Travels can only view completed payments
-        if (in_array($admin->role, ['executive', 'travels'])) {
+        // Executive can only view completed payments
+        if ($admin->role === 'executive') {
             return $payment->status === 'completed';
         }
         

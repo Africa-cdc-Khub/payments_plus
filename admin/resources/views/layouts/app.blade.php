@@ -40,13 +40,13 @@
                 </a>
                 @endif
                 
-                @if($admin && in_array($admin->role, ['admin', 'executive', 'travels']))
+                @if($admin && in_array($admin->role, ['admin', 'executive', 'travels','secretariat']))
                 <a href="{{ route('approved-delegates.index') }}" class="block px-6 py-3 hover:bg-gray-700 {{ request()->routeIs('approved-delegates.*') ? 'bg-gray-700' : '' }}">
                     <i class="fas fa-check-circle mr-2"></i> Approved Delegates
                 </a>
                 @endif
                 
-                @if($admin && in_array($admin->role, ['admin', 'secretariat', 'finance', 'executive', 'travels']))
+                @if($admin && in_array($admin->role, ['admin', 'secretariat', 'finance', 'executive']))
                 <a href="{{ route('payments.index') }}" class="block px-6 py-3 hover:bg-gray-700 {{ request()->routeIs('payments.*') ? 'bg-gray-700' : '' }}">
                     <i class="fas fa-credit-card mr-2"></i> Payments
                 </a>

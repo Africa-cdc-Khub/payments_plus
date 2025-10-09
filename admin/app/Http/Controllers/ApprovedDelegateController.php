@@ -11,15 +11,32 @@ class ApprovedDelegateController extends Controller
 {
     public function index(Request $request)
     {
-        // Only admin, executive, and travels can access
+        // Only admin, secretariat, executive, and travels can access
         $admin = Auth::guard('admin')->user();
-        if (!$admin || !in_array($admin->role, ['admin', 'executive', 'travels'])) {
+        if (!$admin || !in_array($admin->role, ['admin', 'secretariat', 'executive', 'travels'])) {
             abort(403, 'Unauthorized access.');
         }
 
         $query = Registration::with(['user', 'package'])
             ->where('package_id', config('app.delegate_package_id'))
             ->where('status', 'approved');
+
+        // Travels role can only see fully sponsored delegates
+        if ($admin->role === 'travels') {
+            $fullySponsoredCategories = [
+                'Oral abstract presenter',
+                'Invited speaker/Moderator',
+                'Scientific Program Committee Member',
+                'Secretariat',
+                'Media Partner',
+                'Youth Program Participant',
+                'Interpreter/Translators'
+            ];
+            
+            $query->whereHas('user', function($q) use ($fullySponsoredCategories) {
+                $q->whereIn('delegate_category', $fullySponsoredCategories);
+            });
+        }
 
         // Filter by delegate category
         if ($request->filled('delegate_category')) {
@@ -66,15 +83,32 @@ class ApprovedDelegateController extends Controller
 
     public function export(Request $request)
     {
-        // Only admin, executive, and travels can access
+        // Only admin, secretariat, executive, and travels can access
         $admin = Auth::guard('admin')->user();
-        if (!$admin || !in_array($admin->role, ['admin', 'executive', 'travels'])) {
+        if (!$admin || !in_array($admin->role, ['admin', 'secretariat', 'executive', 'travels'])) {
             abort(403, 'Unauthorized access.');
         }
 
         $query = Registration::with(['user', 'package'])
             ->where('package_id', config('app.delegate_package_id'))
             ->where('status', 'approved');
+
+        // Travels role can only see fully sponsored delegates
+        if ($admin->role === 'travels') {
+            $fullySponsoredCategories = [
+                'Oral abstract presenter',
+                'Invited speaker/Moderator',
+                'Scientific Program Committee Member',
+                'Secretariat',
+                'Media Partner',
+                'Youth Program Participant',
+                'Interpreter/Translators'
+            ];
+            
+            $query->whereHas('user', function($q) use ($fullySponsoredCategories) {
+                $q->whereIn('delegate_category', $fullySponsoredCategories);
+            });
+        }
 
         // Apply same filters as index
         if ($request->filled('delegate_category')) {
