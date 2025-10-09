@@ -57,6 +57,7 @@ function openPdfModal(registrationId) {
     // Show modal and loader
     modal.style.display = 'block';
     loader.style.display = 'flex';
+    document.body.style.overflow = 'hidden'; // Prevent background scrolling
     
     // Store current registration ID for download
     currentPdfUrl = `/invitations/download/${registrationId}`;
@@ -108,6 +109,7 @@ function closePdfModal() {
     iframe.src = 'about:blank';
     loader.style.display = 'flex';
     currentPdfUrl = '';
+    document.body.style.overflow = ''; // Restore scrolling
 }
 
 function pdfLoaded() {

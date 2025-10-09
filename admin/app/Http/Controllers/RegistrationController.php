@@ -2,14 +2,19 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\SendInvitationJob;
+use App\Models\Payment;
 use App\Models\Registration;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class RegistrationController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Registration::with(['user', 'package']);
+        $query = Registration::with(['user', 'package', 'payment.completedBy']);
 
         // Filter by payment status
         if ($request->filled('status')) {
@@ -27,7 +32,7 @@ class RegistrationController extends Controller
         }
 
         $registrations = $query
-            ->orderByRaw("CASE WHEN payment_status = 'paid' THEN 0 ELSE 1 END")
+            ->orderByRaw("CASE WHEN payment_status = 'completed' THEN 0 ELSE 1 END")
             ->latest('created_at')
             ->paginate(20);
 
@@ -39,6 +44,89 @@ class RegistrationController extends Controller
         $registration->load(['user', 'package', 'participants']);
         
         return view('registrations.show', compact('registration'));
+    }
+
+    public function markAsPaid(Request $request, Registration $registration)
+    {
+        // Authorization check - only admin and finance can mark as paid
+        $this->authorize('markAsPaid', Payment::class);
+
+        // Validate the request
+        $request->validate([
+            'amount_paid' => 'required|numeric|min:0',
+            'payment_method' => 'required|in:bank,online',
+            'remarks' => 'required|string|max:1000',
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            // Get or create payment record
+            $payment = $registration->payment;
+            
+            if (!$payment) {
+                // Create a new payment record
+                $payment = Payment::create([
+                    'registration_id' => $registration->id,
+                    'amount' => $request->amount_paid,
+                    'currency' => 'USD',
+                    'payment_status' => 'completed',
+                    'payment_method' => $request->payment_method,
+                    'payment_reference' => 'MANUAL-' . time() . '-' . $registration->id,
+                    'payment_date' => now(),
+                    'completed_by' => Auth::guard('admin')->id(),
+                    'manual_payment_remarks' => $request->remarks,
+                ]);
+            } else {
+                // Update existing payment
+                $payment->update([
+                    'amount' => $request->amount_paid,
+                    'payment_status' => 'completed',
+                    'payment_method' => $request->payment_method,
+                    'payment_date' => $payment->payment_date ?? now(),
+                    'completed_by' => Auth::guard('admin')->id(),
+                    'manual_payment_remarks' => $request->remarks,
+                ]);
+            }
+
+            // Update registration payment status
+            $registration->update([
+                'payment_status' => 'completed',
+            ]);
+
+            DB::commit();
+
+            Log::info("Registration #{$registration->id} manually marked as paid by admin #" . Auth::guard('admin')->id(), [
+                'remarks' => $request->remarks,
+                'admin' => Auth::guard('admin')->user()->username,
+            ]);
+
+            // Dispatch invitation email job
+            try {
+                SendInvitationJob::dispatch($registration->id);
+                Log::info("Invitation email queued for registration #{$registration->id} after manual payment marking");
+                
+                return redirect()
+                    ->back()
+                    ->with('success', "Registration for {$registration->user->full_name} has been marked as paid and invitation email has been queued.");
+                    
+            } catch (\Exception $emailException) {
+                Log::error("Failed to queue invitation email for registration #{$registration->id}: " . $emailException->getMessage());
+                
+                return redirect()
+                    ->back()
+                    ->with('warning', "Registration for {$registration->user->full_name} has been marked as paid, but failed to queue invitation email. You can send it manually.");
+            }
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            
+            Log::error("Failed to mark registration #{$registration->id} as paid: " . $e->getMessage());
+
+            return redirect()
+                ->back()
+                ->with('error', 'Failed to mark registration as paid. Please try again.');
+        }
     }
 }
 

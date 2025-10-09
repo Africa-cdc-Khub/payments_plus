@@ -12,7 +12,7 @@ class PaymentPolicy
      */
     public function viewAny(Admin $admin): bool
     {
-        return in_array($admin->role, ['admin', 'secretariat', 'finance', 'executive']);
+        return in_array($admin->role, ['admin', 'secretariat', 'finance', 'executive', 'travels']);
     }
 
     /**
@@ -20,8 +20,8 @@ class PaymentPolicy
      */
     public function view(Admin $admin, Payment $payment): bool
     {
-        // Executive can only view completed payments
-        if ($admin->role === 'executive') {
+        // Executive and Travels can only view completed payments
+        if (in_array($admin->role, ['executive', 'travels'])) {
             return $payment->status === 'completed';
         }
         
@@ -32,6 +32,14 @@ class PaymentPolicy
      * Determine if the user can view all payments (including pending).
      */
     public function viewAll(Admin $admin): bool
+    {
+        return in_array($admin->role, ['admin', 'finance']);
+    }
+
+    /**
+     * Determine if the user can manually mark payments as paid.
+     */
+    public function markAsPaid(Admin $admin): bool
     {
         return in_array($admin->role, ['admin', 'finance']);
     }

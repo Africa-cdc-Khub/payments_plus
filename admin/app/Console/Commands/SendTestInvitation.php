@@ -34,7 +34,7 @@ class SendTestInvitation extends Command
             // Find a paid or approved delegate registration
             $registration = Registration::with(['user', 'package'])
                 ->where(function($query) {
-                    $query->where('payment_status', 'paid')
+                    $query->where('payment_status', 'completed')
                           ->orWhere(function($q) {
                               $q->where('package_id', config('app.delegate_package_id'))
                                 ->where('status', 'approved');

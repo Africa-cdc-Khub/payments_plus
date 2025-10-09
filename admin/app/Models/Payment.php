@@ -20,6 +20,8 @@ class Payment extends Model
         'payment_method',
         'payment_reference',
         'payment_date',
+        'completed_by',
+        'manual_payment_remarks',
     ];
 
     protected $casts = [
@@ -31,6 +33,11 @@ class Payment extends Model
     public function registration(): BelongsTo
     {
         return $this->belongsTo(Registration::class);
+    }
+
+    public function completedBy(): BelongsTo
+    {
+        return $this->belongsTo(Admin::class, 'completed_by');
     }
 }
 

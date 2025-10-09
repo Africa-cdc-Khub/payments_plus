@@ -36,7 +36,7 @@ class AdminController extends Controller
             'username' => ['required', 'string', 'max:100', 'unique:admins,username'],
             'email' => ['required', 'email', 'max:255', 'unique:admins,email'],
             'full_name' => ['required', 'string', 'max:200'],
-            'role' => ['required', 'in:admin,secretariat,finance,executive'],
+            'role' => ['required', 'in:admin,secretariat,finance,executive,travels'],
             'is_active' => ['boolean'],
         ]);
 
@@ -81,7 +81,7 @@ class AdminController extends Controller
             'email' => ['required', 'email', 'max:255', 'unique:admins,email,' . $admin->id],
             'password' => ['nullable', 'string', 'min:8', 'confirmed'],
             'full_name' => ['required', 'string', 'max:200'],
-            'role' => ['required', 'in:admin,secretariat,finance,executive'],
+            'role' => ['required', 'in:admin,secretariat,finance,executive,travels'],
             'is_active' => ['boolean'],
         ]);
 

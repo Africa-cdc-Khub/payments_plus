@@ -12,7 +12,7 @@ class RegistrationPolicy
      */
     public function viewAny(Admin $admin): bool
     {
-        return in_array($admin->role, ['admin', 'secretariat', 'finance', 'executive']);
+        return in_array($admin->role, ['admin', 'secretariat', 'finance']);
     }
 
     /**
@@ -20,12 +20,6 @@ class RegistrationPolicy
      */
     public function view(Admin $admin, Registration $registration): bool
     {
-        // Executive can only view approved delegates
-        if ($admin->role === 'executive') {
-            return $registration->package_id == config('app.delegate_package_id') 
-                   && $registration->status === 'approved';
-        }
-        
         return in_array($admin->role, ['admin', 'secretariat', 'finance']);
     }
 
@@ -42,7 +36,7 @@ class RegistrationPolicy
      */
     public function viewInvitation(Admin $admin): bool
     {
-        return in_array($admin->role, ['admin', 'secretariat', 'executive']);
+        return in_array($admin->role, ['admin', 'secretariat', 'finance', 'travels']);
     }
 
     /**

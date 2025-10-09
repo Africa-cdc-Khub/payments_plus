@@ -75,42 +75,10 @@
     </div>
 
     <div class="p-6">
-        @can('sendInvitation', App\Models\Registration::class)
-        <form id="invitationForm" method="POST" action="{{ route('invitations.send') }}">
-            @csrf
-            <div class="mb-4 flex justify-between items-center">
-                <div>
-                    <button type="button" id="selectAllApproved" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">
-                        <i class="fas fa-check-square"></i> Select All Approved
-                    </button>
-                    <button type="button" id="deselectAll" class="px-4 py-2 bg-gray-400 text-white rounded-lg hover:bg-gray-500">
-                        <i class="fas fa-square"></i> Deselect All
-                    </button>
-                </div>
-                <div>
-                    @can('viewInvitation', App\Models\Registration::class)
-                    <button type="button" id="previewBtn" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed" disabled>
-                        <i class="fas fa-eye"></i> Preview Invitation
-                    </button>
-                    @endcan
-                    <button type="submit" id="sendBtn" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed" disabled>
-                        <i class="fas fa-paper-plane"></i> Send Invitations
-                    </button>
-                </div>
-            </div>
-        @else
-            <div class="mb-4"></div>
-        @endcan
-
-            <div class="overflow-x-auto">
-                <table class="w-full">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            @can('sendInvitation', App\Models\Registration::class)
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                                <input type="checkbox" id="selectAll" class="rounded">
-                            </th>
-                            @endcan
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="bg-gray-50">
+                    <tr>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
@@ -123,18 +91,6 @@
                     <tbody class="divide-y divide-gray-200">
                         @forelse($delegates as $delegate)
                         <tr>
-                            @can('sendInvitation', App\Models\Registration::class)
-                            <td class="px-6 py-4">
-                                @if($delegate->status === 'approved')
-                                <input 
-                                    type="checkbox" 
-                                    name="registration_ids[]" 
-                                    value="{{ $delegate->id }}"
-                                    class="delegate-checkbox rounded"
-                                >
-                                @endif
-                            </td>
-                            @endcan
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                 {{ $delegate->id }}
                             </td>
@@ -209,18 +165,16 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="8" class="px-6 py-4 text-center text-gray-500">No delegate registrations found</td>
+                            <td colspan="7" class="px-6 py-4 text-center text-gray-500">No delegate registrations found</td>
                         </tr>
                         @endforelse
                     </tbody>
                 </table>
             </div>
-        @can('sendInvitation', App\Models\Registration::class)
-        </form>
-        @endcan
 
-        <div class="mt-6">
-            {{ $delegates->links() }}
+            <div class="mt-6">
+                {{ $delegates->links() }}
+            </div>
         </div>
     </div>
 </div>
@@ -274,118 +228,6 @@
 
 @push('scripts')
 <script>
-(function() {
-    let currentPreviewRegistrationId = null;
-
-    // Select All functionality
-    document.getElementById('selectAll').addEventListener('change', function(e) {
-        const checkboxes = document.querySelectorAll('.delegate-checkbox');
-        checkboxes.forEach(checkbox => {
-            checkbox.checked = e.target.checked;
-        });
-        updateButtonStates();
-    });
-
-    // Select All Approved button
-    document.getElementById('selectAllApproved').addEventListener('click', function() {
-        const checkboxes = document.querySelectorAll('.delegate-checkbox');
-        checkboxes.forEach(checkbox => checkbox.checked = true);
-        document.getElementById('selectAll').checked = checkboxes.length > 0;
-        updateButtonStates();
-    });
-
-    // Deselect All button
-    document.getElementById('deselectAll').addEventListener('click', function() {
-        const checkboxes = document.querySelectorAll('.delegate-checkbox');
-        checkboxes.forEach(checkbox => checkbox.checked = false);
-        document.getElementById('selectAll').checked = false;
-        updateButtonStates();
-    });
-
-    // Individual checkbox change
-    document.addEventListener('change', function(e) {
-        if (e.target.classList.contains('delegate-checkbox')) {
-            updateButtonStates();
-            
-            const allCheckboxes = document.querySelectorAll('.delegate-checkbox');
-            const checkedCheckboxes = document.querySelectorAll('.delegate-checkbox:checked');
-            const selectAllCheckbox = document.getElementById('selectAll');
-            
-            if (allCheckboxes.length > 0) {
-                selectAllCheckbox.checked = allCheckboxes.length === checkedCheckboxes.length;
-                selectAllCheckbox.indeterminate = checkedCheckboxes.length > 0 && checkedCheckboxes.length < allCheckboxes.length;
-            }
-        }
-    });
-
-    function updateButtonStates() {
-        const checkedBoxes = document.querySelectorAll('.delegate-checkbox:checked');
-        const previewBtn = document.getElementById('previewBtn');
-        const sendBtn = document.getElementById('sendBtn');
-        
-        const hasSelection = checkedBoxes.length > 0;
-        const singleSelection = checkedBoxes.length === 1;
-        
-        previewBtn.disabled = !singleSelection;
-        sendBtn.disabled = !hasSelection;
-        
-        if (singleSelection) {
-            currentPreviewRegistrationId = checkedBoxes[0].value;
-        }
-    }
-
-    // Preview button
-    document.getElementById('previewBtn').addEventListener('click', function() {
-        const selected = document.querySelector('.delegate-checkbox:checked');
-        
-        if (!selected) {
-            alert('Please select a delegate to preview');
-            return;
-        }
-
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = '{{ route("invitations.preview") }}';
-        form.target = '_blank';
-
-        const tokenInput = document.createElement('input');
-        tokenInput.type = 'hidden';
-        tokenInput.name = '_token';
-        tokenInput.value = '{{ csrf_token() }}';
-        form.appendChild(tokenInput);
-
-        const idInput = document.createElement('input');
-        idInput.type = 'hidden';
-        idInput.name = 'registration_id';
-        idInput.value = selected.value;
-        form.appendChild(idInput);
-
-        document.body.appendChild(form);
-        form.submit();
-        document.body.removeChild(form);
-    });
-
-    // Form submission validation
-    document.getElementById('invitationForm').addEventListener('submit', function(e) {
-        const selectedCount = document.querySelectorAll('.delegate-checkbox:checked').length;
-        
-        if (selectedCount === 0) {
-            e.preventDefault();
-            alert('Please select at least one approved delegate');
-            return false;
-        }
-
-        if (!confirm(`Send invitations to ${selectedCount} delegate(s)?`)) {
-            e.preventDefault();
-            return false;
-        }
-        
-        return true;
-    });
-    
-    updateButtonStates();
-})();
-
 // Quick approve function
 function quickApprove(delegateId) {
     if (!confirm('Are you sure you want to approve this delegate?')) {

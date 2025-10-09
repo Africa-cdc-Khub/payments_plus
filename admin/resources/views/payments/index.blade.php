@@ -6,21 +6,148 @@
 @section('content')
 <div class="bg-white rounded-lg shadow">
     <div class="p-6 border-b">
-        <div class="flex justify-between items-center">
+        <div class="flex justify-between items-center mb-4">
             <h3 class="text-lg font-semibold">All Payments</h3>
             
-            <form method="GET" class="flex space-x-2">
-                <input 
-                    type="text" 
-                    name="search" 
-                    placeholder="Search by name or email..." 
-                    value="{{ request('search') }}"
-                    class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                    <i class="fas fa-search"></i> Search
+            <form method="GET" action="{{ route('payments.export') }}">
+                @if(request('search'))
+                    <input type="hidden" name="search" value="{{ request('search') }}">
+                @endif
+                @if(request('package_id'))
+                    <input type="hidden" name="package_id" value="{{ request('package_id') }}">
+                @endif
+                @if(request('country'))
+                    <input type="hidden" name="country" value="{{ request('country') }}">
+                @endif
+                <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                    <i class="fas fa-file-csv"></i> Export CSV
                 </button>
             </form>
+        </div>
+
+        <!-- Filter Form - Always Visible -->
+        <form method="GET" class="bg-gray-50 p-4 rounded-lg">
+            <div class="flex flex-wrap gap-3 mb-3">
+                <div class="flex-1 min-w-[200px]">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Search</label>
+                    <input 
+                        type="text" 
+                        name="search" 
+                        placeholder="Name or email..." 
+                        value="{{ request('search') }}"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                </div>
+
+                <div class="flex-1 min-w-[200px]">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Package</label>
+                    <select 
+                        name="package_id" 
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                        <option value="">All Packages</option>
+                        @foreach($packages as $package)
+                            <option value="{{ $package->id }}" {{ request('package_id') == $package->id ? 'selected' : '' }}>
+                                {{ $package->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="flex-1 min-w-[200px]">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Country</label>
+                    <select 
+                        name="country" 
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                        <option value="">All Countries</option>
+                        @foreach($countries as $country)
+                            <option value="{{ $country }}" {{ request('country') === $country ? 'selected' : '' }}>
+                                {{ $country }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+
+            <div class="flex gap-2 mt-2">
+                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 whitespace-nowrap">
+                    <i class="fas fa-search"></i> Apply Filters
+                </button>
+                <a href="{{ route('payments.index') }}" class="px-4 ml-2 py-2 bg-gray-400 text-white rounded-lg hover:bg-gray-500 whitespace-nowrap">
+                    <i class="fas fa-times"></i> Clear
+                </a>
+            </div>
+        </form>
+
+        <!-- Filter Summary -->
+        @if(request()->hasAny(['search', 'package_id', 'country']))
+        <div class="mt-4 flex flex-wrap gap-2 mt-2">
+            <span class="text-sm text-gray-600">Active filters:</span>
+            @if(request('search'))
+                <span class="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full">
+                    Search: "{{ request('search') }}"
+                </span>
+            @endif
+            @if(request('package_id'))
+                @php
+                    $selectedPackage = $packages->find(request('package_id'));
+                @endphp
+                @if($selectedPackage)
+                    <span class="inline-flex items-center px-3 py-1 bg-purple-100 text-purple-800 text-sm rounded-full">
+                        Package: {{ $selectedPackage->name }}
+                    </span>
+                @endif
+            @endif
+            @if(request('country'))
+                <span class="inline-flex items-center px-3 py-1 bg-green-100 text-green-800 text-sm rounded-full">
+                    Country: {{ request('country') }}
+                </span>
+            @endif
+        </div>
+        @endif
+
+        <!-- Statistics Summary -->
+        <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-2">
+                <div class="flex items-center py-2">
+                    <div class="bg-blue-100 rounded-full p-3 mr-3">
+                        <i class="fas fa-dollar-sign text-xl text-blue-600"></i>
+                    </div>
+                    <div class="py-2">
+                        <p class="text-sm text-gray-600">Total Payments</p>
+                        <p class="text-2xl font-bold text-gray-900">{{ $payments->total() }}</p>
+                    </div>
+                </div>
+            </div>
+
+            @if(request('package_id'))
+            <div class="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                <div class="flex items-center">
+                    <div class="bg-purple-100 rounded-full p-3 mr-3">
+                        <i class="fas fa-box text-xl text-purple-600"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-600">Filtered Package</p>
+                        <p class="text-lg font-semibold text-gray-900">{{ $packages->find(request('package_id'))->name ?? 'N/A' }}</p>
+                    </div>
+                </div>
+            </div>
+            @endif
+
+            @if(request('country'))
+            <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                <div class="flex items-center">
+                    <div class="bg-green-100 rounded-full p-3 mr-3">
+                        <i class="fas fa-globe text-xl text-green-600"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-600">Filtered Country</p>
+                        <p class="text-lg font-semibold text-gray-900">{{ request('country') }}</p>
+                    </div>
+                </div>
+            </div>
+            @endif
         </div>
     </div>
 
@@ -31,7 +158,10 @@
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Country</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Package</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Passport No.</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Airport of Origin</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Amount</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Method</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
@@ -49,16 +179,33 @@
                         {{ $payment->user->email }}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {{ $payment->user->country ?? 'N/A' }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {{ $payment->package->name }}
                     </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        @if(auth('admin')->user()->role === 'travels')
+                            {{ $payment->user->passport_number ?? '-' }}
+                        @else
+                            <span class="text-gray-400">••••••••</span>
+                        @endif
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        @if(auth('admin')->user()->role === 'travels')
+                            {{ $payment->user->airport_of_origin ?? '-' }}
+                        @else
+                            <span class="text-gray-400">••••••••</span>
+                        @endif
+                    </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-semibold">
-                        ${{ number_format($payment->payment_amount, 2) }}
+                        ${{ number_format($payment->total_amount ?? $payment->payment->amount ?? 0, 2) }}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {{ ucfirst($payment->payment_method ?? 'N/A') }}
+                        {{ $payment->payment ? ucfirst(str_replace('_', ' ', $payment->payment->payment_method)) : 'N/A' }}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {{ $payment->payment_completed_at?->format('M d, Y H:i') }}
+                        {{ $payment->payment && $payment->payment->payment_date ? $payment->payment->payment_date->format('M d, Y H:i') : 'N/A' }}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm">
                         <a href="{{ route('payments.show', $payment) }}" class="text-blue-600 hover:text-blue-900">
@@ -68,7 +215,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="8" class="px-6 py-4 text-center text-gray-500">No payments found</td>
+                    <td colspan="11" class="px-6 py-4 text-center text-gray-500">No payments found</td>
                 </tr>
                 @endforelse
             </tbody>
@@ -76,7 +223,7 @@
     </div>
 
     <div class="p-6">
-        {{ $payments->links() }}
+        {{ $payments->appends(request()->query())->links() }}
     </div>
 </div>
 @endsection

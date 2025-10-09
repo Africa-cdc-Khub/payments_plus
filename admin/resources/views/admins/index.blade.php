@@ -50,6 +50,10 @@
                             <span class="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
                                 <i class="fas fa-eye mr-1"></i>Executive
                             </span>
+                        @elseif($admin->role === 'travels')
+                            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-orange-100 text-orange-800">
+                                <i class="fas fa-plane mr-1"></i>Travels
+                            </span>
                         @else
                             <span class="px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">{{ ucfirst($admin->role) }}</span>
                         @endif

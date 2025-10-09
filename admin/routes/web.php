@@ -21,9 +21,11 @@ Route::middleware(['admin.auth'])->group(function () {
     
     // Registrations
     Route::resource('registrations', RegistrationController::class);
+    Route::post('registrations/{registration}/mark-paid', [RegistrationController::class, 'markAsPaid'])->name('registrations.mark-paid');
     
     // Payments
     Route::get('payments', [PaymentController::class, 'index'])->name('payments.index');
+    Route::get('payments/export/csv', [PaymentController::class, 'export'])->name('payments.export');
     Route::get('payments/{payment}', [PaymentController::class, 'show'])->name('payments.show');
     
     // Admins
@@ -43,4 +45,8 @@ Route::middleware(['admin.auth'])->group(function () {
     Route::get('delegates/{registration}', [DelegateController::class, 'show'])->name('delegates.show');
     Route::post('delegates/{registration}/approve', [DelegateController::class, 'approve'])->name('delegates.approve');
     Route::post('delegates/{registration}/reject', [DelegateController::class, 'reject'])->name('delegates.reject');
+    
+    // Approved Delegates
+    Route::get('approved-delegates', [\App\Http\Controllers\ApprovedDelegateController::class, 'index'])->name('approved-delegates.index');
+    Route::get('approved-delegates/export', [\App\Http\Controllers\ApprovedDelegateController::class, 'export'])->name('approved-delegates.export');
 });
