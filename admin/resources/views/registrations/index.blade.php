@@ -44,8 +44,10 @@
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Package</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Amount</th>
+                            @if(!in_array(auth('admin')->user()->role, ['executive']))
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Marked By</th>
+                            @endif
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
                         </tr>
                     </thead>
@@ -71,6 +73,7 @@
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                 ${{ number_format($registration->total_amount, 2) }}
                             </td>
+                            @if(!in_array(auth('admin')->user()->role, ['executive']))
                             <td class="px-6 py-4 whitespace-nowrap">
                                 @if($isDelegate)
                                     {{-- For delegates, show delegate status --}}
@@ -116,12 +119,13 @@
                                     <span class="text-gray-400">—</span>
                                 @endif
                             </td>
+                            @endif
                             <td class="px-6 py-4 whitespace-nowrap text-sm">
                                 <a href="{{ route('registrations.show', $registration) }}" class="text-blue-600 hover:text-blue-900">
                                     <i class="fas fa-eye"></i> View
                                 </a>
                                 
-                                @can('markAsPaid', App\Models\Payment::class)
+                                @can('markAsPaid', App\Models\Registration::class)
                                 @if(!$registration->isPaid() && !$isDelegate)
                                 <button type="button" 
                                         onclick="openMarkPaidModal({{ $registration->id }}, '{{ addslashes($registration->user->full_name) }}', '{{ $registration->total_amount }}')" 
@@ -149,7 +153,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="8" class="px-6 py-4 text-center text-gray-500">No registrations found</td>
+                            <td colspan="{{ auth('admin')->user()->role === 'executive' ? '6' : '8' }}" class="px-6 py-4 text-center text-gray-500">No registrations found</td>
                         </tr>
                         @endforelse
                     </tbody>

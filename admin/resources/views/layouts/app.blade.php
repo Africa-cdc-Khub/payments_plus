@@ -52,6 +52,12 @@
                 </a>
                 @endif
                 
+                @if($admin && in_array($admin->role, ['admin', 'executive']))
+                <a href="{{ route('participants.index') }}" class="block px-6 py-3 hover:bg-gray-700 {{ request()->routeIs('participants.*') ? 'bg-gray-700' : '' }}">
+                    <i class="fas fa-users mr-2"></i> Participants
+                </a>
+                @endif
+                
                 @if($admin && $admin->role === 'admin')
                 <a href="{{ route('packages.index') }}" class="block px-6 py-3 hover:bg-gray-700 {{ request()->routeIs('packages.*') ? 'bg-gray-700' : '' }}">
                     <i class="fas fa-box mr-2"></i> Packages

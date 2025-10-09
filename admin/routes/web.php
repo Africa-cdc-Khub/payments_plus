@@ -32,6 +32,10 @@ Route::middleware(['admin.auth'])->group(function () {
     Route::get('payments/export/csv', [PaymentController::class, 'export'])->name('payments.export');
     Route::get('payments/{payment}', [PaymentController::class, 'show'])->name('payments.show');
     
+    // Participants
+    Route::get('participants', [\App\Http\Controllers\ParticipantsController::class, 'index'])->name('participants.index');
+    Route::get('participants/export/csv', [\App\Http\Controllers\ParticipantsController::class, 'export'])->name('participants.export');
+    
     // Admins
     Route::resource('admins', AdminController::class);
     Route::post('admins/{admin}/reset-password', [AdminController::class, 'resetPassword'])->name('admins.reset-password');
