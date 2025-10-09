@@ -54,4 +54,5 @@ Route::middleware(['admin.auth'])->group(function () {
     Route::get('approved-delegates', [\App\Http\Controllers\ApprovedDelegateController::class, 'index'])->name('approved-delegates.index');
     Route::get('approved-delegates/export', [\App\Http\Controllers\ApprovedDelegateController::class, 'export'])->name('approved-delegates.export');
     Route::post('approved-delegates/{registration}/mark-processed', [\App\Http\Controllers\ApprovedDelegateController::class, 'markAsProcessed'])->name('approved-delegates.mark-processed');
+    Route::post('approved-delegates/{registration}/request-passport', [\App\Http\Controllers\ApprovedDelegateController::class, 'requestPassport'])->name('approved-delegates.request-passport');
 });

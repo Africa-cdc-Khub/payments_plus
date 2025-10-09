@@ -185,14 +185,14 @@
                         {{ $payment->package->name }}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        @if(auth('admin')->user()->role === 'travels')
+                        @if(in_array(auth('admin')->user()->role, ['admin', 'travels']))
                             {{ $payment->user->passport_number ?? '-' }}
                         @else
                             <span class="text-gray-400">••••••••</span>
                         @endif
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        @if(auth('admin')->user()->role === 'travels')
+                        @if(in_array(auth('admin')->user()->role, ['admin', 'travels']))
                             {{ $payment->user->airport_of_origin ?? '-' }}
                         @else
                             <span class="text-gray-400">••••••••</span>

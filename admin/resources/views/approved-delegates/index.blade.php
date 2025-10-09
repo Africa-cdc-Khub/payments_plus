@@ -185,14 +185,35 @@
                         @endif
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        @if(auth('admin')->user()->role === 'travels')
-                            {{ $delegate->user->passport_number ?? '-' }}
+                        @if(in_array(auth('admin')->user()->role, ['admin', 'travels']))
+                            <div class="flex items-center space-x-2">
+                             
+                                <span class="text-gray-600">
+                                    {{ $delegate->user->passport_number ?? '-' }}
+                                </span>
+                                
+                                @if($delegate->user->passport_file)
+                                    <button 
+                                        onclick="openPassportPreview('{{ env('PARENT_APP_URL') }}/uploads/passports/{{ $delegate->user->passport_file }}')" 
+                                        class="inline-flex items-center px-3 py-1 px-2 text-xs font-medium rounded-md text-blue-700 bg-blue-50 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                                    >
+                                        <small class="text-xs text-gray-500">View Attachment</small>
+                                    </button>
+                                @else
+                                    <button 
+                                        onclick="requestPassportEmail({{ $delegate->id }}, '{{ $delegate->user->full_name }}')" 
+                                        class="inline-flex items-center px-3 py-1 border border-orange-300 text-xs font-medium rounded-md text-orange-700 bg-orange-50 hover:bg-orange-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
+                                    >
+                                        <i class="fas fa-envelope mr-1"></i> Send Request Passport
+                                    </button>
+                                @endif
+                            </div>
                         @else
                             <span class="text-gray-400">••••••••</span>
                         @endif
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        @if(auth('admin')->user()->role === 'travels')
+                        @if(in_array(auth('admin')->user()->role, ['admin', 'travels']))
                             {{ $delegate->user->airport_of_origin ?? '-' }}
                         @else
                             <span class="text-gray-400">••••••••</span>
@@ -228,7 +249,7 @@
                         </button>
                         @endcan
 
-                        @if(auth('admin')->user()->role === 'travels')
+                        @if(in_array(auth('admin')->user()->role, ['admin', 'travels']))
                         <button type="button"
                                 onclick="openTravelProcessedModal({{ $delegate->id }}, '{{ addslashes($delegate->user->full_name) }}', {{ $delegate->travel_processed ? 'true' : 'false' }})"
                                 class="ml-3 text-{{ $delegate->travel_processed ? 'orange' : 'green' }}-600 hover:text-{{ $delegate->travel_processed ? 'orange' : 'green' }}-900"
@@ -263,6 +284,34 @@
 
 <!-- Include Mark Travel Processed Modal -->
 @include('components.mark-travel-processed-modal')
+
+<!-- Include Passport Preview Modal (Admin and Travels roles) -->
+@if(in_array(auth('admin')->user()->role, ['admin', 'travels']))
+    @include('components.passport-preview-modal')
+@endif
+
+<script>
+function requestPassportEmail(delegateId, delegateName) {
+    if (confirm(`Send passport request email to ${delegateName}?`)) {
+        // Create a form to submit the request
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/approved-delegates/${delegateId}/request-passport`;
+        
+        // Add CSRF token
+        const csrfToken = document.createElement('input');
+        csrfToken.type = 'hidden';
+        csrfToken.name = '_token';
+        csrfToken.value = '{{ csrf_token() }}';
+        form.appendChild(csrfToken);
+        
+        // Add to body and submit
+        document.body.appendChild(form);
+        form.submit();
+        document.body.removeChild(form);
+    }
+}
+</script>
 
 @endsection
 
