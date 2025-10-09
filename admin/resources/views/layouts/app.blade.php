@@ -52,7 +52,7 @@
                 </a>
                 @endif
                 
-                @if($admin && in_array($admin->role, ['admin', 'executive']))
+                @if($admin && in_array($admin->role, ['admin', 'executive','secretariat','finance']))
                 <a href="{{ route('participants.index') }}" class="block px-6 py-3 hover:bg-gray-700 {{ request()->routeIs('participants.*') ? 'bg-gray-700' : '' }}">
                     <i class="fas fa-users mr-2"></i> Participants
                 </a>
