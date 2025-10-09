@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Registration;
+use App\Jobs\SendPassportRequestJob;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Response;
@@ -254,5 +255,28 @@ class ApprovedDelegateController extends Controller
         $status = $registration->travel_processed ? 'processed' : 'unprocessed';
         
         return redirect()->back()->with('success', "Delegate marked as {$status}.");
+    }
+
+    public function requestPassport(Request $request, Registration $registration)
+    {
+        // Only admin and travels roles can request passport
+        $admin = Auth::guard('admin')->user();
+        if (!$admin || !in_array($admin->role, ['admin', 'travels'])) {
+            abort(403, 'Unauthorized access.');
+        }
+
+        // Validate the registration is an approved delegate
+        if ($registration->package_id != config('app.delegate_package_id') || $registration->status !== 'approved') {
+            return redirect()->back()->with('error', 'Invalid registration.');
+        }
+
+        try {
+            // Dispatch passport request job
+            SendPassportRequestJob::dispatch($registration->id);
+
+            return redirect()->back()->with('success', 'Passport request email has been queued for ' . $registration->user->full_name . '.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Failed to queue passport request email: ' . $e->getMessage());
+        }
     }
 }

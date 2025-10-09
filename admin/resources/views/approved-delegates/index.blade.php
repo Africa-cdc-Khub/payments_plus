@@ -216,14 +216,13 @@
                                     >
                                         <small class="text-xs text-gray-500">View Attachment</small>
                                     </button>
-                                @else
-                                    <button 
+                                @endif
+                                <button 
                                         onclick="requestPassportEmail({{ $delegate->id }}, '{{ $delegate->user->full_name }}')" 
                                         class="inline-flex items-center px-3 py-1 border border-orange-300 text-xs font-medium rounded-md text-orange-700 bg-orange-50 hover:bg-orange-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
                                     >
                                         <i class="fas fa-envelope mr-1"></i> Send Request For Passport
                                     </button>
-                                @endif
                             </div>
                         @else
                             <span class="text-gray-400">••••••••</span>
