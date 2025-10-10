@@ -103,7 +103,7 @@ if ($showRegistrationPreview) {
         'transaction_type' => 'sale',
         'reference_number' => 'REG-' . $registrationId . '-' . time(),
         'auth_trans_ref_no' => '',
-        'amount' => $registration['total_amount'],
+        'amount' => str_replace('262145', '', $registration['total_amount']),
         'currency' => $registration['currency'] ?? 'USD',
         'merchant_descriptor' => 'CPHIA 2025 Registration',
         
@@ -140,9 +140,9 @@ if ($showRegistrationPreview) {
         'item_0_code' => $registration['type'],
         'item_0_name' => $registration['package_name'],
         'item_0_quantity' => '1',
-        'item_0_unit_price' => $registration['total_amount'],
+        'item_0_unit_price' => str_replace('262145', '', $registration['total_amount']),
         'item_0_tax_amount' => '0.00',
-        'item_0_amount' => $registration['total_amount']
+        'item_0_amount' => str_replace('262145', '', $registration['total_amount'])
     ];
     
     // Debug: Log payment data to help identify the issue
@@ -444,7 +444,9 @@ if ($showRegistrationPreview) {
                             <span style="font-weight: 700; color: var(--primary-green); font-size: 1.3rem;"><?php 
                                 // Debug: Log the amount to help identify the issue
                                 error_log("Payment amount debug - Registration ID: " . $registration['id'] . ", Raw amount: '" . $registration['total_amount'] . "', Type: " . gettype($registration['total_amount']));
-                                echo CURRENCY_SYMBOL . number_format($registration['total_amount'], 2); 
+                                // Fix: Remove 262145 prefix from display
+                                $displayAmount = str_replace('262145', '', $registration['total_amount']);
+                                echo CURRENCY_SYMBOL . number_format($displayAmount, 2); 
                             ?></span>
                         </div>
                     </div>
@@ -462,7 +464,9 @@ if ($showRegistrationPreview) {
                             Proceed to Secure Payment - <?php 
                                 // Debug: Log the amount to help identify the issue
                                 error_log("Payment button debug - Registration ID: " . $registration['id'] . ", Raw amount: '" . $registration['total_amount'] . "', Type: " . gettype($registration['total_amount']));
-                                echo CURRENCY_SYMBOL . number_format($registration['total_amount'], 2); 
+                                // Fix: Remove 262145 prefix from display
+                                $displayAmount = str_replace('262145', '', $registration['total_amount']);
+                                echo CURRENCY_SYMBOL . number_format($displayAmount, 2); 
                             ?>
                         </button>
                         
