@@ -1581,14 +1581,14 @@ document.addEventListener('DOMContentLoaded', function() {
         const currentCount = participantsContainer.querySelectorAll('.participant-card').length;
         
         if (participantsNeeded > currentCount) {
-            // Add participants (max 20 for UI)
-            const formsToAdd = Math.min(participantsNeeded, 20) - currentCount;
+            // Add participants (max 40 for UI)
+            const formsToAdd = Math.min(participantsNeeded, 40) - currentCount;
             for (let i = 0; i < formsToAdd; i++) {
                 addParticipantForm();
             }
             
-            if (participantsNeeded > 20) {
-                showInfo(`You can add details for up to 20 additional participants now. The remaining ${participantsNeeded - 20} participants can be added later via email.`, 'Participant Details');
+            if (participantsNeeded > 40) {
+                showInfo(`You can add details for up to 40 additional participants now. The remaining ${participantsNeeded - 40} participants can be added later via email.`, 'Participant Details');
             }
         } else if (participantsNeeded < currentCount) {
             // Remove participants

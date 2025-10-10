@@ -2,127 +2,104 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>{{CONFERENCE_SHORT_NAME}} - Payment Reminder</title>
+    <title>{{conference_short_name}} - Payment Reminder</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            max-width: 600px;
-            margin: 0 auto;
-            background-color: #f8fafc;
-        }
-        .container {
-            background: white;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        .header {
-            background: linear-gradient(135deg, #1a5632 0%, #0d4f1c 100%);
-            color: white;
-            padding: 30px;
-            text-align: center;
-        }
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; }
+        .header { background: #063218; color: white; padding: 20px; text-align: center; }
         .header h1 { color: white; margin: 0; font-size: 24px; font-weight: bold; }
         .header p { color: white; margin: 5px 0 0 0; font-size: 14px; opacity: 0.9; }
-        .logo {
-            max-height: 60px;
-            margin-bottom: 10px;
-            background: white;
-            padding: 10px;
-            border-radius: 5px;
+        .content { padding: 20px; background: #f8fafc; }
+        .details { background: white; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #063218; }
+        .footer { text-align: center; padding: 20px; background: #e2e8f0; color: #666; }
+        .logo-container {
+            display: flex;
             justify-content: center;
             align-items: center;
-            justify-items: center;
-
-
+            margin-bottom: 15px;
+            width: 100%;
         }
-        .content {
-            padding: 30px;
+        .logo { 
+            max-height: 60px; 
+            margin-bottom: 10px; 
+            background: white; 
+            padding: 10px; 
+            border-radius: 5px; 
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
-        .reminder-box {
-            background: #fff3cd;
-            border: 1px solid #ffeaa7;
-            border-radius: 8px;
-            padding: 20px;
-            margin: 20px 0;
-        }
-        .payment-details {
-            background: #f8f9fa;
-            border-radius: 8px;
-            padding: 20px;
-            margin: 20px 0;
-        }
-        .btn {
+        .highlight { color: #063218; font-weight: bold; }
+        .urgent { background: #fff3cd; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #ffc107; }
+        .payment-button {
             display: inline-block;
-            background: #1a5632;
+            background: #063218;
             color: white;
             padding: 15px 30px;
             text-decoration: none;
             border-radius: 5px;
             font-weight: bold;
-            margin: 20px 0;
+            margin: 10px 0;
         }
-        .btn:hover {
-            background: #0d4f1c;
-        }
-        .footer {
-            background: #e8f5e8;
-            padding: 20px;
-            text-align: center;
-            color: #666;
-        }
-        .urgent {
-            color: #dc2626;
-            font-weight: bold;
+        .payment-button:hover {
+            background: #0a4d2e;
+            color: white;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <img src="{{logo_url}}" alt="{{conference_short_name}}" class="logo">
-            <h1>{{CONFERENCE_SHORT_NAME}}</h1>
-            <p>{{CONFERENCE_NAME}}</p>
+    <div class="header">
+        <div class="logo-container">
+            <img src="{{logo_url}}" alt="Africa CDC" class="logo">
+        </div>
+        <h1>{{conference_short_name}}</h1>
+        <p>{{conference_name}}</p>
+    </div>
+    
+    <div class="content">
+        <h2>Payment Reminder</h2>
+        <p>Dear <span class="highlight">{{user_name}}</span>,</p>
+        <p>This is a friendly reminder that your registration for {{conference_short_name}} is still pending payment.</p>
+        
+        <div class="urgent">
+            <h3 style="color: #856404; margin: 0 0 10px 0;">⚠️ Action Required</h3>
+            <p style="color: #856404; margin: 0;">Your registration is not complete until payment is received. Please complete your payment to secure your spot at the conference.</p>
         </div>
         
-        <div class="content">
-            <div class="reminder-box">
-                <h2 style="color: #dc2626; margin-top: 0;">Payment Reminder</h2>
-                <p>Dear {{user_name}},</p>
-                <p>This is a friendly reminder that your registration for <strong>{{CONFERENCE_SHORT_NAME}}</strong> is still pending payment.</p>
-            </div>
-            
+        <div class="details">
             <h3>Registration Details</h3>
-            <div class="payment-details">
-                <p><strong>Registration ID:</strong> #{{registration_id}}</p>
-                <p><strong>Package:</strong> {{package_name}}</p>
-                <p><strong>Amount Due:</strong> <span class="urgent">${{amount}}</span></p>
-                <p><strong>Conference:</strong> {{CONFERENCE_DATES}} at {{CONFERENCE_VENUE}}, {{CONFERENCE_LOCATION}}</p>
-            </div>
-            
-            <div style="text-align: center; margin: 30px 0;">
-                <a href="{{payment_link}}" class="btn">Complete Payment Now</a>
-            </div>
-            
-            <div class="reminder-box">
-                <h3>Important Information</h3>
-                <ul>
-                    <li>Your registration will be confirmed once payment is received</li>
-                    <li>This payment link will expire in 7 days</li>
-                    <li>If you have already paid, please ignore this reminder</li>
-                    <li>Contact us if you need assistance with payment</li>
-                </ul>
-            </div>
-            
-            <p>If you have any questions or need assistance, please contact us at {{MAIL_FROM_ADDRESS}}</p>
+            <p><strong>Registration ID:</strong> #{{registration_id}}</p>
+            <p><strong>Package:</strong> {{package_name}}</p>
+            <p><strong>Amount Due:</strong> ${{amount}} {{currency}}</p>
+            <p><strong>Conference:</strong> {{conference_dates}}</p>
+            <p><strong>Location:</strong> {{conference_venue}}, {{conference_location}}</p>
         </div>
         
-        <div class="footer">
-            <p><strong>{{CONFERENCE_SHORT_NAME}} Team</strong></p>
-            <p>This is an automated reminder. Please do not reply to this email.</p>
+        <div style="text-align: center; margin: 30px 0;">
+            <h3>Complete Your Payment</h3>
+            <p>Click the button below to complete your payment securely:</p>
+            <a href="{{payment_link}}" class="payment-button">
+                Pay Now - ${{amount}} {{currency}}
+            </a>
+            <p style="font-size: 12px; color: #666; margin-top: 10px;">
+                Or copy and paste this link: {{payment_link}}
+            </p>
         </div>
+        
+        <div class="urgent">
+            <h4 style="color: #856404; margin: 0 0 10px 0;">Important Notes:</h4>
+            <ul style="color: #856404; margin: 0; padding-left: 20px;">
+                <li>Your registration is not complete until payment is received</li>
+                <li>Payment must be completed before the conference date</li>
+                <li>Confirmation will be sent to your email upon successful payment</li>
+                <li><strong>Cash payments will not be accepted at the venue</strong> - please complete payment online</li>
+                <li>For questions, contact us at <a href="mailto:{{support_email}}" style="color: #856404;">{{support_email}}</a></li>
+            </ul>
+        </div>
+        
+        <p>If you have already made payment, please ignore this reminder. If you have any questions, please don't hesitate to contact us at <a href="mailto:{{support_email}}">{{support_email}}</a></p>
+    </div>
+    
+    <div class="footer">
+        <p>Best regards,<br><strong>{{conference_short_name}} Team</strong></p>
+        <p>Moving towards self-reliance to achieve universal health coverage and health security in Africa</p>
     </div>
 </body>
 </html>

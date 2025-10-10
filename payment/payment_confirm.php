@@ -53,6 +53,16 @@ if ($registrationId && $token) {
         die('Invalid payment link or registration not found.');
     }
     
+    // Debug: Log registration data to help identify the issue
+    error_log("Registration data debug - ID: " . $registration['id'] . ", Amount: '" . $registration['total_amount'] . "', Type: " . gettype($registration['total_amount']) . ", Package ID: " . $registration['package_id']);
+    
+    // Fix: Ensure amount is clean and numeric
+    $registration['total_amount'] = (float)$registration['total_amount'];
+    if ($registration['total_amount'] <= 0 || $registration['total_amount'] > 100000) {
+        error_log("ERROR: Invalid amount detected - Registration ID: " . $registration['id'] . ", Amount: " . $registration['total_amount']);
+        die('Invalid payment amount. Please contact support.');
+    }
+    
     // Check if already paid
     if ($registration['payment_status'] === 'completed') {
         die('This registration has already been paid.');
@@ -133,6 +143,20 @@ if ($showRegistrationPreview) {
         'item_0_tax_amount' => '0.00',
         'item_0_amount' => $registration['total_amount']
     ];
+    
+    // Debug: Log payment data to help identify the issue
+    error_log("Payment data debug - Registration ID: " . $registration['id'] . ", Amount: '" . $paymentData['amount'] . "', Item unit price: '" . $paymentData['item_0_unit_price'] . "', Item amount: '" . $paymentData['item_0_amount'] . "'");
+    
+    // Fix: Ensure payment data amounts are clean
+    $paymentData['amount'] = (float)$paymentData['amount'];
+    $paymentData['item_0_unit_price'] = (float)$paymentData['item_0_unit_price'];
+    $paymentData['item_0_amount'] = (float)$paymentData['item_0_amount'];
+    
+    // Validate amounts
+    if ($paymentData['amount'] <= 0 || $paymentData['amount'] > 100000) {
+        error_log("ERROR: Invalid payment amount detected - Registration ID: " . $registration['id'] . ", Amount: " . $paymentData['amount']);
+        die('Invalid payment amount. Please contact support.');
+    }
     
     //print_r(json_encode($paymentData));
     //exit();
@@ -412,7 +436,11 @@ if ($showRegistrationPreview) {
                         
                         <div class="summary-item" style="display: flex; justify-content: space-between; padding: 15px 0; background: var(--light-green); margin: 15px -25px -25px -25px; padding: 20px 25px; border-radius: 0 0 10px 10px;">
                             <span style="font-weight: 600; color: var(--primary-green); font-size: 1.1rem;">Total Amount:</span>
-                            <span style="font-weight: 700; color: var(--primary-green); font-size: 1.3rem;"><?php echo CURRENCY_SYMBOL . number_format($registration['total_amount'], 2); ?></span>
+                            <span style="font-weight: 700; color: var(--primary-green); font-size: 1.3rem;"><?php 
+                                // Debug: Log the amount to help identify the issue
+                                error_log("Payment amount debug - Registration ID: " . $registration['id'] . ", Raw amount: '" . $registration['total_amount'] . "', Type: " . gettype($registration['total_amount']));
+                                echo CURRENCY_SYMBOL . number_format($registration['total_amount'], 2); 
+                            ?></span>
                         </div>
                     </div>
             
@@ -426,7 +454,11 @@ if ($showRegistrationPreview) {
 
                         <button type="submit" class="btn btn-pay">
                             <i class="fas fa-arrow-right me-2"></i>
-                            Proceed to Secure Payment - <?php echo CURRENCY_SYMBOL . number_format($registration['total_amount'], 2); ?>
+                            Proceed to Secure Payment - <?php 
+                                // Debug: Log the amount to help identify the issue
+                                error_log("Payment button debug - Registration ID: " . $registration['id'] . ", Raw amount: '" . $registration['total_amount'] . "', Type: " . gettype($registration['total_amount']));
+                                echo CURRENCY_SYMBOL . number_format($registration['total_amount'], 2); 
+                            ?>
                         </button>
                         
                         <!-- Security Information -->

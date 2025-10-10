@@ -214,7 +214,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // Regular group registration
                 $numPeople = (int)$_POST['num_people'];
                 
-                    // Check if any participants are non-African (only for non-fixed-price packages)
+                // Validate group size limit
+                if ($numPeople < 1) {
+                    $errors[] = "Group size must be at least 1 person";
+                } elseif ($numPeople > 40) {
+                    $errors[] = "Group size cannot exceed 40 people";
+                }
+                
+                // Check if any participants are non-African (only for non-fixed-price packages)
                 $hasNonAfricanParticipants = false;
                     if (isset($_POST['participants']) && !$isFixedPricePackage) {
                     foreach ($_POST['participants'] as $participant) {
@@ -947,13 +954,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                         <div class="row">
                             <div class="col-md-6">
                                 <label for="numPeople" class="form-label">How many additional people are you registering (inlcuding yourself)?</label>
-                                <input type="number" class="form-control form-control-lg" name="num_people" id="numPeople" min="1" placeholder="Enter number of people (Maximum 20)" value="<?php echo htmlspecialchars($formData['num_people'] ?? ''); ?>" style="font-size: 1.5rem; font-weight: bold;">
+                                <input type="number" class="form-control form-control-lg" name="num_people" id="numPeople" min="1" max="40" placeholder="Enter number of people (Maximum 40)" value="<?php echo htmlspecialchars($formData['num_people'] ?? ''); ?>" style="font-size: 1.5rem; font-weight: bold;">
                                 <div class="form-text">This will automatically add/remove participant fields below for easy cost estimation.</div>
                             </div>
                             <div class="col-md-6">
                                 <div class="alert alert-info">
                                     <h6 class="alert-heading">Cost Estimation</h6>
-                                    <p class="mb-0" id="costEstimation">Enter number of people to see estimated cost (Maximum 20)</p>
+                                    <p class="mb-0" id="costEstimation">Enter number of people to see estimated cost (Maximum 40)</p>
                                 </div>
                             </div>
                         </div>

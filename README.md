@@ -103,7 +103,7 @@ payments_plus/
 
 - **Group Registration**:
   - Side Event Package 1: $6,000 (up to 10 people)
-  - Side Event Package 2: $10,000 (up to 20 people)
+  - Side Event Package 2: $10,000 (up to 40 people)
 
 - **Exhibition Packages**:
   - Resilience Bronze: $2,500 (up to 5 people)
