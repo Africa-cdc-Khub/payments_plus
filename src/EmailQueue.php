@@ -417,7 +417,7 @@ class EmailQueue
                 $existingReminder = $checkStmt->fetch(\PDO::FETCH_ASSOC);
                 
                 if ($existingReminder['count'] == 0) {
-                    // Generate payment link
+                    // Generate payment link through registration_lookup.php (which will redirect to payment_confirm.php)
                     $paymentLink = rtrim(APP_URL, '/') . "/registration_lookup.php?action=pay&id=" . $registration['id'];
                     
                     $templateData = [
