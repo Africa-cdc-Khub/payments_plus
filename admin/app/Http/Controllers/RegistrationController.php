@@ -14,7 +14,7 @@ class RegistrationController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Registration::with(['user', 'package', 'payment.completedBy']);
+        $query = Registration::with(['user', 'package', 'payment.completedBy', 'invitationSentBy']);
 
         // Filter by payment status
         if ($request->filled('status')) {
@@ -126,6 +126,43 @@ class RegistrationController extends Controller
             return redirect()
                 ->back()
                 ->with('error', 'Failed to mark registration as paid. Please try again.');
+        }
+    }
+
+    public function sendInvitation(Request $request, Registration $registration)
+    {
+        // Authorization check - only admin can manually send invitations
+        $admin = Auth::guard('admin')->user();
+        if (!$admin || $admin->role !== 'admin') {
+            abort(403, 'Unauthorized access.');
+        }
+
+        // Validate the registration is eligible for invitation
+        $isDelegate = $registration->package_id == config('app.delegate_package_id');
+        $canReceiveInvitation = $registration->isPaid() || ($isDelegate && $registration->status === 'approved');
+
+        if (!$canReceiveInvitation) {
+            return redirect()->back()->with('error', 'This registration is not eligible to receive an invitation.');
+        }
+
+        try {
+            // Update invitation sent tracking
+            $registration->update([
+                'invitation_sent_at' => now(),
+                'invitation_sent_by' => $admin->id,
+            ]);
+
+            // Dispatch invitation job
+            SendInvitationJob::dispatch($registration->id);
+
+            Log::info("Invitation email manually queued for registration #{$registration->id} by admin #" . $admin->id, [
+                'admin' => $admin->username,
+            ]);
+
+            return redirect()->back()->with('success', 'Invitation email has been queued for ' . $registration->user->full_name . '.');
+        } catch (\Exception $e) {
+            Log::error("Failed to queue invitation email for registration #{$registration->id}: " . $e->getMessage());
+            return redirect()->back()->with('error', 'Failed to queue invitation email: ' . $e->getMessage());
         }
     }
 }

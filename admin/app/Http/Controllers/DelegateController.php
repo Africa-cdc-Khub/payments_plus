@@ -155,6 +155,52 @@ class DelegateController extends Controller
     }
 
     /**
+     * Reset delegate status back to pending (cancel approval or recall rejection)
+     */
+    public function resetToPending(Registration $registration)
+    {
+        $this->authorize('manageDelegates', Registration::class);
+        
+        // Admin only for this action
+        $admin = \Illuminate\Support\Facades\Auth::guard('admin')->user();
+        if (!$admin || $admin->role !== 'admin') {
+            abort(403, 'Unauthorized access. Only admins can reset delegate status.');
+        }
+        
+        // Verify this is a delegate registration
+        if ($registration->package_id != config('app.delegate_package_id')) {
+            return redirect()
+                ->route('delegates.index')
+                ->with('error', 'Invalid delegate registration.');
+        }
+
+        // Can only reset if currently approved or rejected
+        if (!in_array($registration->status, ['approved', 'rejected'])) {
+            return redirect()
+                ->route('delegates.index')
+                ->with('error', 'Can only reset delegates that are approved or rejected.');
+        }
+
+        $previousStatus = $registration->status;
+        
+        $registration->update([
+            'status' => 'pending',
+            'rejection_reason' => null // Clear rejection reason if any
+        ]);
+
+        Log::info("Delegate registration #{$registration->id} reset from {$previousStatus} to pending by admin #{$admin->id}", [
+            'admin' => $admin->username,
+            'delegate' => $registration->user->full_name,
+        ]);
+
+        $action = $previousStatus === 'approved' ? 'Approval cancelled' : 'Rejection recalled';
+        
+        return redirect()
+            ->route('delegates.index')
+            ->with('success', "{$action} for {$registration->user->full_name}. Delegate is now pending review.");
+    }
+
+    /**
      * Show delegate details
      */
     public function show(Registration $registration)

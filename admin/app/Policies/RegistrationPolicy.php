@@ -12,7 +12,7 @@ class RegistrationPolicy
      */
     public function viewAny(Admin $admin): bool
     {
-        return in_array($admin->role, ['admin', 'secretariat', 'finance']);
+        return in_array($admin->role, ['admin', 'secretariat', 'finance', 'hosts']);
     }
 
     /**
@@ -20,7 +20,7 @@ class RegistrationPolicy
      */
     public function view(Admin $admin, Registration $registration): bool
     {
-        return in_array($admin->role, ['admin', 'secretariat', 'finance']);
+        return in_array($admin->role, ['admin', 'secretariat', 'finance', 'hosts']);
     }
 
     /**
@@ -36,7 +36,7 @@ class RegistrationPolicy
      */
     public function viewInvitation(Admin $admin): bool
     {
-        return in_array($admin->role, ['admin', 'secretariat', 'finance', 'travels']);
+        return in_array($admin->role, ['admin', 'secretariat', 'finance', 'travels', 'hosts']);
     }
 
     /**

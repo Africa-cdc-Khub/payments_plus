@@ -71,6 +71,10 @@
                             <span class="px-2 py-1 text-xs font-semibold rounded-full bg-orange-100 text-orange-800">
                                 <i class="fas fa-plane mr-1"></i>Travels
                             </span>
+                        @elseif($admin->role === 'hosts')
+                            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-teal-100 text-teal-800">
+                                <i class="fas fa-handshake mr-1"></i>Hosts
+                            </span>
                         @else
                             <span class="px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">{{ ucfirst($admin->role) }}</span>
                         @endif

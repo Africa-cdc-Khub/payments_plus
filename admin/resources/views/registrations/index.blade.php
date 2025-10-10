@@ -64,6 +64,7 @@
                             @if(!in_array(auth('admin')->user()->role, ['executive']))
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Marked By</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Invitation Sent</th>
                             @endif
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
                         </tr>
@@ -136,6 +137,19 @@
                                     <span class="text-gray-400">—</span>
                                 @endif
                             </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                @if($registration->invitation_sent_at)
+                                    <div class="flex items-center" title="Invitation sent by {{ $registration->invitationSentBy->full_name ?? $registration->invitationSentBy->username ?? 'Admin' }}">
+                                        <i class="fas fa-envelope text-blue-600 mr-1"></i>
+                                        <div>
+                                            <div>{{ $registration->invitation_sent_at->format('M d, Y') }}</div>
+                                            <div class="text-xs text-gray-400">{{ $registration->invitationSentBy->username ?? 'Admin' }}</div>
+                                        </div>
+                                    </div>
+                                @else
+                                    <span class="text-gray-400">—</span>
+                                @endif
+                            </td>
                             @endif
                             <td class="px-6 py-4 whitespace-nowrap text-sm">
                                 <a href="{{ route('registrations.show', $registration) }}" class="text-blue-600 hover:text-blue-900">
@@ -164,13 +178,22 @@
                                 <a href="{{ route('invitations.download', $registration) }}" class="ml-3 text-green-600 hover:text-green-900" title="Download Invitation Letter">
                                     <i class="fas fa-download"></i> Download
                                 </a>
+                                
+                                @if(auth('admin')->user()->role === 'admin')
+                                <button type="button" 
+                                        onclick="sendInvitationEmail({{ $registration->id }}, '{{ addslashes($registration->user->full_name) }}')" 
+                                        class="ml-3 text-indigo-600 hover:text-indigo-900"
+                                        title="Send Invitation Email">
+                                    <i class="fas fa-envelope"></i> Send Invitation
+                                </button>
+                                @endif
                                 @endif
                                 @endcan
                             </td>
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="{{ auth('admin')->user()->role === 'executive' ? '6' : '8' }}" class="px-6 py-4 text-center text-gray-500">No registrations found</td>
+                            <td colspan="{{ auth('admin')->user()->role === 'executive' ? '6' : '9' }}" class="px-6 py-4 text-center text-gray-500">No registrations found</td>
                         </tr>
                         @endforelse
                     </tbody>
@@ -189,5 +212,27 @@
 
 <!-- Include Mark Paid Modal -->
 @include('components.mark-paid-modal')
+
+<script>
+function sendInvitationEmail(registrationId, delegateName) {
+    if (confirm(`Send invitation email to ${delegateName}?\n\nThis will queue an email with their invitation letter attached.`)) {
+        // Create a form to submit the request
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `{{  url('registrations') }}/${registrationId}/send-invitation`;
+        
+        // Add CSRF token
+        const csrfToken = document.createElement('input');
+        csrfToken.type = 'hidden';
+        csrfToken.name = '_token';
+        csrfToken.value = '{{ csrf_token() }}';
+        form.appendChild(csrfToken);
+        
+        // Add to body and submit
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+</script>
 
 @endsection

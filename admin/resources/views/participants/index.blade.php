@@ -142,6 +142,9 @@
                         @endif
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Registered</th>
+                        @if(in_array(auth('admin')->user()->role, ['admin', 'hosts']))
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                        @endif
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
@@ -210,10 +213,26 @@
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             {{ $participant->created_at ? $participant->created_at->format('M d, Y') : '-' }}
                         </td>
+                        @if(in_array(auth('admin')->user()->role, ['admin', 'hosts']))
+                        <td class="px-6 py-4 whitespace-nowrap text-sm">
+                            <a href="{{ route('registrations.show', $participant) }}" class="text-blue-600 hover:text-blue-900">
+                                <i class="fas fa-eye"></i> View Details
+                            </a>
+                        </td>
+                        @endif
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="{{ auth('admin')->user()->role === 'executive' ? '8' : '10' }}" class="px-6 py-4 text-center text-gray-500">
+                        @php
+                            $colspan = 9; // Base columns
+                            if (!in_array(auth('admin')->user()->role, ['executive'])) {
+                                $colspan += 2; // Status and Payment columns
+                            }
+                            if (in_array(auth('admin')->user()->role, ['admin', 'hosts'])) {
+                                $colspan += 1; // Actions column
+                            }
+                        @endphp
+                        <td colspan="{{ $colspan }}" class="px-6 py-4 text-center text-gray-500">
                             No participants found
                             @if(request()->hasAny(['search', 'package_id', 'country']))
                                 matching your filters
