@@ -381,9 +381,83 @@ class EmailQueue
      */
     public function addPaymentReminders()
     {
-        // This would typically query the database for pending payments
-        // For now, return 0 to indicate no reminders added
-        return 0;
+        try {
+            // Find registrations that are pending payment and created more than 24 hours ago
+            $stmt = $this->pdo->prepare("
+                SELECT r.id, r.total_amount, r.currency, r.created_at,
+                       u.first_name, u.last_name, u.email,
+                       p.name as package_name
+                FROM registrations r
+                JOIN users u ON r.user_id = u.id
+                JOIN packages p ON r.package_id = p.id
+                WHERE r.payment_status = 'pending'
+                AND r.status != 'cancelled'
+                AND r.created_at < DATE_SUB(NOW(), INTERVAL 24 HOUR)
+                AND r.created_at > DATE_SUB(NOW(), INTERVAL 30 DAY)
+                ORDER BY r.created_at ASC
+            ");
+            
+            $stmt->execute();
+            $pendingRegistrations = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+            
+            $remindersAdded = 0;
+            
+            foreach ($pendingRegistrations as $registration) {
+                // Check if we already sent a reminder in the last 7 days
+                $checkStmt = $this->pdo->prepare("
+                    SELECT COUNT(*) as count
+                    FROM email_queue
+                    WHERE template_name = 'payment_reminder'
+                    AND JSON_EXTRACT(template_data, '$.registration_id') = ?
+                    AND created_at > DATE_SUB(NOW(), INTERVAL 7 DAY)
+                    AND status IN ('pending', 'sent')
+                ");
+                $checkStmt->execute([$registration['id']]);
+                $existingReminder = $checkStmt->fetch(\PDO::FETCH_ASSOC);
+                
+                if ($existingReminder['count'] == 0) {
+                    // Generate payment link
+                    $paymentLink = rtrim(APP_URL, '/') . "/registration_lookup.php?action=pay&id=" . $registration['id'];
+                    
+                    $templateData = [
+                        'user_name' => $registration['first_name'] . ' ' . $registration['last_name'],
+                        'registration_id' => $registration['id'],
+                        'package_name' => $registration['package_name'],
+                        'amount' => $registration['total_amount'],
+                        'currency' => $registration['currency'],
+                        'payment_link' => $paymentLink,
+                        'conference_name' => CONFERENCE_NAME,
+                        'conference_short_name' => CONFERENCE_SHORT_NAME,
+                        'conference_dates' => CONFERENCE_DATES,
+                        'conference_location' => CONFERENCE_LOCATION,
+                        'conference_venue' => CONFERENCE_VENUE,
+                        'logo_url' => EMAIL_LOGO_URL,
+                        'support_email' => SUPPORT_EMAIL,
+                        'mail_from_address' => MAIL_FROM_ADDRESS
+                    ];
+                    
+                    $result = $this->addToQueue(
+                        $registration['email'],
+                        $templateData['user_name'],
+                        CONFERENCE_SHORT_NAME . " - Payment Reminder #" . $registration['id'],
+                        'payment_reminder',
+                        $templateData,
+                        'payment_reminder',
+                        3 // High priority for reminders
+                    );
+                    
+                    if ($result) {
+                        $remindersAdded++;
+                    }
+                }
+            }
+            
+            return $remindersAdded;
+            
+        } catch (Exception $e) {
+            error_log("EmailQueue::addPaymentReminders error: " . $e->getMessage());
+            return 0;
+        }
     }
 
     /**
@@ -391,9 +465,62 @@ class EmailQueue
      */
     public function addAdminReminders()
     {
-        // This would typically check for admin notifications needed
-        // For now, return false to indicate no reminders needed
-        return false;
+        try {
+            // Check if there are pending registrations that need admin attention
+            $stmt = $this->pdo->prepare("
+                SELECT COUNT(*) as count
+                FROM registrations
+                WHERE payment_status = 'pending'
+                AND status != 'cancelled'
+                AND created_at < DATE_SUB(NOW(), INTERVAL 48 HOUR)
+                AND created_at > DATE_SUB(NOW(), INTERVAL 7 DAY)
+            ");
+            $stmt->execute();
+            $pendingCount = $stmt->fetch(\PDO::FETCH_ASSOC)['count'];
+            
+            if ($pendingCount > 0) {
+                // Check if we already sent an admin reminder today
+                $checkStmt = $this->pdo->prepare("
+                    SELECT COUNT(*) as count
+                    FROM email_queue
+                    WHERE template_name = 'admin_reminder'
+                    AND DATE(created_at) = CURDATE()
+                    AND status IN ('pending', 'sent')
+                ");
+                $checkStmt->execute();
+                $existingReminder = $checkStmt->fetch(\PDO::FETCH_ASSOC);
+                
+                if ($existingReminder['count'] == 0) {
+                    $templateData = [
+                        'admin_name' => ADMIN_NAME,
+                        'pending_count' => $pendingCount,
+                        'conference_name' => CONFERENCE_NAME,
+                        'conference_short_name' => CONFERENCE_SHORT_NAME,
+                        'admin_dashboard_url' => rtrim(APP_URL, '/') . '/admin',
+                        'logo_url' => EMAIL_LOGO_URL,
+                        'mail_from_address' => MAIL_FROM_ADDRESS
+                    ];
+                    
+                    $result = $this->addToQueue(
+                        ADMIN_EMAIL,
+                        ADMIN_NAME,
+                        CONFERENCE_SHORT_NAME . " - Daily Admin Reminder - {$pendingCount} Pending Payments",
+                        'admin_reminder',
+                        $templateData,
+                        'admin_reminder',
+                        2 // High priority for admin notifications
+                    );
+                    
+                    return $result;
+                }
+            }
+            
+            return false;
+            
+        } catch (Exception $e) {
+            error_log("EmailQueue::addAdminReminders error: " . $e->getMessage());
+            return false;
+        }
     }
 
     /**
@@ -401,9 +528,27 @@ class EmailQueue
      */
     public function resetFailedEmails($hours = 24)
     {
-        // This would typically reset failed emails in the database
-        // For now, return 0 to indicate no emails reset
-        return 0;
+        try {
+            $stmt = $this->pdo->prepare("
+                UPDATE email_queue 
+                SET status = 'pending', 
+                    attempts = 0, 
+                    error_message = NULL, 
+                    updated_at = NOW()
+                WHERE status = 'failed' 
+                AND created_at < DATE_SUB(NOW(), INTERVAL ? HOUR)
+                AND attempts < 3
+            ");
+            
+            $stmt->execute([$hours]);
+            $resetCount = $stmt->rowCount();
+            
+            return $resetCount;
+            
+        } catch (Exception $e) {
+            error_log("EmailQueue::resetFailedEmails error: " . $e->getMessage());
+            return 0;
+        }
     }
 
     /**
@@ -411,9 +556,28 @@ class EmailQueue
      */
     public function getStats()
     {
-        // This would typically return statistics from the database
-        // For now, return empty array
-        return [];
+        try {
+            $stmt = $this->pdo->prepare("
+                SELECT 
+                    status,
+                    email_type,
+                    DATE(created_at) as date,
+                    COUNT(*) as count
+                FROM email_queue
+                WHERE created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+                GROUP BY status, email_type, DATE(created_at)
+                ORDER BY date DESC, status, email_type
+            ");
+            
+            $stmt->execute();
+            $stats = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+            
+            return $stats;
+            
+        } catch (Exception $e) {
+            error_log("EmailQueue::getStats error: " . $e->getMessage());
+            return [];
+        }
     }
 
     /**
