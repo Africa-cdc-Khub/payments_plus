@@ -446,6 +446,8 @@ if ($showRegistrationPreview) {
                                 error_log("Payment amount debug - Registration ID: " . $registration['id'] . ", Raw amount: '" . $registration['total_amount'] . "', Type: " . gettype($registration['total_amount']));
                                 // Fix: Remove 262145 prefix from display
                                 $displayAmount = $registration['total_amount'];
+                                print_r($displayAmount);
+                                exit();
                                 echo CURRENCY_SYMBOL . $displayAmount; 
                             ?></span>
                         </div>
