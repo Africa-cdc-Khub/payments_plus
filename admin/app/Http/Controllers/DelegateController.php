@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Jobs\SendInvitationJob;
 use App\Jobs\SendDelegateRejectionEmail;
 use App\Models\Registration;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -38,6 +39,20 @@ class DelegateController extends Controller
             });
         }
 
+        // Filter by delegate category
+        if ($request->filled('delegate_category')) {
+            $query->whereHas('user', function ($q) use ($request) {
+                $q->where('delegate_category', $request->delegate_category);
+            });
+        }
+
+        // Filter by country
+        if ($request->filled('country')) {
+            $query->whereHas('user', function ($q) use ($request) {
+                $q->where('country', $request->country);
+            });
+        }
+
         $delegates = $query
             ->orderByRaw("CASE 
                 WHEN status = 'pending' THEN 1 
@@ -53,7 +68,21 @@ class DelegateController extends Controller
             ->pluck('count', 'status')
             ->toArray();
 
-        return view('delegates.index', compact('delegates', 'statusCounts'));
+        // Get unique delegate categories for filter
+        $delegateCategories = User::whereNotNull('delegate_category')
+            ->where('delegate_category', '!=', '')
+            ->distinct()
+            ->orderBy('delegate_category')
+            ->pluck('delegate_category');
+
+        // Get unique countries for filter
+        $countries = User::whereNotNull('country')
+            ->where('country', '!=', '')
+            ->distinct()
+            ->orderBy('country')
+            ->pluck('country');
+
+        return view('delegates.index', compact('delegates', 'statusCounts', 'delegateCategories', 'countries'));
     }
 
     /**

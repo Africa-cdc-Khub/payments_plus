@@ -46,5 +46,13 @@ class RegistrationPolicy
     {
         return in_array($admin->role, ['admin', 'secretariat']);
     }
+
+    /**
+     * Determine if the user can mark registrations as paid.
+     */
+    public function markAsPaid(Admin $admin): bool
+    {
+        return in_array($admin->role, ['admin', 'finance']);
+    }
 }
 

@@ -1,5 +1,5 @@
 <!-- PDF Preview Modal -->
-<div id="pdfPreviewModal" class="fixed inset-0 bg-gray-900 bg-opacity-75 overflow-y-auto h-full w-6/12" style="display: none; z-index: 10000; position: fixed; top: 0; left: 0; right: 0; bottom: 0;">
+<div id="pdfPreviewModal" class="fixed inset-0 bg-gray-900 bg-opacity-75 overflow-y-auto h-full w-6/12" style="display: none; z-index: 10000; position: fixed; top: 0; left: 0; right: 0; bottom: 0;  background-color: rgba(0, 0, 0, 0.5);">
     <div class="relative top-5 mx-auto p-0 border w-full max-w-7xl shadow-2xl rounded-lg bg-white" style="height: 95vh;  max-width: 50%; margin: 0 auto;">
         <!-- Modal Header -->
         <div class="flex items-center justify-between p-4 border-b bg-gray-50 rounded-t-lg py-2 px-2">

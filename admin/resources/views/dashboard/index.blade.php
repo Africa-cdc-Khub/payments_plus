@@ -5,6 +5,12 @@
 
 @section('content')
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+
+ @php
+    $admin = auth('admin')->user();
+@endphp
+
+@if($admin && in_array($admin->role, ['admin', 'travels','secretariat','finance']))
     <!-- Stats Cards -->
     <div class="bg-white rounded-lg shadow p-6">
         <div class="flex items-center">
@@ -53,9 +59,8 @@
             </div>
         </div>
     </div>
-</div>
-
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+  </div>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
     <!-- Recent Registrations -->
     <div class="bg-white rounded-lg shadow">
         <div class="p-6 border-b">
@@ -139,6 +144,14 @@
             </table>
         </div>
     </div>
-</div>
+ </div>
+ @else
+ <div class="bg-white rounded-lg shadow p-6">
+    <h3 class="text-lg font-semibold">You are not authorized to access this page</h3>
+    <p>Use Menu to navigate to the desired page</p>
+ </div>
+@endif
+
+
 @endsection
 

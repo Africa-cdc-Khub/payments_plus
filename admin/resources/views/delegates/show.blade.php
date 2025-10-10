@@ -214,77 +214,8 @@
 <!-- Include PDF Preview Modal -->
 @include('components.invitation-preview-modal')
 
-<!-- Reject Modal -->
-<div id="rejectModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-        <div class="mt-3">
-            <div class="flex items-center justify-between mb-4">
-                <h3 class="text-lg font-medium leading-6 text-gray-900">Reject Delegate Registration</h3>
-                <button onclick="closeRejectModal()" class="text-gray-400 hover:text-gray-500">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            
-            <form id="rejectForm" method="POST" action="">
-                @csrf
-                <div class="mb-4">
-                    <p class="text-sm text-gray-600 mb-3">
-                        You are about to reject the registration for <strong id="delegateName"></strong>.
-                    </p>
-                    <label for="rejection_reason" class="block text-sm font-medium text-gray-700 mb-2">
-                        Reason for Rejection (Optional)
-                    </label>
-                    <textarea 
-                        name="reason" 
-                        id="rejection_reason" 
-                        rows="4" 
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                        placeholder="Provide a reason for rejection..."></textarea>
-                </div>
-                
-                <div class="flex gap-3 justify-end">
-                    <button type="button" 
-                            onclick="closeRejectModal()" 
-                            class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300">
-                        Cancel
-                    </button>
-                    <button type="submit" 
-                            class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
-                        <i class="fas fa-times-circle mr-2"></i>Reject
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
+<!-- Include Reject Delegate Modal -->
+@include('components.reject-delegate-modal')
 
-@push('scripts')
-<script>
-function openRejectModal(delegateId, delegateName) {
-    const modal = document.getElementById('rejectModal');
-    const form = document.getElementById('rejectForm');
-    const nameElement = document.getElementById('delegateName');
-    
-    form.action = `/delegates/${delegateId}/reject`;
-    nameElement.textContent = delegateName;
-    modal.classList.remove('hidden');
-}
-
-function closeRejectModal() {
-    const modal = document.getElementById('rejectModal');
-    const form = document.getElementById('rejectForm');
-    
-    modal.classList.add('hidden');
-    form.reset();
-}
-
-// Close modal when clicking outside
-document.getElementById('rejectModal').addEventListener('click', function(e) {
-    if (e.target === this) {
-        closeRejectModal();
-    }
-});
-</script>
-@endpush
 @endsection
 

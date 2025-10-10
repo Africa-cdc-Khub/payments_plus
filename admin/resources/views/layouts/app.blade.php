@@ -40,15 +40,21 @@
                 </a>
                 @endif
                 
-                @if($admin && in_array($admin->role, ['admin', 'executive', 'travels']))
+                @if($admin && in_array($admin->role, ['admin', 'travels','secretariat']))
                 <a href="{{ route('approved-delegates.index') }}" class="block px-6 py-3 hover:bg-gray-700 {{ request()->routeIs('approved-delegates.*') ? 'bg-gray-700' : '' }}">
                     <i class="fas fa-check-circle mr-2"></i> Approved Delegates
                 </a>
                 @endif
                 
-                @if($admin && in_array($admin->role, ['admin', 'secretariat', 'finance', 'executive', 'travels']))
+                @if($admin && in_array($admin->role, ['admin', 'secretariat', 'finance']))
                 <a href="{{ route('payments.index') }}" class="block px-6 py-3 hover:bg-gray-700 {{ request()->routeIs('payments.*') ? 'bg-gray-700' : '' }}">
                     <i class="fas fa-credit-card mr-2"></i> Payments
+                </a>
+                @endif
+                
+                @if($admin && in_array($admin->role, ['admin', 'executive','secretariat','finance']))
+                <a href="{{ route('participants.index') }}" class="block px-6 py-3 hover:bg-gray-700 {{ request()->routeIs('participants.*') ? 'bg-gray-700' : '' }}">
+                    <i class="fas fa-users mr-2"></i> Participants
                 </a>
                 @endif
                 
@@ -75,6 +81,9 @@
                     
                     <div class="flex items-center space-x-4">
                         <span class="text-gray-700">{{ auth('admin')->user()->full_name }}</span>
+                        <a href="{{ route('change-password') }}" class="text-blue-600 hover:text-blue-800">
+                            <i class="fas fa-key mr-1"></i> Change Password
+                        </a>
                         <form method="POST" action="{{ route('logout') }}" class="inline">
                             @csrf
                             <button type="submit" class="text-red-600 hover:text-red-800">

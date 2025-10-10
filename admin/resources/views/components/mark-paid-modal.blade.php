@@ -1,8 +1,8 @@
 <!-- Mark as Paid Modal -->
 <div id="markPaidModal" class="fixed inset-0 bg-gray-900 bg-opacity-75 overflow-y-auto h-full w-6/12"
- style="display: none; z-index: 10000; position:absolute;">
+ style="display: none; z-index: 10000; position:absolute; background-color: rgba(0, 0, 0, 0.5);">
     <div class="relative top-20 mx-auto p-5 border w-full max-w-lg shadow-2xl rounded-lg bg-white"
-     style="max-width: 50%; margin:0 auto; padding:10px; top:10%;">
+     style="max-width: 50%; margin:0 auto; padding:10px; top:10%; ">
         <div class="mt-3">
             <!-- Modal Header -->
             <div class="flex items-center justify-between mb-4">
@@ -126,7 +126,7 @@ function openMarkPaidModal(registrationId, registrantName, registrationAmount = 
     }
     
     // Set form action
-    form.action = `/registrations/${registrationId}/mark-paid`;
+    form.action = `{{ url('registrations') }}/${registrationId}/mark-paid`;
     
     // Set registrant name
     nameElement.textContent = registrantName;

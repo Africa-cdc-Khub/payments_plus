@@ -106,17 +106,18 @@
 </head>
 <body>
 @php
-    $fullySponsoredCategories = config('delegates.fully_sponsored_categories', [
+    $fullySponsoredCategories = [
         'Oral abstract presenter',
         'Invited speaker/Moderator',
         'Scientific Program Committee Member',
         'Secretariat',
         'Media Partner',
         'Youth Program Participant',
+        'Interpreter/Translator',
         'Interpreter/Translators'
-    ]);
+    ];
     
-    $isFullySponsored = in_array($registration->user->delegate_category ?? '', $fullySponsoredCategories);
+    $isFullySponsored = in_array(trim($registration->user->delegate_category) ?? '', $fullySponsoredCategories);
 @endphp
     <div class="container">
         <header class="header">

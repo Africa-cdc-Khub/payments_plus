@@ -68,6 +68,20 @@
                         @endforeach
                     </select>
                 </div>
+
+                @if(auth('admin')->user()->role === 'travels')
+                <div class="flex-1 min-w-[200px]">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Travel Status</label>
+                    <select 
+                        name="travel_processed" 
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                        <option value="">All Status</option>
+                        <option value="0" {{ request('travel_processed') === '0' ? 'selected' : '' }}>Unprocessed</option>
+                        <option value="1" {{ request('travel_processed') === '1' ? 'selected' : '' }}>Processed</option>
+                    </select>
+                </div>
+                @endif
             </div>
 
             <div class="flex gap-2 mt-2">
@@ -118,6 +132,23 @@
         </div>
     </div>
 
+    <!-- Showing records info -->
+    <div class="mb-4 mt-2">
+        <p class="text-sm text-gray-700 leading-5">
+            Showing
+            @if ($delegates->firstItem())
+                <span class="font-medium">{{ $delegates->firstItem() }}</span>
+                to
+                <span class="font-medium">{{ $delegates->lastItem() }}</span>
+            @else
+                {{ $delegates->count() }}
+            @endif
+            of
+            <span class="font-medium">{{ $delegates->total() }}</span>
+            approved delegates
+        </p>
+    </div>
+
     <div class="overflow-x-auto">
         <table class="w-full">
             <thead class="bg-gray-50">
@@ -130,6 +161,9 @@
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Category</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Passport No.</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Airport of Origin</th>
+                    @if(auth('admin')->user()->role === 'travels')
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Travel Status</th>
+                    @endif
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Approved Date</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
                 </tr>
@@ -168,19 +202,52 @@
                         @endif
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        @if(auth('admin')->user()->role === 'travels')
-                            {{ $delegate->user->passport_number ?? '-' }}
+                        @if(in_array(auth('admin')->user()->role, ['admin', 'travels']))
+                            <div class="flex items-center space-x-2">
+                             
+                                <span class="text-gray-600">
+                                    {{ $delegate->user->passport_number ?? '-' }}
+                                </span>
+                                
+                                @if($delegate->user->passport_file)
+                                    <button 
+                                        onclick="openPassportPreview('{{ env('PARENT_APP_URL') }}/uploads/passports/{{ $delegate->user->passport_file }}')" 
+                                        class="inline-flex items-center px-3 py-1 px-2 text-xs font-medium rounded-md text-blue-700 bg-blue-50 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                                    >
+                                        <small class="text-xs text-gray-500">View Attachment</small>
+                                    </button>
+                                @endif
+                                {{-- <button 
+                                        onclick="requestPassportEmail({{ $delegate->id }}, '{{ $delegate->user->full_name }}')" 
+                                        class="inline-flex items-center px-3 py-1 border border-orange-300 text-xs font-medium rounded-md text-orange-700 bg-orange-50 hover:bg-orange-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
+                                    >
+                                        <i class="fas fa-envelope mr-1"></i> Send Request For Passport
+                                    </button> --}}
+                            </div>
                         @else
                             <span class="text-gray-400">••••••••</span>
                         @endif
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        @if(auth('admin')->user()->role === 'travels')
+                        @if(in_array(auth('admin')->user()->role, ['admin', 'travels']))
                             {{ $delegate->user->airport_of_origin ?? '-' }}
                         @else
                             <span class="text-gray-400">••••••••</span>
                         @endif
                     </td>
+                    @if(auth('admin')->user()->role === 'travels')
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        @if($delegate->travel_processed)
+                            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                <i class="fas fa-check-circle"></i> Processed
+                            </span>
+                        @else
+                            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                <i class="fas fa-clock"></i> Pending
+                            </span>
+                        @endif
+                    </td>
+                    @endif
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {{ $delegate->updated_at ? $delegate->updated_at->format('M d, Y') : '-' }}
                     </td>
@@ -197,13 +264,23 @@
                             <i class="fas fa-file-pdf"></i> Invitation
                         </button>
                         @endcan
+
+                        @if(in_array(auth('admin')->user()->role, ['admin', 'travels']))
+                        <button type="button"
+                                onclick="openTravelProcessedModal({{ $delegate->id }}, '{{ addslashes($delegate->user->full_name) }}', {{ $delegate->travel_processed ? 'true' : 'false' }})"
+                                class="ml-3 text-{{ $delegate->travel_processed ? 'orange' : 'green' }}-600 hover:text-{{ $delegate->travel_processed ? 'orange' : 'green' }}-900"
+                                title="{{ $delegate->travel_processed ? 'Mark as Unprocessed' : 'Mark as Processed' }}">
+                            <i class="fas fa-{{ $delegate->travel_processed ? 'undo' : 'check' }}"></i> 
+                            {{ $delegate->travel_processed ? 'Unmark Processed' : 'Mark Processed' }}
+                        </button>
+                        @endif
                     </td>
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="10" class="px-6 py-4 text-center text-gray-500">
+                    <td colspan="{{ auth('admin')->user()->role === 'travels' ? '11' : '10' }}" class="px-6 py-4 text-center text-gray-500">
                         No approved delegates found
-                        @if(request()->hasAny(['search', 'delegate_category', 'country']))
+                        @if(request()->hasAny(['search', 'delegate_category', 'country', 'travel_processed']))
                             matching your filters
                         @endif
                     </td>
@@ -214,12 +291,43 @@
     </div>
 
     <div class="p-6">
-        {{ $delegates->links() }}
+        {{ $delegates->appends(request()->query())->links() }}
     </div>
 </div>
 
 <!-- Include PDF Preview Modal -->
 @include('components.invitation-preview-modal')
+
+<!-- Include Mark Travel Processed Modal -->
+@include('components.mark-travel-processed-modal')
+
+<!-- Include Passport Preview Modal (Admin and Travels roles) -->
+@if(in_array(auth('admin')->user()->role, ['admin', 'travels']))
+    @include('components.passport-preview-modal')
+@endif
+
+<script>
+function requestPassportEmail(delegateId, delegateName) {
+    if (confirm(`Send passport request email to ${delegateName}?`)) {
+        // Create a form to submit the request
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `{{  url('/approved-delegates/${delegateId}/request-passport') }}`;
+        
+        // Add CSRF token
+        const csrfToken = document.createElement('input');
+        csrfToken.type = 'hidden';
+        csrfToken.name = '_token';
+        csrfToken.value = '{{ csrf_token() }}';
+        form.appendChild(csrfToken);
+        
+        // Add to body and submit
+        document.body.appendChild(form);
+        form.submit();
+        document.body.removeChild(form);
+    }
+}
+</script>
 
 @endsection
 

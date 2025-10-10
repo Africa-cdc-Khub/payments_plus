@@ -45,36 +45,122 @@
 
 <div class="bg-white rounded-lg shadow">
     <div class="p-6 border-b">
-        <div class="flex justify-between items-center">
-            <h3 class="text-lg font-semibold">Delegate Registrations</h3>
-            
-            <div class="flex space-x-4">
-                <form method="GET" class="flex space-x-2">
+        <h3 class="text-lg font-semibold mb-4">Delegate Registrations</h3>
+
+        <!-- Filter Form - Always Visible Horizontal Layout -->
+        <form method="GET" class="bg-gray-50 p-4 rounded-lg">
+            <div class="flex flex-wrap gap-3 mb-3">
+                <div class="flex-1 min-w-[200px]">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Search</label>
                     <input 
                         type="text" 
                         name="search" 
-                        placeholder="Search by name or email..." 
+                        placeholder="Name or email..." 
                         value="{{ request('search') }}"
-                        class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
+                </div>
+
+                <div class="flex-1 min-w-[200px]">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
                     <select 
                         name="status" 
-                        class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                         <option value="">All Status</option>
                         <option value="pending" {{ request('status') === 'pending' ? 'selected' : '' }}>Pending</option>
                         <option value="approved" {{ request('status') === 'approved' ? 'selected' : '' }}>Approved</option>
                         <option value="rejected" {{ request('status') === 'rejected' ? 'selected' : '' }}>Rejected</option>
                     </select>
-                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                        <i class="fas fa-search"></i> Search
-                    </button>
-                </form>
+                </div>
+
+                <div class="flex-1 min-w-[200px]">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Delegate Category</label>
+                    <select 
+                        name="delegate_category" 
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                        <option value="">All Categories</option>
+                        @foreach($delegateCategories as $category)
+                            <option value="{{ $category }}" {{ request('delegate_category') === $category ? 'selected' : '' }}>
+                                {{ $category }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="flex-1 min-w-[200px]">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Country</label>
+                    <select 
+                        name="country" 
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                        <option value="">All Countries</option>
+                        @foreach($countries as $country)
+                            <option value="{{ $country }}" {{ request('country') === $country ? 'selected' : '' }}>
+                                {{ $country }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
             </div>
+
+            <div class="flex gap-2">
+                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 whitespace-nowrap">
+                    <i class="fas fa-search"></i> Apply Filters
+                </button>
+                <a href="{{ route('delegates.index') }}" class="px-4 py-2 bg-gray-400 text-white rounded-lg hover:bg-gray-500 whitespace-nowrap">
+                    <i class="fas fa-times"></i> Clear
+                </a>
+            </div>
+        </form>
+
+        <!-- Filter Summary -->
+        @if(request()->hasAny(['search', 'status', 'delegate_category', 'country']))
+        <div class="mt-4 flex flex-wrap gap-2">
+            <span class="text-sm text-gray-600">Active filters:</span>
+            @if(request('search'))
+                <span class="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full">
+                    Search: "{{ request('search') }}"
+                </span>
+            @endif
+            @if(request('status'))
+                <span class="inline-flex items-center px-3 py-1 bg-purple-100 text-purple-800 text-sm rounded-full">
+                    Status: {{ ucfirst(request('status')) }}
+                </span>
+            @endif
+            @if(request('delegate_category'))
+                <span class="inline-flex items-center px-3 py-1 bg-orange-100 text-orange-800 text-sm rounded-full">
+                    Category: {{ request('delegate_category') }}
+                </span>
+            @endif
+            @if(request('country'))
+                <span class="inline-flex items-center px-3 py-1 bg-green-100 text-green-800 text-sm rounded-full">
+                    Country: {{ request('country') }}
+                </span>
+            @endif
         </div>
+        @endif
     </div>
 
     <div class="p-6">
+        <!-- Showing records info -->
+        <div class="mb-4 mt-2">
+            <p class="text-sm text-gray-700 leading-5">
+                Showing
+                @if ($delegates->firstItem())
+                    <span class="font-medium">{{ $delegates->firstItem() }}</span>
+                    to
+                    <span class="font-medium">{{ $delegates->lastItem() }}</span>
+                @else
+                    {{ $delegates->count() }}
+                @endif
+                of
+                <span class="font-medium">{{ $delegates->total() }}</span>
+                delegates
+            </p>
+        </div>
+        
         <div class="overflow-x-auto">
             <table class="w-full">
                 <thead class="bg-gray-50">
@@ -173,7 +259,7 @@
             </div>
 
             <div class="mt-6">
-                {{ $delegates->links() }}
+                {{ $delegates->appends(request()->query())->links() }}
             </div>
         </div>
     </div>
@@ -182,49 +268,8 @@
 <!-- Include PDF Preview Modal -->
 @include('components.invitation-preview-modal')
 
-<!-- Reject Modal -->
-<div id="rejectModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-        <div class="mt-3">
-            <div class="flex items-center justify-between mb-4">
-                <h3 class="text-lg font-medium leading-6 text-gray-900">Reject Delegate</h3>
-                <button onclick="closeRejectModal()" class="text-gray-400 hover:text-gray-500">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            
-            <form id="rejectForm" method="POST" action="">
-                @csrf
-                <div class="mb-4">
-                    <p class="text-sm text-gray-600 mb-3">
-                        Rejecting: <strong id="delegateName"></strong>
-                    </p>
-                    <label for="rejection_reason" class="block text-sm font-medium text-gray-700 mb-2">
-                        Reason (Optional)
-                    </label>
-                    <textarea 
-                        name="reason" 
-                        id="rejection_reason" 
-                        rows="3" 
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                        placeholder="Provide a reason..."></textarea>
-                </div>
-                
-                <div class="flex gap-3 justify-end">
-                    <button type="button" 
-                            onclick="closeRejectModal()" 
-                            class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300">
-                        Cancel
-                    </button>
-                    <button type="submit" 
-                            class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
-                        <i class="fas fa-times-circle mr-2"></i>Reject
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
+<!-- Include Reject Delegate Modal -->
+@include('components.reject-delegate-modal')
 
 @push('scripts')
 <script>
@@ -236,7 +281,7 @@ function quickApprove(delegateId) {
     
     const form = document.createElement('form');
     form.method = 'POST';
-    form.action = `{{ url('/delegates/${delegateId}/approve') }}`;
+    form.action = `{{ url('delegates') }}/${delegateId}/approve`;
     
     const token = document.createElement('input');
     token.type = 'hidden';
@@ -247,30 +292,6 @@ function quickApprove(delegateId) {
     document.body.appendChild(form);
     form.submit();
 }
-
-function openRejectModal(delegateId, delegateName) {
-    const modal = document.getElementById('rejectModal');
-    const form = document.getElementById('rejectForm');
-    const nameElement = document.getElementById('delegateName');
-    
-    form.action = `{{ url('/delegates/${delegateId}/reject') }}`;
-    nameElement.textContent = delegateName;
-    modal.classList.remove('hidden');
-}
-
-function closeRejectModal() {
-    const modal = document.getElementById('rejectModal');
-    const form = document.getElementById('rejectForm');
-    
-    modal.classList.add('hidden');
-    form.reset();
-}
-
-document.getElementById('rejectModal').addEventListener('click', function(e) {
-    if (e.target === this) {
-        closeRejectModal();
-    }
-});
 </script>
 @endpush
 @endsection
