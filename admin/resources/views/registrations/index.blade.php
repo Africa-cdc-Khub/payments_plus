@@ -219,7 +219,7 @@ function sendInvitationEmail(registrationId, delegateName) {
         // Create a form to submit the request
         const form = document.createElement('form');
         form.method = 'POST';
-        form.action = `/registrations/${registrationId}/send-invitation`;
+        form.action = `{{  url('registrations') }}/${registrationId}/send-invitation`;
         
         // Add CSRF token
         const csrfToken = document.createElement('input');
