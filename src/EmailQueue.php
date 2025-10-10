@@ -382,7 +382,7 @@ class EmailQueue
     public function addPaymentReminders()
     {
         try {
-            // Find registrations that are pending payment and created more than 24 hours ago
+            // Find registrations that are pending payment, have amount > 0, and created more than 24 hours ago
             $stmt = $this->pdo->prepare("
                 SELECT r.id, r.total_amount, r.currency, r.created_at,
                        u.first_name, u.last_name, u.email,
@@ -392,6 +392,7 @@ class EmailQueue
                 JOIN packages p ON r.package_id = p.id
                 WHERE r.payment_status = 'pending'
                 AND r.status != 'cancelled'
+                AND r.total_amount > 0
                 AND r.created_at < DATE_SUB(NOW(), INTERVAL 24 HOUR)
                 AND r.created_at > DATE_SUB(NOW(), INTERVAL 30 DAY)
                 ORDER BY r.created_at ASC
@@ -472,6 +473,7 @@ class EmailQueue
                 FROM registrations
                 WHERE payment_status = 'pending'
                 AND status != 'cancelled'
+                AND total_amount > 0
                 AND created_at < DATE_SUB(NOW(), INTERVAL 48 HOUR)
                 AND created_at > DATE_SUB(NOW(), INTERVAL 7 DAY)
             ");
