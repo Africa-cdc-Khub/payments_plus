@@ -265,13 +265,29 @@
                         </button>
                         @endcan
 
-                        @if(in_array(auth('admin')->user()->role, ['admin', 'travels']))
+                        @if(auth('admin')->user()->role === 'travels')
                         <button type="button"
                                 onclick="openTravelProcessedModal({{ $delegate->id }}, '{{ addslashes($delegate->user->full_name) }}', {{ $delegate->travel_processed ? 'true' : 'false' }})"
                                 class="ml-3 text-{{ $delegate->travel_processed ? 'orange' : 'green' }}-600 hover:text-{{ $delegate->travel_processed ? 'orange' : 'green' }}-900"
                                 title="{{ $delegate->travel_processed ? 'Mark as Unprocessed' : 'Mark as Processed' }}">
                             <i class="fas fa-{{ $delegate->travel_processed ? 'undo' : 'check' }}"></i> 
                             {{ $delegate->travel_processed ? 'Unmark Processed' : 'Mark Processed' }}
+                        </button>
+                        @endif
+                        
+                        @if(auth('admin')->user()->role === 'admin')
+                        <button type="button"
+                                onclick="openTravelProcessedModal({{ $delegate->id }}, '{{ addslashes($delegate->user->full_name) }}', {{ $delegate->travel_processed ? 'true' : 'false' }})"
+                                class="ml-3 text-{{ $delegate->travel_processed ? 'orange' : 'green' }}-600 hover:text-{{ $delegate->travel_processed ? 'orange' : 'green' }}-900"
+                                title="{{ $delegate->travel_processed ? 'Mark as Unprocessed' : 'Mark as Processed' }}">
+                            <i class="fas fa-{{ $delegate->travel_processed ? 'undo' : 'check' }}"></i> 
+                            {{ $delegate->travel_processed ? 'Unmark Processed' : 'Mark Processed' }}
+                        </button>
+                        <button type="button" 
+                                onclick="cancelApproval({{ $delegate->id }}, '{{ addslashes($delegate->user->full_name) }}')" 
+                                class="ml-3 text-red-600 hover:text-red-900"
+                                title="Cancel Approval">
+                            <i class="fas fa-times-circle"></i> Cancel Approval
                         </button>
                         @endif
                     </td>
@@ -325,6 +341,26 @@ function requestPassportEmail(delegateId, delegateName) {
         document.body.appendChild(form);
         form.submit();
         document.body.removeChild(form);
+    }
+}
+
+function cancelApproval(delegateId, delegateName) {
+    if (confirm(`Are you sure you want to cancel the approval for ${delegateName}?\n\nThis will move them back to pending status and they will need to be re-reviewed.`)) {
+        // Create a form to submit the request
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `{{ url('delegates') }}/${delegateId}/reset-to-pending`;
+        
+        // Add CSRF token
+        const csrfToken = document.createElement('input');
+        csrfToken.type = 'hidden';
+        csrfToken.name = '_token';
+        csrfToken.value = '{{ csrf_token() }}';
+        form.appendChild(csrfToken);
+        
+        // Add to body and submit
+        document.body.appendChild(form);
+        form.submit();
     }
 }
 </script>

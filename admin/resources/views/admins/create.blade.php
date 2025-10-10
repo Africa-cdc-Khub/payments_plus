@@ -68,6 +68,7 @@
                     <option value="finance" {{ old('role') === 'finance' ? 'selected' : '' }}>Finance (Payments Only)</option>
                     <option value="executive" {{ old('role') === 'executive' ? 'selected' : '' }}>Executive (View Only)</option>
                     <option value="travels" {{ old('role') === 'travels' ? 'selected' : '' }}>Travels (View Only + Invitations)</option>
+                    <option value="hosts" {{ old('role') === 'hosts' ? 'selected' : '' }}>Hosts</option>
                 </select>
                 @error('role')
                     <p class="mt-1 text-sm text-red-500">{{ $message }}</p>
@@ -77,7 +78,8 @@
                     <strong>Secretariat:</strong> Manage delegates, send invitations | 
                     <strong>Finance:</strong> View all payments, mark as paid | 
                     <strong>Executive:</strong> View approved delegates & completed payments | 
-                    <strong>Travels:</strong> Like Executive + can preview invitations
+                    <strong>Travels:</strong> Like Executive + can preview invitations | 
+                    <strong>Hosts:</strong> Special access role
                 </p>
             </div>
 
@@ -85,9 +87,6 @@
 
         <div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
             <div class="flex items-start">
-                <svg class="w-5 h-5 text-blue-600 mt-0.5 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
-                </svg>
                 <div>
                     <h4 class="text-sm font-semibold text-blue-900">🔐 Automatic Password Generation</h4>
                     <p class="mt-1 text-sm text-blue-700">

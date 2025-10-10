@@ -68,6 +68,7 @@
                     <option value="finance" {{ old('role', $admin->role) === 'finance' ? 'selected' : '' }}>Finance (Payments Only)</option>
                     <option value="executive" {{ old('role', $admin->role) === 'executive' ? 'selected' : '' }}>Executive (View Only)</option>
                     <option value="travels" {{ old('role', $admin->role) === 'travels' ? 'selected' : '' }}>Travels (View Only + Invitations)</option>
+                    <option value="hosts" {{ old('role', $admin->role) === 'hosts' ? 'selected' : '' }}>Hosts</option>
                 </select>
                 @error('role')
                     <p class="mt-1 text-sm text-red-500">{{ $message }}</p>
@@ -77,7 +78,8 @@
                     <strong>Secretariat:</strong> Manage delegates, send invitations | 
                     <strong>Finance:</strong> View all payments, mark as paid | 
                     <strong>Executive:</strong> View approved delegates & completed payments | 
-                    <strong>Travels:</strong> Like Executive + can preview invitations
+                    <strong>Travels:</strong> Like Executive + can preview invitations | 
+                    <strong>Hosts:</strong> Special access role
                 </p>
             </div>
 

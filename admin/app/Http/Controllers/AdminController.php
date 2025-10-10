@@ -37,7 +37,7 @@ class AdminController extends Controller
             'username' => ['required', 'string', 'max:100', 'unique:admins,username'],
             'email' => ['required', 'email', 'max:255', 'unique:admins,email'],
             'full_name' => ['required', 'string', 'max:200'],
-            'role' => ['required', 'in:admin,secretariat,finance,executive,travels'],
+            'role' => ['required', 'in:admin,secretariat,finance,executive,travels,hosts'],
             'is_active' => ['boolean'],
         ]);
 
@@ -46,6 +46,7 @@ class AdminController extends Controller
         
         $validated['password'] = Hash::make($plainPassword);
         $validated['is_active'] = $request->has('is_active') ? 1 : 0;
+        
 
         $admin = Admin::create($validated);
 
@@ -82,7 +83,7 @@ class AdminController extends Controller
             'email' => ['required', 'email', 'max:255', 'unique:admins,email,' . $admin->id],
             'password' => ['nullable', 'string', 'min:8', 'confirmed'],
             'full_name' => ['required', 'string', 'max:200'],
-            'role' => ['required', 'in:admin,secretariat,finance,executive,travels'],
+            'role' => ['required', 'in:admin,secretariat,finance,executive,travels,hosts'],
             'is_active' => ['boolean'],
         ]);
 

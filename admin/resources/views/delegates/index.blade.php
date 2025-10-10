@@ -231,6 +231,22 @@
                                                 title="Reject">
                                             <i class="fas fa-times-circle"></i> Reject
                                         </button>
+                                    @elseif(auth('admin')->user()->role === 'admin')
+                                        @if($delegate->status === 'approved')
+                                            <button type="button" 
+                                                    onclick="resetToPending({{ $delegate->id }}, 'Cancel Approval', 'Are you sure you want to cancel the approval for {{ addslashes($delegate->user->full_name) }}? This will move them back to pending status.')" 
+                                                    class="ml-3 text-orange-600 hover:text-orange-900"
+                                                    title="Cancel Approval">
+                                                <i class="fas fa-undo"></i> Cancel Approval
+                                            </button>
+                                        @elseif($delegate->status === 'rejected')
+                                            <button type="button" 
+                                                    onclick="resetToPending({{ $delegate->id }}, 'Recall Rejection', 'Are you sure you want to recall the rejection for {{ addslashes($delegate->user->full_name) }}? This will move them back to pending status.')" 
+                                                    class="ml-3 text-blue-600 hover:text-blue-900"
+                                                    title="Recall Rejection">
+                                                <i class="fas fa-undo"></i> Recall Rejection
+                                            </button>
+                                        @endif
                                     @endif
                                 @endcan
                                 
@@ -282,6 +298,26 @@ function quickApprove(delegateId) {
     const form = document.createElement('form');
     form.method = 'POST';
     form.action = `{{ url('delegates') }}/${delegateId}/approve`;
+    
+    const token = document.createElement('input');
+    token.type = 'hidden';
+    token.name = '_token';
+    token.value = '{{ csrf_token() }}';
+    form.appendChild(token);
+    
+    document.body.appendChild(form);
+    form.submit();
+}
+
+// Reset to pending function (cancel approval or recall rejection)
+function resetToPending(delegateId, actionTitle, confirmMessage) {
+    if (!confirm(confirmMessage)) {
+        return;
+    }
+    
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = `{{ url('delegates') }}/${delegateId}/reset-to-pending`;
     
     const token = document.createElement('input');
     token.type = 'hidden';

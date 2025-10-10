@@ -31,6 +31,8 @@ class Registration extends Model
         'payment_reference',
         'payment_token',
         'exhibition_description',
+        'invitation_sent_at',
+        'invitation_sent_by',
     ];
 
     protected $casts = [
@@ -38,6 +40,7 @@ class Registration extends Model
         'payment_amount' => 'decimal:2',
         'payment_completed_at' => 'datetime',
         'created_at' => 'datetime',
+        'invitation_sent_at' => 'datetime',
     ];
 
     public function user(): BelongsTo
@@ -63,6 +66,11 @@ class Registration extends Model
     public function payment(): HasOne
     {
         return $this->hasOne(Payment::class)->latestOfMany();
+    }
+
+    public function invitationSentBy(): BelongsTo
+    {
+        return $this->belongsTo(Admin::class, 'invitation_sent_by');
     }
 
     public function isPaid(): bool

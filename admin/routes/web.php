@@ -26,6 +26,7 @@ Route::middleware(['admin.auth'])->group(function () {
     // Registrations
     Route::resource('registrations', RegistrationController::class);
     Route::post('registrations/{registration}/mark-paid', [RegistrationController::class, 'markAsPaid'])->name('registrations.mark-paid');
+    Route::post('registrations/{registration}/send-invitation', [RegistrationController::class, 'sendInvitation'])->name('registrations.send-invitation');
     
     // Payments
     Route::get('payments', [PaymentController::class, 'index'])->name('payments.index');
@@ -53,6 +54,7 @@ Route::middleware(['admin.auth'])->group(function () {
     Route::get('delegates/{registration}', [DelegateController::class, 'show'])->name('delegates.show');
     Route::post('delegates/{registration}/approve', [DelegateController::class, 'approve'])->name('delegates.approve');
     Route::post('delegates/{registration}/reject', [DelegateController::class, 'reject'])->name('delegates.reject');
+    Route::post('delegates/{registration}/reset-to-pending', [DelegateController::class, 'resetToPending'])->name('delegates.reset-to-pending');
     
     // Approved Delegates
     Route::get('approved-delegates', [\App\Http\Controllers\ApprovedDelegateController::class, 'index'])->name('approved-delegates.index');
