@@ -420,8 +420,9 @@ class EmailQueue
                     // Generate payment link through registration_lookup.php (which will redirect to payment_confirm.php)
                     $paymentLink = rtrim(APP_URL, '/') . "/registration_lookup.php?action=pay&id=" . $registration['id'];
                     
-                    // Fix: Ensure amount is clean and numeric
-                    $cleanAmount = (float)$registration['total_amount'];
+                    // Fix: Remove 262145 prefix from amount and ensure it's clean and numeric
+                    $cleanAmount = str_replace('262145', '', $registration['total_amount']);
+                    $cleanAmount = (float)$cleanAmount;
                     if ($cleanAmount <= 0 || $cleanAmount > 100000) {
                         error_log("ERROR: Invalid amount in EmailQueue - Registration ID: " . $registration['id'] . ", Amount: " . $registration['total_amount']);
                         continue; // Skip this registration

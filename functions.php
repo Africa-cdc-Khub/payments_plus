@@ -212,7 +212,14 @@ function getRegistrationById($id) {
                           JOIN users u ON r.user_id = u.id 
                           WHERE r.id = ?");
     $stmt->execute([$id]);
-    return $stmt->fetch();
+    $registration = $stmt->fetch();
+    
+    // Fix: Remove 262145 prefix from amount if present
+    if ($registration && isset($registration['total_amount'])) {
+        $registration['total_amount'] = str_replace('262145', '', $registration['total_amount']);
+    }
+    
+    return $registration;
 }
 
 function getRegistrationParticipants($registrationId) {
@@ -233,7 +240,9 @@ function updateRegistrationStatus($id, $status, $paymentReference = null) {
 
 // Utility functions
 function formatCurrency($amount, $currency = 'USD') {
-    return '$' . number_format($amount, 2);
+    // Fix: Remove 262145 prefix if present
+    $cleanAmount = str_replace('262145', '', $amount);
+    return '$' . number_format($cleanAmount, 2);
 }
 
 function generatePaymentToken($registrationId) {
@@ -852,7 +861,16 @@ function getRegistrationHistoryByEmailAndPhone($email, $phone, $eventDate = null
     ");
     
     $stmt->execute([$email, $phone, $eventRange['start'], $eventRange['end']]);
-    return $stmt->fetchAll();
+    $registrations = $stmt->fetchAll();
+    
+    // Fix: Remove 262145 prefix from amounts if present
+    foreach ($registrations as &$registration) {
+        if (isset($registration['total_amount'])) {
+            $registration['total_amount'] = str_replace('262145', '', $registration['total_amount']);
+        }
+    }
+    
+    return $registrations;
 }
 
 function getRegistrationDetails($registrationId) {
@@ -869,7 +887,14 @@ function getRegistrationDetails($registrationId) {
     ");
     
     $stmt->execute([$registrationId]);
-    return $stmt->fetch();
+    $registration = $stmt->fetch();
+    
+    // Fix: Remove 262145 prefix from amount if present
+    if ($registration && isset($registration['total_amount'])) {
+        $registration['total_amount'] = str_replace('262145', '', $registration['total_amount']);
+    }
+    
+    return $registration;
 }
 
 
