@@ -445,7 +445,7 @@ if ($showRegistrationPreview) {
                                 // Debug: Log the amount to help identify the issue
                                 error_log("Payment amount debug - Registration ID: " . $registration['id'] . ", Raw amount: '" . $registration['total_amount'] . "', Type: " . gettype($registration['total_amount']));
                                 // Fix: Remove 262145 prefix from display
-                                $displayAmount = str_replace('262145', '', $registration['total_amount']);
+                                $displayAmount = $registration['total_amount'];
                                 echo CURRENCY_SYMBOL . $displayAmount; 
                             ?></span>
                         </div>
@@ -461,7 +461,7 @@ if ($showRegistrationPreview) {
 
                         <button type="submit" class="btn btn-pay">
                             <i class="fas fa-arrow-right me-2"></i>
-                            Proceed to Secure Payment - <?php 
+                            Proceed to Secure Payment <?php 
                                 // Debug: Log the amount to help identify the issue
                                 error_log("Payment button debug - Registration ID: " . $registration['id'] . ", Raw amount: '" . $registration['total_amount'] . "', Type: " . gettype($registration['total_amount']));
                                 // Fix: Remove 262145 prefix from display
