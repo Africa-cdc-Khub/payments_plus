@@ -13,6 +13,13 @@
                 <form method="GET" class="flex space-x-2">
                     <input 
                         type="text" 
+                        name="registration_id" 
+                        placeholder="Registration ID..." 
+                        value="{{ request('registration_id') }}"
+                        class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-40"
+                    >
+                    <input 
+                        type="text" 
                         name="search" 
                         placeholder="Search by name or email..." 
                         value="{{ request('search') }}"
@@ -29,6 +36,11 @@
                     <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
                         <i class="fas fa-search"></i> Search
                     </button>
+                    @if(request()->hasAny(['registration_id', 'search', 'status']))
+                    <a href="{{ route('registrations.index') }}" class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600">
+                        <i class="fas fa-times"></i> Clear
+                    </a>
+                    @endif
                 </form>
             </div>
         </div>
@@ -178,6 +190,8 @@
                                 <a href="{{ route('invitations.download', $registration) }}" class="ml-3 text-green-600 hover:text-green-900" title="Download Invitation Letter">
                                     <i class="fas fa-download"></i> Download
                                 </a>
+                                @endif
+                                
                                 
                                 @if(auth('admin')->user()->role === 'admin')
                                 <button type="button" 
@@ -186,7 +200,6 @@
                                         title="Send Invitation Email">
                                     <i class="fas fa-envelope"></i> Send Invitation
                                 </button>
-                                @endif
                                 @endif
                                 @endcan
                             </td>

@@ -16,6 +16,11 @@ class RegistrationController extends Controller
     {
         $query = Registration::with(['user', 'package', 'payment.completedBy', 'invitationSentBy']);
 
+        // Filter by registration ID
+        if ($request->filled('registration_id')) {
+            $query->where('id', $request->registration_id);
+        }
+
         // Filter by payment status
         if ($request->filled('status')) {
             $query->where('payment_status', $request->status);
