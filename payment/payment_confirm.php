@@ -56,7 +56,8 @@ if ($registrationId && $token) {
     // Debug: Log registration data to help identify the issue
     error_log("Registration data debug - ID: " . $registration['id'] . ", Amount: '" . $registration['total_amount'] . "', Type: " . gettype($registration['total_amount']) . ", Package ID: " . $registration['package_id']);
     
-    // Fix: Ensure amount is clean and numeric
+    // Fix: Remove 262145 prefix from amount and ensure it's clean and numeric
+    $registration['total_amount'] = str_replace('262145', '', $registration['total_amount']);
     $registration['total_amount'] = (float)$registration['total_amount'];
     if ($registration['total_amount'] <= 0 || $registration['total_amount'] > 100000) {
         error_log("ERROR: Invalid amount detected - Registration ID: " . $registration['id'] . ", Amount: " . $registration['total_amount']);
@@ -147,7 +148,11 @@ if ($showRegistrationPreview) {
     // Debug: Log payment data to help identify the issue
     error_log("Payment data debug - Registration ID: " . $registration['id'] . ", Amount: '" . $paymentData['amount'] . "', Item unit price: '" . $paymentData['item_0_unit_price'] . "', Item amount: '" . $paymentData['item_0_amount'] . "'");
     
-    // Fix: Ensure payment data amounts are clean
+    // Fix: Remove 262145 prefix from amounts and ensure they are clean
+    $paymentData['amount'] = str_replace('262145', '', $paymentData['amount']);
+    $paymentData['item_0_unit_price'] = str_replace('262145', '', $paymentData['item_0_unit_price']);
+    $paymentData['item_0_amount'] = str_replace('262145', '', $paymentData['item_0_amount']);
+    
     $paymentData['amount'] = (float)$paymentData['amount'];
     $paymentData['item_0_unit_price'] = (float)$paymentData['item_0_unit_price'];
     $paymentData['item_0_amount'] = (float)$paymentData['item_0_amount'];
