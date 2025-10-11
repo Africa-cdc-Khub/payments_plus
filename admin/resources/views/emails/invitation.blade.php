@@ -49,7 +49,7 @@
         </div>
         
         <div class="content">
-            <p>Dear {{ $user->title }} {{ $user->full_name }},</p>
+            <p>Dear {{ !empty($user->title) ? $user->title . ' ' : '' }}{{ $user->full_name }},</p>
             
             <p>Please find attached your official invitation letter for <strong>CPHIA 2025</strong>.</p>
             
@@ -57,7 +57,7 @@
             <ul>
                 <li>Date: October 22-25, 2025</li>
                 <li>Package: {{ $package->name }}</li>
-                <li>Registration ID: #{{ $user->registrations()->where('package_id', $package->id)->first()->id ?? 'N/A' }}</li>
+                <li>Registration ID: #{{ $registration->id }}</li>
             </ul>
             
             <p>Please present this invitation letter along with a valid photo ID at the registration desk upon arrival.</p>

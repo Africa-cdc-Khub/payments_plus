@@ -50,6 +50,7 @@ class InvitationController extends Controller
                 
                 // Create a user-like object from participant data for template compatibility
                 $userData = (object) [
+                    'title' => $participant->title ?? '',
                     'full_name' => $participant->full_name,
                     'first_name' => $participant->first_name,
                     'last_name' => $participant->last_name,
