@@ -143,12 +143,12 @@ class RegistrationController extends Controller
         }
 
         // Validate the registration is eligible for invitation
-        $isDelegate = $registration->package_id == config('app.delegate_package_id');
-        $canReceiveInvitation = $registration->isPaid() || ($isDelegate && $registration->status === 'approved');
+        // $isDelegate = $registration->package_id == config('app.delegate_package_id');
+        // $canReceiveInvitation = $registration->isPaid() || ($isDelegate && $registration->status === 'approved');
 
-        if (!$canReceiveInvitation) {
-            return redirect()->back()->with('error', 'This registration is not eligible to receive an invitation.');
-        }
+        // if (!$canReceiveInvitation) {
+        //     return redirect()->back()->with('error', 'This registration is not eligible to receive an invitation.');
+        // }
 
         try {
             // Update invitation sent tracking
