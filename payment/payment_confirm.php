@@ -90,6 +90,17 @@ if ($showRegistrationPreview) {
     $dfParam = 'org_id=' . DF_ORG_ID . '&session_id=' . MERCHANT_ID . $sessId;
     $responsePage = rtrim(APP_URL, '/') . '/payment/response.php';
 
+    if(getCountryCodeByName($registration['country'])=='US'){
+        $registration['state'] = get_state_code_geonames($registration['country'], $registration['state']);
+    }
+
+    if(getCountryCodeByName($registration['country'])=='CA'){
+        $registration['state'] = get_state_code_geonames($registration['country'], $registration['state']);
+    }
+    else{
+        $registration['state'] = $registration['state'];
+    }
+
     // Prepare payment data for sa-wm flow
     $paymentData = [
         // Signed fields (required for security) - matching sa-wm structure
@@ -114,9 +125,10 @@ if ($showRegistrationPreview) {
         'bill_to_phone' => '',
         'bill_to_address_line1' => substr(trim($registration['address_line1'] ?? ''), 0, 60),
         'bill_to_address_line2' => substr(trim($registration['address_line1'] ?? ''), 60),
-        'bill_to_address_city' => substr(trim($registration['city'] ?? ''), 0, 50),
-        'bill_to_address_state' => substr(trim($registration['state'] ?? ''), 0, 50),
+  
         'bill_to_address_country' => getCountryCodeByName($registration['country']),
+        'bill_to_address_city' => substr(trim($registration['city'] ?? ''), 0, 50),
+        'bill_to_address_state' => substr(trim($registration['state_code'] ?? ''), 0, 50),
         'bill_to_address_postal_code' => substr(trim($registration['postal_code'] ?? '1234'), 0, 20),
 
     
@@ -171,6 +183,30 @@ if ($showRegistrationPreview) {
 
     $signature = sign($paymentData);
 }
+
+function get_state_code_geonames($countryIso2, $stateName, $username='agabaandre') {
+    $country = strtoupper(trim($countryIso2));
+    $name = urlencode(trim($stateName));
+    $url = "http://api.geonames.org/searchJSON?name_equals={$name}&country={$country}&featureCode=ADM1&maxRows=10&username={$username}";
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+    $json = curl_exec($ch);
+    curl_close($ch);
+    if (!$json) return null;
+    $data = json_decode($json, true);
+    if (empty($data['geonames'])) return null;
+    // best match heuristics: try exact name match, else first result
+    foreach ($data['geonames'] as $g) {
+        if (strcasecmp($g['name'], $stateName) === 0 || strcasecmp($g['adminName1'] ?? '', $stateName) === 0) {
+            return $g['adminCodes1']['ISO3166_2'] ?? null;
+        }
+    }
+    // fallback to first result
+    $first = $data['geonames'][0];
+    return $first['adminCodes1']['ISO3166_2'] ?? null;
+}
+
 
 ?>
 <?php if ($showRegistrationPreview): ?>
