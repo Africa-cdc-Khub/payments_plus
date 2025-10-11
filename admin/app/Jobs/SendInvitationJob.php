@@ -73,7 +73,7 @@ class SendInvitationJob implements ShouldQueue
 
             if (!$canReceiveInvitation) {
                 Log::warning("Registration #{$this->registrationId} is neither paid nor an approved delegate, skipping invitation");
-                return;
+                //return;
             }
 
             // Determine recipient (participant or primary registrant)
