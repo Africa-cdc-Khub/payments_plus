@@ -337,7 +337,7 @@ $isPaid = $paymentStatus === 'completed';
                             </tr>
                             <tr>
                                 <td class="info-label">Amount:</td>
-                                <td class="info-value amount-highlight"><?php echo CURRENCY_SYMBOL . number_format($registration['total_amount'], 2); ?></td>
+                                <td class="info-value amount-highlight"><?php echo '$' . $registration['total_amount']; ?></td>
                             </tr>
                             <tr>
                                 <td class="info-label">Registered:</td>
@@ -465,7 +465,7 @@ $isPaid = $paymentStatus === 'completed';
                         <i class="fas fa-receipt me-2"></i>Payment Details
                     </h6>
                     <p style="margin-bottom: 0;"><strong>Registration ID:</strong> #<?php echo $registration['id']; ?><br>
-                    <strong>Amount Paid:</strong> <span class="amount-highlight"><?php echo CURRENCY_SYMBOL . number_format($registration['total_amount'], 2); ?></span><br>
+                    <strong>Amount Paid:</strong> <span class="amount-highlight"><?php echo '$' . $registration['total_amount']; ?></span><br>
                     <strong>Payment Date:</strong> <?php echo date('F j, Y \a\t g:i A', strtotime($registration['payment_completed_at'] ?? $registration['created_at'])); ?></p>
                 </div>
             </div>
