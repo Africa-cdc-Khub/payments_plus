@@ -108,16 +108,16 @@ if ($showRegistrationPreview) {
         'merchant_descriptor' => 'CPHIA 2025 Registration',
         
         // Billing information
-        'bill_to_forename' => $registration['first_name'],
-        'bill_to_surname' => $registration['last_name'],
-        'bill_to_email' => $registration['user_email'],
+        'bill_to_forename' => substr(trim($registration['first_name']), 0, 60),
+        'bill_to_surname' => substr(trim($registration['last_name']), 0, 60),
+        'bill_to_email' => substr(trim($registration['user_email']), 0, 255),
         'bill_to_phone' => '',
-        'bill_to_address_line1' => $registration['address_line1'] ?? '',
+        'bill_to_address_line1' => substr(trim($registration['address_line1'] ?? ''), 0, 60),
         'bill_to_address_line2' => '',
-        'bill_to_address_city' => $registration['city'] ?? '',
-        'bill_to_address_state' => $registration['state'] ?? '',
+        'bill_to_address_city' => substr(trim($registration['city'] ?? ''), 0, 50),
+        'bill_to_address_state' => substr(trim($registration['state'] ?? ''), 0, 50),
         'bill_to_address_country' => getCountryCodeByName($registration['country']),
-        'bill_to_address_postal_code' => $registration['postal_code'] ?? '1234',
+        'bill_to_address_postal_code' => substr(trim($registration['postal_code'] ?? '1234'), 0, 20),
 
     
         
@@ -129,16 +129,16 @@ if ($showRegistrationPreview) {
         'override_custom_receipt_page' => $responsePage,
         
         // Merchant defined data
-        'merchant_defined_data1' => 'Registration ID: ' . $registrationId,
-        'merchant_defined_data2' => 'Package: ' . $registration['package_name'],
-        'merchant_defined_data3' => 'Conference: CPHIA 2025',
-        'merchant_defined_data4' => 'Type: ' . $registration['type'],
+        'merchant_defined_data1' => substr('Registration ID: ' . $registrationId, 0, 255),
+        'merchant_defined_data2' => substr('Package: ' . $registration['package_name'], 0, 255),
+        'merchant_defined_data3' => substr('Conference: CPHIA 2025', 0, 255),
+        'merchant_defined_data4' => substr('Type: ' . $registration['type'], 0, 255),
         
         // Line items (required by CyberSource)
         'line_item_count' => '1',
         'item_0_sku' => 'PKG-' . $registration['package_id'],
         'item_0_code' => $registration['type'],
-        'item_0_name' => $registration['package_name'],
+        'item_0_name' => substr($registration['package_name'], 0, 255),
         'item_0_quantity' => '1',
         'item_0_unit_price' => str_replace('262145', '', $registration['total_amount']),
         'item_0_tax_amount' => '0.00',

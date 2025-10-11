@@ -161,10 +161,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'student_id_file' => handleFileUpload($_FILES['student_id_file'] ?? null) ?: '',
         'delegate_category' => sanitizeInput($_POST['delegate_category'] ?? ''),
         'airport_of_origin' => sanitizeInput($_POST['airport_of_origin'] ?? ''),
-                'address_line1' => sanitizeInput($_POST['address_line1']),
-                'city' => sanitizeInput($_POST['city']),
-                'state' => sanitizeInput($_POST['state']),
-                'country' => sanitizeInput($_POST['country']),
+                'address_line1' => substr(trim(sanitizeInput($_POST['address_line1'])), 0, 60),
+                'city' => substr(trim(sanitizeInput($_POST['city'])), 0, 50),
+                'state' => substr(trim(sanitizeInput($_POST['state'])), 0, 50),
+                'country' => cleanCountryName($_POST['country']),
             ];
             
             // Get or create user
@@ -386,10 +386,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
         'student_id_file' => $_FILES['student_id_file']['name'] ?? '',
         'delegate_category' => $_POST['delegate_category'] ?? '',
         'airport_of_origin' => $_POST['airport_of_origin'] ?? '',
-        'address_line1' => $_POST['address_line1'] ?? '',
-        'city' => $_POST['city'] ?? '',
-        'state' => $_POST['state'] ?? '',
-        'country' => $_POST['country'] ?? '',
+        'address_line1' => substr(trim($_POST['address_line1'] ?? ''), 0, 60),
+        'city' => substr(trim($_POST['city'] ?? ''), 0, 50),
+        'state' => substr(trim($_POST['state'] ?? ''), 0, 50),
+        'country' => cleanCountryName($_POST['country'] ?? ''),
         'num_people' => $_POST['num_people'] ?? '',
         'exhibition_description' => $_POST['exhibition_description'] ?? '',
         'participants' => $_POST['participants'] ?? []
@@ -1129,16 +1129,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                     <div class="card-body">
                         <div class="mb-3">
                             <label for="address_line1" class="form-label">Address <span class="asterisk">*</span></label>
-                            <input type="text" class="form-control" name="address_line1" id="address_line1" value="<?php echo htmlspecialchars($formData['address_line1'] ?? ''); ?>" required>
+                            <input type="text" class="form-control" name="address_line1" id="address_line1" value="<?php echo htmlspecialchars($formData['address_line1'] ?? ''); ?>" maxlength="60" required>
                         </div>
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="city" class="form-label">City <span class="asterisk">*</span></label>
-                                <input type="text" class="form-control" name="city" id="city" value="<?php echo htmlspecialchars($formData['city'] ?? ''); ?>" required>
+                                <input type="text" class="form-control" name="city" id="city" value="<?php echo htmlspecialchars($formData['city'] ?? ''); ?>" maxlength="50" required>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label for="state" class="form-label">State/Province <span class="asterisk">*</span></label>
-                                <input type="text" class="form-control" name="state" id="state" value="<?php echo htmlspecialchars($formData['state'] ?? ''); ?>" required>
+                                <input type="text" class="form-control" name="state" id="state" value="<?php echo htmlspecialchars($formData['state'] ?? ''); ?>" maxlength="50" required>
                             </div>
                         </div>
                         <div class="row">
@@ -1152,7 +1152,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                                     if ($countriesData) {
                                         foreach ($countriesData as $country) {
                                             $selected = (isset($formData['country']) && $formData['country'] === $country['name']) ? 'selected' : '';
-                                            echo '<option value="' . $country['name'] .' ' . $selected . '>' . htmlspecialchars($country['name']) . '</option>';
+                                            echo '<option value="' . htmlspecialchars($country['name']) . '" ' . $selected . '>' . htmlspecialchars($country['name']) . '</option>';
                                         }
                                     }
                                     ?>

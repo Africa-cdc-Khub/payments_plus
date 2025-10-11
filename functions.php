@@ -963,6 +963,29 @@ function getCountryCodeByName($countryName) {
     return $result ? $result['code'] : 'US'; // Default to US if not found
 }
 
+function cleanCountryName($countryName) {
+    if (empty($countryName)) {
+        return '';
+    }
+    
+    // Decode HTML entities
+    $cleaned = html_entity_decode($countryName, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+    
+    // Remove any extra text that might be appended (like "Country >Country")
+    if (strpos($cleaned, '>') !== false) {
+        $parts = explode('>', $cleaned);
+        $cleaned = trim($parts[0]);
+    }
+    
+    // Remove any "selected" text that might be appended
+    $cleaned = str_replace('selected', '', $cleaned);
+    
+    // Clean up extra whitespace
+    $cleaned = trim(preg_replace('/\s+/', ' ', $cleaned));
+    
+    return $cleaned;
+}
+
 // Function to get all nationalities from database
 function getAllNationalities() {
     static $nationalities = null;
