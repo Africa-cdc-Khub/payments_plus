@@ -873,6 +873,47 @@ function getRegistrationHistoryByEmailAndPhone($email, $phone, $eventDate = null
     return $registrations;
 }
 
+/**
+ * Get registration history by email only (improved lookup)
+ * 
+ * @param string $email User's email address
+ * @param string $eventDate Event date (optional)
+ * @return array Array of registration records
+ */
+function getRegistrationHistoryByEmail($email, $eventDate = null) {
+    if ($eventDate === null) {
+        $eventDate = CONFERENCE_DATES;
+    }
+    
+    $pdo = getConnection();
+    $eventRange = getEventDateRange($eventDate);
+    
+    $stmt = $pdo->prepare("
+        SELECT r.id, r.status, r.payment_status, r.created_at, r.total_amount, r.currency, r.registration_type,
+               p.name as package_name, p.type as package_type,
+               u.first_name, u.last_name, u.email, u.phone, u.nationality, u.organization
+        FROM registrations r
+        JOIN packages p ON r.package_id = p.id
+        JOIN users u ON r.user_id = u.id
+        WHERE u.email = ? 
+        AND r.created_at >= ? 
+        AND r.created_at <= ?
+        ORDER BY r.payment_status DESC, r.created_at DESC
+    ");
+    
+    $stmt->execute([$email, $eventRange['start'], $eventRange['end']]);
+    $registrations = $stmt->fetchAll();
+    
+    // Fix: Remove 262145 prefix from amounts if present
+    foreach ($registrations as &$registration) {
+        if (isset($registration['total_amount'])) {
+            $registration['total_amount'] = str_replace('262145', '', $registration['total_amount']);
+        }
+    }
+    
+    return $registrations;
+}
+
 function getRegistrationDetails($registrationId) {
     $pdo = getConnection();
     
