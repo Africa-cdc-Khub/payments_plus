@@ -30,17 +30,25 @@ class RegistrationParticipant extends Model
         'attendance_status',
         'attendance_verified_at',
         'verified_by',
+        'invitation_sent_at',
+        'invitation_sent_by',
     ];
 
     protected $casts = [
         'requires_visa' => 'boolean',
         'attendance_verified_at' => 'datetime',
+        'invitation_sent_at' => 'datetime',
         'created_at' => 'datetime',
     ];
 
     public function registration(): BelongsTo
     {
         return $this->belongsTo(Registration::class);
+    }
+
+    public function invitationSentBy(): BelongsTo
+    {
+        return $this->belongsTo(Admin::class, 'invitation_sent_by');
     }
 
     public function getFullNameAttribute(): string

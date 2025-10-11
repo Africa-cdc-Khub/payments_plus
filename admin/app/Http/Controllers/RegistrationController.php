@@ -14,10 +14,7 @@ class RegistrationController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Registration::with(['user', 'package', 'payment.completedBy', 'invitationSentBy']);
-
-        // Exclude voided registrations by default
-        $query->whereNull('voided_at');
+        $query = Registration::with(['user', 'package', 'payment.completedBy', 'invitationSentBy', 'voidedBy']);
 
         // Filter by registration ID
         if ($request->filled('registration_id')) {
@@ -26,7 +23,32 @@ class RegistrationController extends Controller
 
         // Filter by payment status
         if ($request->filled('status')) {
-            $query->where('payment_status', $request->status);
+            if ($request->status === 'voided') {
+                // Show only voided registrations
+                $query->whereNotNull('voided_at');
+            } elseif ($request->status === 'pending') {
+                // For pending: exclude voided, show pending payment status, but exclude approved delegates
+                $query->whereNull('voided_at');
+                $query->where('payment_status', 'pending');
+                $query->where(function($q) {
+                    $q->where('status', '!=', 'approved')
+                      ->orWhereNull('status');
+                });
+            } elseif ($request->status === 'completed') {
+                // For paid/completed: show paid registrations OR approved delegates
+                $query->whereNull('voided_at');
+                $query->where(function($q) {
+                    $q->where('payment_status', 'completed')
+                      ->orWhere('status', 'approved');
+                });
+            } else {
+                // For other statuses, exclude voided and filter by status
+                $query->whereNull('voided_at');
+                $query->where('payment_status', $request->status);
+            }
+        } else {
+            // Exclude voided registrations by default when no status filter is applied
+            $query->whereNull('voided_at');
         }
 
         // Search by user
@@ -217,8 +239,12 @@ class RegistrationController extends Controller
                     continue;
                 }
 
-                // Skip if not pending or already voided
-                if (!$reg->isPending() || $reg->isVoided()) {
+                // Check if it's an approved delegate
+                $isDelegate = $reg->package_id == config('app.delegate_package_id');
+                $isApprovedDelegate = $isDelegate && $reg->status === 'approved';
+
+                // Skip if not pending, already voided, or is an approved delegate
+                if (!$reg->isPending() || $reg->isVoided() || $isApprovedDelegate) {
                     $skippedCount++;
                     continue;
                 }
@@ -263,6 +289,46 @@ class RegistrationController extends Controller
             Log::error("Failed to void registrations: " . $e->getMessage());
 
             return redirect()->back()->with('error', 'Failed to void registrations. Please try again.');
+        }
+    }
+
+    public function undoVoid(Request $request, Registration $registration)
+    {
+        // Authorization check - only admin can undo void
+        $admin = Auth::guard('admin')->user();
+        if (!$admin || $admin->role !== 'admin') {
+            abort(403, 'Unauthorized access. Only admins can undo void.');
+        }
+
+        // Check if registration is voided
+        if (!$registration->isVoided()) {
+            return redirect()->back()->with('error', 'This registration is not voided.');
+        }
+
+        try {
+            DB::beginTransaction();
+
+            // Restore registration by clearing void information
+            $registration->update([
+                'voided_at' => null,
+                'voided_by' => null,
+                'void_reason' => null,
+                'payment_status' => 'pending', // Restore to pending status
+            ]);
+
+            DB::commit();
+
+            Log::info("Registration #{$registration->id} void undone by admin #" . $admin->id, [
+                'admin' => $admin->username,
+            ]);
+
+            return redirect()->back()->with('success', "Void has been undone for {$registration->user->full_name}. Registration restored to pending status.");
+        } catch (\Exception $e) {
+            DB::rollBack();
+            
+            Log::error("Failed to undo void for registration #{$registration->id}: " . $e->getMessage());
+
+            return redirect()->back()->with('error', 'Failed to undo void. Please try again.');
         }
     }
 }

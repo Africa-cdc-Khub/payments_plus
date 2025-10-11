@@ -121,7 +121,8 @@
         <div class="px-6 py-4 border-b border-gray-200">
             <h3 class="text-lg font-medium text-gray-900">All Participants</h3>
             <p class="text-sm text-gray-500 mt-1">
-                Showing {{ $participants->firstItem() ?? 0 }} to {{ $participants->lastItem() ?? 0 }} of {{ $participants->total() }} participants
+                Showing {{ $registrations->firstItem() ?? 0 }} to {{ $registrations->lastItem() ?? 0 }} of {{ $registrations->total() }} registrations
+                <span class="text-gray-700 font-medium">({{ $totalParticipants }} total people including group members)</span>
             </p>
         </div>
 
@@ -148,79 +149,146 @@
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
-                    @forelse($participants as $participant)
+                    @forelse($registrations as $registration)
+                    {{-- Primary Registrant --}}
+                    @php
+                        $isDelegate = $registration->status === 'approved';
+                        $type = $isDelegate ? 'Delegate' : 'Paid Participant';
+                    @endphp
+                    {{-- Primary Registrant Row --}}
                     <tr class="hover:bg-gray-50">
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            #{{ $participant->id }}
+                            #{{ $registration->id }}
+                            @if($registration->participants->count() > 0)
+                                <span class="ml-1 p-1 text-xs font-semibold rounded bg-green-100 text-green-800" title="Group registration">
+                                    +{{ $registration->participants->count() }}
+                                </span>
+                            @endif
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                            {{ $participant->user->full_name ?? '-' }}
+                            {{ $registration->user->full_name ?? '-' }}
+                            <span class="ml-1 text-xs text-gray-500">(Primary)</span>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {{ $participant->user->email ?? '-' }}
+                            {{ $registration->user->email ?? '-' }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {{ $participant->user->phone ?? '-' }}
+                            {{ $registration->user->phone ?? '-' }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {{ $participant->user->country ?? '-' }}
+                            {{ $registration->user->country ?? '-' }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                             <span class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
-                                {{ $participant->package->name ?? '-' }}
+                                {{ $registration->package->name ?? '-' }}
                             </span>
                         </td>
                          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
-                                {{ $participant->user->delegate_category ?? '-' }}
-                            </span>
+                            {{ $registration->user->delegate_category ?? '-' }}
                         </td>
                         @if(!in_array(auth('admin')->user()->role, ['executive']))
                         <td class="px-6 py-4 whitespace-nowrap">
-                            @if($participant->status === 'approved')
+                            @if($registration->status === 'approved')
                                 <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
                                     <i class="fas fa-check-circle"></i> Approved
                                 </span>
                             @else
                                 <span class="px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
-                                    {{ ucfirst($participant->status) }}
+                                    {{ ucfirst($registration->status) }}
                                 </span>
                             @endif
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
-                            @if($participant->payment_status === 'completed')
+                            @if($registration->payment_status === 'completed')
                                 <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
                                     <i class="fas fa-check-circle"></i> Paid
                                 </span>
                             @else
                                 <span class="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                                    {{ ucfirst($participant->payment_status) }}
+                                    {{ ucfirst($registration->payment_status) }}
                                 </span>
                             @endif
                         </td>
                         @endif
                         <td class="px-6 py-4 whitespace-nowrap">
-                            @if($participant->status === 'approved')
-                                <span class="px-2 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-800">
-                                    <i class="fas fa-user-tie"></i> Delegate
-                                </span>
-                            @else
-                                <span class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
-                                    <i class="fas fa-user"></i> Participant
-                                </span>
-                            @endif
+                            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-800">
+                                <i class="fas fa-user-tie"></i> {{ $type }}
+                            </span>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {{ $participant->created_at ? $participant->created_at->format('M d, Y') : '-' }}
+                            {{ $registration->created_at ? $registration->created_at->format('M d, Y') : '-' }}
                         </td>
                         @if(in_array(auth('admin')->user()->role, ['admin', 'hosts']))
                         <td class="px-6 py-4 whitespace-nowrap text-sm">
-                            <a href="{{ route('registrations.show', $participant) }}" class="text-blue-600 hover:text-blue-900">
+                            <a href="{{ route('registrations.show', $registration) }}" class="text-blue-600 hover:text-blue-900">
                                 <i class="fas fa-eye"></i> View Details
                             </a>
                         </td>
                         @endif
                     </tr>
+                    
+                    {{-- Additional Group Members --}}
+                    @foreach($registration->participants as $groupMember)
+                    <tr class="hover:bg-gray-50 bg-gray-25">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-green-600">
+                            <i class="fas fa-arrow-turn-down-right ml-2"></i> #{{ $registration->id }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                            <span class="ml-4">{{ $groupMember->full_name }}</span>
+                            <span class="ml-1 text-xs text-gray-500">(Member)</span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ $groupMember->email ?? '-' }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            -
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ $groupMember->nationality ?? '-' }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                                {{ $registration->package->name ?? '-' }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {{ $groupMember->delegate_category ?? '-' }}
+                        </td>
+                        @if(!in_array(auth('admin')->user()->role, ['executive']))
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-600">
+                                Group Member
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            @if($registration->payment_status === 'completed')
+                                <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                    <i class="fas fa-check-circle"></i> Paid
+                                </span>
+                            @else
+                                <span class="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                    {{ ucfirst($registration->payment_status) }}
+                                </span>
+                            @endif
+                        </td>
+                        @endif
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-indigo-100 text-indigo-800">
+                                <i class="fas fa-users"></i> Group Member
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ $registration->created_at ? $registration->created_at->format('M d, Y') : '-' }}
+                        </td>
+                        @if(in_array(auth('admin')->user()->role, ['admin', 'hosts']))
+                        <td class="px-6 py-4 whitespace-nowrap text-sm">
+                            <a href="{{ route('registrations.show', $registration) }}" class="text-blue-600 hover:text-blue-900">
+                                <i class="fas fa-eye"></i> View Details
+                            </a>
+                        </td>
+                        @endif
+                    </tr>
+                    @endforeach
                     @empty
                     <tr>
                         @php
@@ -245,7 +313,7 @@
         </div>
 
         <div class="p-6">
-            {{ $participants->appends(request()->query())->links('vendor.pagination.always-show-numbers') }}
+            {{ $registrations->appends(request()->query())->links('vendor.pagination.always-show-numbers') }}
         </div>
     </div>
 </div>

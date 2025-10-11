@@ -69,6 +69,7 @@
                     <button 
                         type="submit" 
                         class="px-4 py-2 ml-2 bg-red-700 text-white rounded-lg hover:bg-red-800"
+                        style="background-color: red;"
                     >
                         <i class="fas fa-ban"></i> Confirm & Void Registration
                     </button>
