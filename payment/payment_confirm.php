@@ -113,7 +113,7 @@ if ($showRegistrationPreview) {
         'bill_to_email' => substr(trim($registration['user_email']), 0, 255),
         'bill_to_phone' => '',
         'bill_to_address_line1' => substr(trim($registration['address_line1'] ?? ''), 0, 60),
-        'bill_to_address_line2' => '',
+        'bill_to_address_line2' => substr(trim($registration['address_line1'] ?? ''), 60),
         'bill_to_address_city' => substr(trim($registration['city'] ?? ''), 0, 50),
         'bill_to_address_state' => substr(trim($registration['state'] ?? ''), 0, 50),
         'bill_to_address_country' => getCountryCodeByName($registration['country']),
