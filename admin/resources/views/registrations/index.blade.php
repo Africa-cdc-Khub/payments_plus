@@ -7,7 +7,19 @@
 <div class="bg-white rounded-lg shadow">
     <div class="p-6 border-b">
         <div class="flex justify-between items-center">
-            <h3 class="text-lg font-semibold">All Registrations</h3>
+            <div class="flex items-center space-x-4">
+                <h3 class="text-lg font-semibold">All Registrations</h3>
+                @if(auth('admin')->user()->role === 'admin')
+                <button 
+                    type="button" 
+                    id="bulkVoidBtn"
+                    onclick="voidSelected()"
+                    class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 hidden"
+                >
+                    <i class="fas fa-ban"></i> Void Selected (<span id="selectedCount">0</span>)
+                </button>
+                @endif
+            </div>
             
             <div class="flex space-x-4">
                 <form method="GET" class="flex space-x-2">
@@ -68,6 +80,11 @@
             <table class="w-full">
                 <thead class="bg-gray-50">
                     <tr>
+                            @if(auth('admin')->user()->role === 'admin')
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                <input type="checkbox" id="selectAll" onclick="toggleSelectAll()" class="rounded">
+                            </th>
+                            @endif
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
@@ -88,6 +105,19 @@
                             $canReceiveInvitation = $registration->isPaid() || ($isDelegate && $registration->status === 'approved');
                         @endphp
                         <tr>
+                            @if(auth('admin')->user()->role === 'admin')
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                @if($registration->isPending() && !$registration->isVoided())
+                                <input 
+                                    type="checkbox" 
+                                    class="registration-checkbox rounded" 
+                                    value="{{ $registration->id }}"
+                                    data-name="{{ $registration->user->full_name }}"
+                                    onchange="updateBulkVoidButton()"
+                                >
+                                @endif
+                            </td>
+                            @endif
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                 {{ $registration->id }}
                             </td>
@@ -202,11 +232,20 @@
                                 </button>
                                 @endif
                                 @endcan
+                                
+                                @if(auth('admin')->user()->role === 'admin' && $registration->isPending() && !$registration->isVoided())
+                                <button type="button" 
+                                        onclick="openMarkVoidModal({{ $registration->id }}, '{{ addslashes($registration->user->full_name) }}')" 
+                                        class="ml-3 text-red-600 hover:text-red-900"
+                                        title="Void Registration">
+                                    <i class="fas fa-ban"></i> Void
+                                </button>
+                                @endif
                             </td>
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="{{ auth('admin')->user()->role === 'executive' ? '6' : '9' }}" class="px-6 py-4 text-center text-gray-500">No registrations found</td>
+                            <td colspan="{{ auth('admin')->user()->role === 'executive' ? '6' : (auth('admin')->user()->role === 'admin' ? '10' : '9') }}" class="px-6 py-4 text-center text-gray-500">No registrations found</td>
                         </tr>
                         @endforelse
                     </tbody>
@@ -226,7 +265,47 @@
 <!-- Include Mark Paid Modal -->
 @include('components.mark-paid-modal')
 
+<!-- Include Mark Void Modal -->
+@include('components.mark-void-modal')
+
 <script>
+// Bulk void functions
+function toggleSelectAll() {
+    const selectAll = document.getElementById('selectAll');
+    const checkboxes = document.querySelectorAll('.registration-checkbox');
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = selectAll.checked;
+    });
+    updateBulkVoidButton();
+}
+
+function updateBulkVoidButton() {
+    const checkboxes = document.querySelectorAll('.registration-checkbox:checked');
+    const bulkBtn = document.getElementById('bulkVoidBtn');
+    const countSpan = document.getElementById('selectedCount');
+    
+    if (bulkBtn && countSpan) {
+        if (checkboxes.length > 0) {
+            bulkBtn.classList.remove('hidden');
+            countSpan.textContent = checkboxes.length;
+        } else {
+            bulkBtn.classList.add('hidden');
+            countSpan.textContent = '0';
+        }
+    }
+}
+
+function voidSelected() {
+    const checkboxes = document.querySelectorAll('.registration-checkbox:checked');
+    if (checkboxes.length === 0) {
+        alert('Please select at least one registration to void.');
+        return;
+    }
+    
+    const registrationIds = Array.from(checkboxes).map(cb => cb.value);
+    openBulkVoidModal(registrationIds);
+}
+
 function sendInvitationEmail(registrationId, delegateName) {
     if (confirm(`Send invitation email to ${delegateName}?\n\nThis will queue an email with their invitation letter attached.`)) {
         // Create a form to submit the request

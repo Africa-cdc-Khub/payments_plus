@@ -33,6 +33,9 @@ class Registration extends Model
         'exhibition_description',
         'invitation_sent_at',
         'invitation_sent_by',
+        'voided_at',
+        'voided_by',
+        'void_reason',
     ];
 
     protected $casts = [
@@ -41,6 +44,7 @@ class Registration extends Model
         'payment_completed_at' => 'datetime',
         'created_at' => 'datetime',
         'invitation_sent_at' => 'datetime',
+        'voided_at' => 'datetime',
     ];
 
     public function user(): BelongsTo
@@ -73,6 +77,11 @@ class Registration extends Model
         return $this->belongsTo(Admin::class, 'invitation_sent_by');
     }
 
+    public function voidedBy(): BelongsTo
+    {
+        return $this->belongsTo(Admin::class, 'voided_by');
+    }
+
     public function isPaid(): bool
     {
         return $this->payment_status === 'completed';
@@ -81,6 +90,11 @@ class Registration extends Model
     public function isPending(): bool
     {
         return $this->payment_status === 'pending';
+    }
+
+    public function isVoided(): bool
+    {
+        return !is_null($this->voided_at);
     }
 }
 

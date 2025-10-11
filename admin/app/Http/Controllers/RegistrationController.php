@@ -16,6 +16,9 @@ class RegistrationController extends Controller
     {
         $query = Registration::with(['user', 'package', 'payment.completedBy', 'invitationSentBy']);
 
+        // Exclude voided registrations by default
+        $query->whereNull('voided_at');
+
         // Filter by registration ID
         if ($request->filled('registration_id')) {
             $query->where('id', $request->registration_id);
@@ -29,6 +32,7 @@ class RegistrationController extends Controller
         // Search by user
         if ($request->filled('search')) {
             $search = $request->search;
+            $search = str_replace(' ', '%', $search);
             $query->whereHas('user', function ($q) use ($search) {
                 $q->where('first_name', 'like', "%{$search}%")
                   ->orWhere('last_name', 'like', "%{$search}%")
@@ -168,6 +172,97 @@ class RegistrationController extends Controller
         } catch (\Exception $e) {
             Log::error("Failed to queue invitation email for registration #{$registration->id}: " . $e->getMessage());
             return redirect()->back()->with('error', 'Failed to queue invitation email: ' . $e->getMessage());
+        }
+    }
+
+    public function voidRegistration(Request $request, Registration $registration = null)
+    {
+        // Authorization check - only admin can void registrations
+        $admin = Auth::guard('admin')->user();
+        if (!$admin || $admin->role !== 'admin') {
+            abort(403, 'Unauthorized access. Only admins can void registrations.');
+        }
+
+        // Validate the request
+        $request->validate([
+            'void_reason' => 'required|string|max:1000',
+            'registration_ids' => 'sometimes|array',
+            'registration_ids.*' => 'exists:registrations,id',
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            $registrationIds = [];
+            $voidedCount = 0;
+            $skippedCount = 0;
+            $voidedNames = [];
+
+            // If bulk voiding (multiple IDs)
+            if ($request->has('registration_ids')) {
+                $registrationIds = $request->registration_ids;
+            } 
+            // If single registration voiding
+            elseif ($registration) {
+                $registrationIds = [$registration->id];
+            } else {
+                return redirect()->back()->with('error', 'No registrations specified for voiding.');
+            }
+
+            // Process each registration
+            foreach ($registrationIds as $regId) {
+                $reg = Registration::with('user')->find($regId);
+                
+                if (!$reg) {
+                    continue;
+                }
+
+                // Skip if not pending or already voided
+                if (!$reg->isPending() || $reg->isVoided()) {
+                    $skippedCount++;
+                    continue;
+                }
+
+                // Update registration with void information
+                $reg->update([
+                    'voided_at' => now(),
+                    'voided_by' => $admin->id,
+                    'void_reason' => $request->void_reason,
+                    'payment_status' => 'voided',
+                ]);
+
+                $voidedCount++;
+                $voidedNames[] = $reg->user->full_name;
+
+                Log::info("Registration #{$reg->id} voided by admin #" . $admin->id, [
+                    'admin' => $admin->username,
+                    'reason' => $request->void_reason,
+                ]);
+            }
+
+            DB::commit();
+
+            // Build success message
+            if ($voidedCount > 0) {
+                $message = $voidedCount === 1 
+                    ? "Registration for {$voidedNames[0]} has been voided."
+                    : "{$voidedCount} registration(s) have been voided.";
+                
+                if ($skippedCount > 0) {
+                    $message .= " {$skippedCount} registration(s) were skipped (already voided or not pending).";
+                }
+                
+                return redirect()->back()->with('success', $message);
+            } else {
+                return redirect()->back()->with('warning', 'No registrations were voided. All selected registrations are either already voided or not pending.');
+            }
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            
+            Log::error("Failed to void registrations: " . $e->getMessage());
+
+            return redirect()->back()->with('error', 'Failed to void registrations. Please try again.');
         }
     }
 }
