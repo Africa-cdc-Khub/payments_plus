@@ -25,21 +25,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['search_registrations'
     $email = sanitizeInput($_POST['email'] ?? '');
     $phone = sanitizeInput($_POST['phone'] ?? '');
     
-    if (empty($email) || empty($phone)) {
-        $error = "Please provide both email and phone number to search for your registrations.";
+    if (empty($email)) {
+        $error = "Please provide your email address to search for your registrations.";
     } elseif (!validateEmail($email)) {
         $error = "Please enter a valid email address.";
-    } elseif (!validatePhoneNumber($phone)) {
-        $error = "Please enter a valid phone number.";
+    } elseif (!empty($phone) && !validatePhoneNumber($phone)) {
+        $error = "Please enter a valid phone number or leave it blank.";
     } elseif (isRecaptchaEnabled() && (empty($_POST['g-recaptcha-response']) || !validateRecaptcha($_POST['g-recaptcha-response'], RECAPTCHA_SECRET_KEY))) {
         $error = "Please complete the reCAPTCHA verification.";
         logSecurityEvent('recaptcha_failed_lookup', 'reCAPTCHA verification failed for registration lookup');
     } else {
-        $registrations = getRegistrationHistoryByEmailAndPhone($email, $phone);
+        // Use email-only search (improved)
+        $registrations = getRegistrationHistoryByEmail($email);
         $searchPerformed = true;
         
         if (empty($registrations)) {
-            $error = "No registrations found for the provided email and phone number.";
+            $error = "No registrations found for the provided email address.";
         }
     }
 }
@@ -102,7 +103,12 @@ if (isset($_GET['view']) && is_numeric($_GET['view'])) {
             <div class="col-lg-10">
                 <!-- Page Title -->
                 <div class="text-center mb-5">
+                    <h3 class="mb-3">Registration Lookup</h3>
                     <p class="lead">View your previous registrations for <?php echo CONFERENCE_DATES; ?></p>
+                    <div class="alert alert-info d-inline-block">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Quick Search:</strong> Enter your email address to find all your registrations. Phone number is optional.
+                    </div>
                 </div>
 
                 <!-- Search Form -->
@@ -112,15 +118,19 @@ if (isset($_GET['view']) && is_numeric($_GET['view'])) {
                     </div>
                     <div class="card-body">
                         <form method="POST" class="row g-3">
-                            <div class="col-md-6">
+                            <div class="col-md-8">
                                 <label for="email" class="form-label">Email Address *</label>
                                 <input type="email" class="form-control" id="email" name="email" 
-                                       value="<?php echo htmlspecialchars($_POST['email'] ?? ''); ?>" required>
+                                       value="<?php echo htmlspecialchars($_POST['email'] ?? ''); ?>" required
+                                       placeholder="Enter your email address">
+                                <div class="form-text">We'll search for all registrations associated with this email address.</div>
                             </div>
-                            <div class="col-md-6">
-                                <label for="phone" class="form-label">Phone Number *</label>
+                            <div class="col-md-4">
+                                <label for="phone" class="form-label">Phone Number <small class="text-muted">(Optional)</small></label>
                                 <input type="tel" class="form-control" id="phone" name="phone" 
-                                       value="<?php echo htmlspecialchars($_POST['phone'] ?? ''); ?>" required>
+                                       value="<?php echo htmlspecialchars($_POST['phone'] ?? ''); ?>"
+                                       placeholder="Enter phone number (optional)">
+                                <div class="form-text">Phone number is optional for searching.</div>
                             </div>
                             <!-- reCAPTCHA -->
                             <?php if (isRecaptchaEnabled()): ?>
@@ -479,11 +489,43 @@ if (isset($_GET['view']) && is_numeric($_GET['view'])) {
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // reCAPTCHA validation
+        // Form validation and enhancement
         document.addEventListener('DOMContentLoaded', function() {
             const form = document.querySelector('form[method="POST"]');
+            const emailField = document.getElementById('email');
+            const phoneField = document.getElementById('phone');
+            
             if (form) {
                 form.addEventListener('submit', function(e) {
+                    // Validate email is provided
+                    if (!emailField.value.trim()) {
+                        e.preventDefault();
+                        alert('Please enter your email address to search for registrations.');
+                        emailField.focus();
+                        return false;
+                    }
+                    
+                    // Validate email format
+                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                    if (!emailRegex.test(emailField.value.trim())) {
+                        e.preventDefault();
+                        alert('Please enter a valid email address.');
+                        emailField.focus();
+                        return false;
+                    }
+                    
+                    // Validate phone if provided
+                    if (phoneField.value.trim()) {
+                        const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/;
+                        if (!phoneRegex.test(phoneField.value.replace(/[\s\-\(\)]/g, ''))) {
+                            e.preventDefault();
+                            alert('Please enter a valid phone number or leave it blank.');
+                            phoneField.focus();
+                            return false;
+                        }
+                    }
+                    
+                    // reCAPTCHA validation
                     const recaptchaResponse = document.querySelector('[name="g-recaptcha-response"]');
                     if (recaptchaResponse && !recaptchaResponse.value) {
                         e.preventDefault();
@@ -491,6 +533,11 @@ if (isset($_GET['view']) && is_numeric($_GET['view'])) {
                         return false;
                     }
                 });
+            }
+            
+            // Auto-focus email field
+            if (emailField) {
+                emailField.focus();
             }
         });
 

@@ -294,10 +294,11 @@ class EmailQueue
             $processed = 0;
             $failed = 0;
             
-            // Get pending emails from queue
+            // Get pending emails from queue (only those with 0 attempts)
             $stmt = $this->pdo->prepare("
                 SELECT * FROM email_queue 
                 WHERE status = 'pending' 
+                AND attempts = 0
                 AND (scheduled_at IS NULL OR scheduled_at <= NOW())
                 ORDER BY priority ASC, created_at ASC 
                 LIMIT ?
@@ -878,5 +879,79 @@ class EmailQueue
             </div>
         </body>
         </html>';
+    }
+    
+    /**
+     * Clean up the email queue by removing old processed emails
+     * 
+     * @param int $daysOld Number of days old emails to keep (default: 7)
+     * @return array Statistics about cleanup
+     */
+    public function cleanupQueue($daysOld = 7)
+    {
+        try {
+            // Count emails to be deleted
+            $countStmt = $this->pdo->prepare("
+                SELECT COUNT(*) as count 
+                FROM email_queue 
+                WHERE status IN ('sent', 'failed') 
+                AND created_at < DATE_SUB(NOW(), INTERVAL ? DAY)
+            ");
+            $countStmt->execute([$daysOld]);
+            $countResult = $countStmt->fetch(\PDO::FETCH_ASSOC);
+            $emailsToDelete = $countResult['count'];
+            
+            if ($emailsToDelete > 0) {
+                // Delete old processed emails
+                $deleteStmt = $this->pdo->prepare("
+                    DELETE FROM email_queue 
+                    WHERE status IN ('sent', 'failed') 
+                    AND created_at < DATE_SUB(NOW(), INTERVAL ? DAY)
+                ");
+                $deleteStmt->execute([$daysOld]);
+                
+                return [
+                    'deleted' => $emailsToDelete,
+                    'days_old' => $daysOld
+                ];
+            }
+            
+            return [
+                'deleted' => 0,
+                'days_old' => $daysOld
+            ];
+            
+        } catch (Exception $e) {
+            error_log("EmailQueue::cleanupQueue error: " . $e->getMessage());
+            return false;
+        }
+    }
+    
+    /**
+     * Get queue statistics including attempts breakdown
+     * 
+     * @return array Queue statistics
+     */
+    public function getDetailedStats()
+    {
+        try {
+            $stmt = $this->pdo->prepare("
+                SELECT 
+                    status,
+                    attempts,
+                    COUNT(*) as count,
+                    DATE(created_at) as date
+                FROM email_queue 
+                WHERE created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+                GROUP BY status, attempts, DATE(created_at)
+                ORDER BY date DESC, status, attempts
+            ");
+            $stmt->execute();
+            return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+            
+        } catch (Exception $e) {
+            error_log("EmailQueue::getDetailedStats error: " . $e->getMessage());
+            return false;
+        }
     }
 }

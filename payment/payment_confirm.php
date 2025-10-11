@@ -89,6 +89,16 @@ if ($showRegistrationPreview) {
     $sessId = session_id();
     $dfParam = 'org_id=' . DF_ORG_ID . '&session_id=' . MERCHANT_ID . $sessId;
     $responsePage = rtrim(APP_URL, '/') . '/payment/response.php';
+    $country_code = getCountryCodeByName($registration['country']);
+
+    $countries_with_state_codes = ['US', 'CA', 'AU', 'BR', 'IN', 'MX', 'AR', 'CN', 'ID', 'RU', 'ZA'];
+
+    if (in_array($country_code, $countries_with_state_codes)) {
+        $registration['state'] = get_state_code_geonames($country_code, $registration['state']);
+    } else {
+        // Leave it as text for other countries (like African countries)
+        $registration['state'] = $registration['state'];
+    }
 
     // Prepare payment data for sa-wm flow
     $paymentData = [
@@ -108,16 +118,17 @@ if ($showRegistrationPreview) {
         'merchant_descriptor' => 'CPHIA 2025 Registration',
         
         // Billing information
-        'bill_to_forename' => $registration['first_name'],
-        'bill_to_surname' => $registration['last_name'],
-        'bill_to_email' => $registration['user_email'],
+        'bill_to_forename' => substr(trim($registration['first_name']), 0, 60),
+        'bill_to_surname' => substr(trim($registration['last_name']), 0, 60),
+        'bill_to_email' => substr(trim($registration['user_email']), 0, 255),
         'bill_to_phone' => '',
-        'bill_to_address_line1' => $registration['address_line1'] ?? '',
-        'bill_to_address_line2' => '',
-        'bill_to_address_city' => $registration['city'] ?? '',
-        'bill_to_address_state' => $registration['state'] ?? '',
-        'bill_to_address_country' => getCountryCode($registration['country']),
-        'bill_to_address_postal_code' => $registration['postal_code'] ?? '1234',
+        'bill_to_address_line1' => substr(trim($registration['address_line1'] ?? ''), 0, 60),
+        'bill_to_address_line2' => substr(trim($registration['address_line1'] ?? ''), 60),
+  
+        'bill_to_address_country' => getCountryCodeByName($registration['country']),
+        'bill_to_address_city' => substr(trim($registration['city'] ?? ''), 0, 50),
+        'bill_to_address_state' => substr(trim($registration['state_code'] ?? ''), 0, 50),
+        'bill_to_address_postal_code' => substr(trim($registration['postal_code'] ?? '1234'), 0, 20),
 
     
         
@@ -129,16 +140,16 @@ if ($showRegistrationPreview) {
         'override_custom_receipt_page' => $responsePage,
         
         // Merchant defined data
-        'merchant_defined_data1' => 'Registration ID: ' . $registrationId,
-        'merchant_defined_data2' => 'Package: ' . $registration['package_name'],
-        'merchant_defined_data3' => 'Conference: CPHIA 2025',
-        'merchant_defined_data4' => 'Type: ' . $registration['type'],
+        'merchant_defined_data1' => substr('Registration ID: ' . $registrationId, 0, 255),
+        'merchant_defined_data2' => substr('Package: ' . $registration['package_name'], 0, 255),
+        'merchant_defined_data3' => substr('Conference: CPHIA 2025', 0, 255),
+        'merchant_defined_data4' => substr('Type: ' . $registration['type'], 0, 255),
         
         // Line items (required by CyberSource)
         'line_item_count' => '1',
         'item_0_sku' => 'PKG-' . $registration['package_id'],
         'item_0_code' => $registration['type'],
-        'item_0_name' => $registration['package_name'],
+        'item_0_name' => substr($registration['package_name'], 0, 255),
         'item_0_quantity' => '1',
         'item_0_unit_price' => str_replace('262145', '', $registration['total_amount']),
         'item_0_tax_amount' => '0.00',
@@ -171,6 +182,30 @@ if ($showRegistrationPreview) {
 
     $signature = sign($paymentData);
 }
+
+function get_state_code_geonames($countryIso2, $stateName, $username='agabaandre') {
+    $country = strtoupper(trim($countryIso2));
+    $name = urlencode(trim($stateName));
+    $url = "http://api.geonames.org/searchJSON?name_equals={$name}&country={$country}&featureCode=ADM1&maxRows=10&username={$username}";
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+    $json = curl_exec($ch);
+    curl_close($ch);
+    if (!$json) return null;
+    $data = json_decode($json, true);
+    if (empty($data['geonames'])) return null;
+    // best match heuristics: try exact name match, else first result
+    foreach ($data['geonames'] as $g) {
+        if (strcasecmp($g['name'], $stateName) === 0 || strcasecmp($g['adminName1'] ?? '', $stateName) === 0) {
+            return $g['adminCodes1']['ISO3166_2'] ?? null;
+        }
+    }
+    // fallback to first result
+    $first = $data['geonames'][0];
+    return $first['adminCodes1']['ISO3166_2'] ?? null;
+}
+
 
 ?>
 <?php if ($showRegistrationPreview): ?>
@@ -445,9 +480,8 @@ if ($showRegistrationPreview) {
                                 // Debug: Log the amount to help identify the issue
                                 error_log("Payment amount debug - Registration ID: " . $registration['id'] . ", Raw amount: '" . $registration['total_amount'] . "', Type: " . gettype($registration['total_amount']));
                                 // Fix: Remove 262145 prefix from display
-                                $displayAmount = $registration['total_amount'];
-                               
-                                echo '$'. $displayAmount; 
+                                $displayAmount = str_replace('262145', '', $registration['total_amount']);
+                                echo  '$ ' . $displayAmount; 
                             ?></span>
                         </div>
                     </div>
@@ -462,12 +496,12 @@ if ($showRegistrationPreview) {
 
                         <button type="submit" class="btn btn-pay">
                             <i class="fas fa-arrow-right me-2"></i>
-                            Proceed to Secure Payment <?php 
+                            Proceed to Secure Payment - <?php 
                                 // Debug: Log the amount to help identify the issue
                                 error_log("Payment button debug - Registration ID: " . $registration['id'] . ", Raw amount: '" . $registration['total_amount'] . "', Type: " . gettype($registration['total_amount']));
                                 // Fix: Remove 262145 prefix from display
                                 $displayAmount = str_replace('262145', '', $registration['total_amount']);
-         
+                                echo '$ ' . $displayAmount;
                             ?>
                         </button>
                         

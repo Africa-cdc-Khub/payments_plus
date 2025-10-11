@@ -623,14 +623,16 @@ document.addEventListener('DOMContentLoaded', function() {
                         $nat.empty().append('<option value="">Select Nationality</option>');
                         (data.nationalities || []).forEach(n => {
                             const sel = nationalityValue && nationalityValue === n.nationality ? ' selected' : '';
-                            $nat.append(`<option value="${n.nationality}" data-continent="${n.continent}"${sel}>${n.country_name} (${n.nationality})</option>`);
+                            const escapedNationality = n.nationality.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+                            $nat.append(`<option value="${escapedNationality}" data-continent="${n.continent}"${sel}>${n.country_name} (${n.nationality})</option>`);
                         });
                         // Repopulate country select
                         const countryValue = $country.val() || '';
                         $country.empty().append('<option value="">Select Country</option>');
                         (data.countries || []).forEach(c => {
                             const sel = countryValue && countryValue === c.name ? ' selected' : '';
-                            $country.append(`<option value="${c.name}" data-continent="${c.continent}"${sel}>${c.name}</option>`);
+                            const escapedName = c.name.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+                            $country.append(`<option value="${escapedName}" data-continent="${c.continent}"${sel}>${c.name}</option>`);
                         });
                         // Re-init Select2 directly to avoid double-binding
                         $nat.select2({ theme: 'bootstrap-5', placeholder: 'Select Nationality', allowClear: true, width: '100%' });
@@ -665,14 +667,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 $('#nationality').empty().append('<option value="">Select Nationality</option>');
                 (data.nationalities || []).forEach(n => {
                     const isSelected = nationalityValue && nationalityValue === n.nationality ? ' selected' : '';
-                    $('#nationality').append(`<option value="${n.nationality}" data-continent="${n.continent}"${isSelected}>${n.country_name} (${n.nationality})</option>`);
+                    const escapedNationality = n.nationality.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+                    $('#nationality').append(`<option value="${escapedNationality}" data-continent="${n.continent}"${isSelected}>${n.country_name} (${n.nationality})</option>`);
                 });
                 // Repopulate country
                 const countryValue = $('#country').val() || '';
                 $('#country').empty().append('<option value="">Select Country</option>');
                 (data.countries || []).forEach(c => {
                     const isSelected = countryValue && countryValue === c.name ? ' selected' : '';
-                    $('#country').append(`<option value="${c.name}" data-continent="${c.continent}"${isSelected}>${c.name}</option>`);
+                    const escapedName = c.name.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+                    $('#country').append(`<option value="${escapedName}" data-continent="${c.continent}"${isSelected}>${c.name}</option>`);
                 });
                 // Re-init Select2
                 initializeSelect2();
