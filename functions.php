@@ -955,6 +955,13 @@ function getAllCountries() {
     
     return $countries;
 }
+function getCountryCodeByName($countryName) {
+    $pdo = getConnection();
+    $stmt = $pdo->prepare("SELECT code FROM countries WHERE name = ?");
+    $stmt->execute([$countryName]);
+    $result = $stmt->fetch(PDO::FETCH_ASSOC);
+    return $result ? $result['code'] : 'US'; // Default to US if not found
+}
 
 // Function to get all nationalities from database
 function getAllNationalities() {

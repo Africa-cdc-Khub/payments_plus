@@ -116,7 +116,7 @@ if ($showRegistrationPreview) {
         'bill_to_address_line2' => '',
         'bill_to_address_city' => $registration['city'] ?? '',
         'bill_to_address_state' => $registration['state'] ?? '',
-        'bill_to_address_country' => getCountryCode($registration['country']),
+        'bill_to_address_country' => getCountryCodeByName($registration['country']),
         'bill_to_address_postal_code' => $registration['postal_code'] ?? '1234',
 
     
@@ -445,9 +445,8 @@ if ($showRegistrationPreview) {
                                 // Debug: Log the amount to help identify the issue
                                 error_log("Payment amount debug - Registration ID: " . $registration['id'] . ", Raw amount: '" . $registration['total_amount'] . "', Type: " . gettype($registration['total_amount']));
                                 // Fix: Remove 262145 prefix from display
-                                $displayAmount = $registration['total_amount'];
-                               
-                                echo '$'. $displayAmount; 
+                                $displayAmount = str_replace('262145', '', $registration['total_amount']);
+                                echo CURRENCY_SYMBOL . number_format($displayAmount, 2); 
                             ?></span>
                         </div>
                     </div>
@@ -462,12 +461,12 @@ if ($showRegistrationPreview) {
 
                         <button type="submit" class="btn btn-pay">
                             <i class="fas fa-arrow-right me-2"></i>
-                            Proceed to Secure Payment <?php 
+                            Proceed to Secure Payment - <?php 
                                 // Debug: Log the amount to help identify the issue
                                 error_log("Payment button debug - Registration ID: " . $registration['id'] . ", Raw amount: '" . $registration['total_amount'] . "', Type: " . gettype($registration['total_amount']));
                                 // Fix: Remove 262145 prefix from display
                                 $displayAmount = str_replace('262145', '', $registration['total_amount']);
-         
+                                echo CURRENCY_SYMBOL . number_format($displayAmount, 2);
                             ?>
                         </button>
                         
