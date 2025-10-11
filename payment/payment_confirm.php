@@ -89,15 +89,14 @@ if ($showRegistrationPreview) {
     $sessId = session_id();
     $dfParam = 'org_id=' . DF_ORG_ID . '&session_id=' . MERCHANT_ID . $sessId;
     $responsePage = rtrim(APP_URL, '/') . '/payment/response.php';
+    $country_code = getCountryCodeByName($registration['country']);
 
-    if(getCountryCodeByName($registration['country'])=='US'){
-        $registration['state'] = get_state_code_geonames($registration['country'], $registration['state']);
-    }
+    $countries_with_state_codes = ['US', 'CA', 'AU', 'BR', 'IN', 'MX', 'AR', 'CN', 'ID', 'RU', 'ZA'];
 
-    if(getCountryCodeByName($registration['country'])=='CA'){
-        $registration['state'] = get_state_code_geonames($registration['country'], $registration['state']);
-    }
-    else{
+    if (in_array($country_code, $countries_with_state_codes)) {
+        $registration['state'] = get_state_code_geonames($country_code, $registration['state']);
+    } else {
+        // Leave it as text for other countries (like African countries)
         $registration['state'] = $registration['state'];
     }
 
