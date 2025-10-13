@@ -8,7 +8,7 @@
     <div class="p-6 border-b">
         <div class="flex justify-between items-center mb-4">
             <h3 class="text-lg font-semibold">Approved Delegates List</h3>
-            
+
             <form method="GET" action="{{ route('approved-delegates.export') }}" class="inline">
                 @if(request('delegate_category'))
                     <input type="hidden" name="delegate_category" value="{{ request('delegate_category') }}">
@@ -30,10 +30,10 @@
             <div class="flex flex-wrap gap-3 mb-3">
                 <div class="flex-1 min-w-[200px]">
                     <label class="block text-sm font-medium text-gray-700 mb-2">Search</label>
-                    <input 
-                        type="text" 
-                        name="search" 
-                        placeholder="Name or email..." 
+                    <input
+                        type="text"
+                        name="search"
+                        placeholder="Name or email..."
                         value="{{ request('search') }}"
                         class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
@@ -41,8 +41,8 @@
 
                 <div class="flex-1 min-w-[200px]">
                     <label class="block text-sm font-medium text-gray-700 mb-2">Delegate Category</label>
-                    <select 
-                        name="delegate_category" 
+                    <select
+                        name="delegate_category"
                         class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                         <option value="">All Categories</option>
@@ -56,8 +56,8 @@
 
                 <div class="flex-1 min-w-[200px]">
                     <label class="block text-sm font-medium text-gray-700 mb-2">Country</label>
-                    <select 
-                        name="country" 
+                    <select
+                        name="country"
                         class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                         <option value="">All Countries</option>
@@ -72,8 +72,8 @@
                 @if(auth('admin')->user()->role === 'travels')
                 <div class="flex-1 min-w-[200px]">
                     <label class="block text-sm font-medium text-gray-700 mb-2">Travel Status</label>
-                    <select 
-                        name="travel_processed" 
+                    <select
+                        name="travel_processed"
                         class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                         <option value="">All Status</option>
@@ -175,7 +175,7 @@
                         {{ $delegate->id }}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="text-sm font-medium text-gray-900">{{ $delegate->user->full_name }}</div>
+                        <div class="text-sm font-medium text-gray-900">{{ $delegate->user->first_name }} {{ $delegate->user->last_name }}</div>
                         @if($delegate->user->title)
                             <div class="text-xs text-gray-500">{{ $delegate->user->title }}</div>
                         @endif
@@ -204,21 +204,21 @@
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         @if(in_array(auth('admin')->user()->role, ['admin', 'travels']))
                             <div class="flex items-center space-x-2">
-                             
+
                                 <span class="text-gray-600">
                                     {{ $delegate->user->passport_number ?? '-' }}
                                 </span>
-                                
+
                                 @if($delegate->user->passport_file)
-                                    <button 
-                                        onclick="openPassportPreview('{{ env('PARENT_APP_URL') }}/uploads/passports/{{ $delegate->user->passport_file }}')" 
+                                    <button
+                                        onclick="openPassportPreview('{{ env('PARENT_APP_URL') }}/uploads/passports/{{ $delegate->user->passport_file }}', {{ $delegate->id }})"
                                         class="inline-flex items-center px-3 py-1 px-2 text-xs font-medium rounded-md text-blue-700 bg-blue-50 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                                     >
                                         <small class="text-xs text-gray-500">View Attachment</small>
                                     </button>
                                 @endif
-                                {{-- <button 
-                                        onclick="requestPassportEmail({{ $delegate->id }}, '{{ $delegate->user->full_name }}')" 
+                                {{-- <button
+                                        onclick="requestPassportEmail({{ $delegate->id }}, '{{ $delegate->user->full_name }}')"
                                         class="inline-flex items-center px-3 py-1 border border-orange-300 text-xs font-medium rounded-md text-orange-700 bg-orange-50 hover:bg-orange-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
                                     >
                                         <i class="fas fa-envelope mr-1"></i> Send Request For Passport
@@ -255,10 +255,10 @@
                         <a href="{{ route('delegates.show', $delegate) }}" class="text-blue-600 hover:text-blue-900">
                             <i class="fas fa-eye"></i> View
                         </a>
-                        
+
                         @can('viewInvitation', App\Models\Registration::class)
-                        <button type="button" 
-                                onclick="openPdfModal({{ $delegate->id }})" 
+                        <button type="button"
+                                onclick="openPdfModal({{ $delegate->id }})"
                                 class="ml-3 text-purple-600 hover:text-purple-900"
                                 title="Preview Invitation">
                             <i class="fas fa-file-pdf"></i> Invitation
@@ -267,10 +267,10 @@
 
                         @if(in_array(auth('admin')->user()->role, ['admin', 'travels']))
                         <button type="button"
-                                onclick="openTravelProcessedModal({{ $delegate->id }}, '{{ addslashes($delegate->user->full_name) }}', {{ $delegate->travel_processed ? 'true' : 'false' }})"
+                                onclick="openTravelProcessedModal({{ $delegate->id }}, '{{ addslashes($delegate->user->first_name . ' ' . $delegate->user->last_name) }}', {{ $delegate->travel_processed ? 'true' : 'false' }})"
                                 class="ml-3 text-{{ $delegate->travel_processed ? 'orange' : 'green' }}-600 hover:text-{{ $delegate->travel_processed ? 'orange' : 'green' }}-900"
                                 title="{{ $delegate->travel_processed ? 'Mark as Unprocessed' : 'Mark as Processed' }}">
-                            <i class="fas fa-{{ $delegate->travel_processed ? 'undo' : 'check' }}"></i> 
+                            <i class="fas fa-{{ $delegate->travel_processed ? 'undo' : 'check' }}"></i>
                             {{ $delegate->travel_processed ? 'Unmark Processed' : 'Mark Processed' }}
                         </button>
                         @endif
@@ -313,14 +313,14 @@ function requestPassportEmail(delegateId, delegateName) {
         const form = document.createElement('form');
         form.method = 'POST';
         form.action = `{{  url('/approved-delegates/${delegateId}/request-passport') }}`;
-        
+
         // Add CSRF token
         const csrfToken = document.createElement('input');
         csrfToken.type = 'hidden';
         csrfToken.name = '_token';
         csrfToken.value = '{{ csrf_token() }}';
         form.appendChild(csrfToken);
-        
+
         // Add to body and submit
         document.body.appendChild(form);
         form.submit();

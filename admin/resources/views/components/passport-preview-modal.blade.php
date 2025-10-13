@@ -16,7 +16,7 @@
                 </button>
             </div>
         </div>
-        
+
         <!-- Modal Body with iframe -->
         <div class="relative bg-white" style="height: calc(95vh - 64px);">
             <div id="passportLoader" class="absolute inset-0 flex items-center justify-center bg-gray-100 z-10" style="min-height: 90vh;">
@@ -26,8 +26,8 @@
                     <p class="text-gray-500 text-sm mt-2">This may take a few seconds</p>
                 </div>
             </div>
-            <iframe 
-                id="passportIframe" 
+            <iframe
+                id="passportIframe"
                 name="passportIframe"
                 class="w-full h-full rounded-b-lg"
                 style="border: none; background: white;  min-height: 90vh;">
@@ -39,29 +39,31 @@
 @push('scripts')
 <script>
 let currentPassportUrl = '';
+let currentRegistrationId = null;
 let passportLoadTimeout = null;
 
-function openPassportPreview(passportUrl) {
+function openPassportPreview(passportUrl, registrationId) {
     const modal = document.getElementById('passportPreviewModal');
     const iframe = document.getElementById('passportIframe');
     const loader = document.getElementById('passportLoader');
-    
+
     if (!modal || !iframe || !loader) {
         console.error('Passport modal elements not found');
         return;
     }
-    
+
     // Reset iframe
     iframe.src = 'about:blank';
-    
+
     // Show modal and loader
     modal.style.display = 'block';
     loader.style.display = 'flex';
     document.body.style.overflow = 'hidden'; // Prevent background scrolling
-    
-    // Store current passport URL for download
+
+    // Store current passport URL and registration ID for download
     currentPassportUrl = passportUrl;
-    
+    currentRegistrationId = registrationId;
+
     // Set a timeout to hide loader after 10 seconds if passport doesn't load
     if (passportLoadTimeout) {
         clearTimeout(passportLoadTimeout);
@@ -69,7 +71,7 @@ function openPassportPreview(passportUrl) {
     passportLoadTimeout = setTimeout(function() {
         loader.style.display = 'none';
     }, 7000);
-    
+
     // Load passport in iframe
     setTimeout(function() {
         iframe.src = passportUrl;
@@ -80,25 +82,26 @@ function closePassportModal() {
     const modal = document.getElementById('passportPreviewModal');
     const iframe = document.getElementById('passportIframe');
     const loader = document.getElementById('passportLoader');
-    
+
     if (passportLoadTimeout) {
         clearTimeout(passportLoadTimeout);
     }
-    
+
     modal.style.display = 'none';
     iframe.src = 'about:blank';
     loader.style.display = 'flex';
     currentPassportUrl = '';
+    currentRegistrationId = null;
     document.body.style.overflow = ''; // Restore scrolling
 }
 
 function passportLoaded() {
     const loader = document.getElementById('passportLoader');
-    
+
     if (passportLoadTimeout) {
         clearTimeout(passportLoadTimeout);
     }
-    
+
     // Hide loader after a short delay to ensure passport is rendered
     setTimeout(function() {
         if (loader) {
@@ -108,7 +111,11 @@ function passportLoaded() {
 }
 
 function downloadCurrentPassport() {
-    if (currentPassportUrl) {
+    if (currentRegistrationId) {
+        // Use the download route with custom filename
+        window.location.href = '/approved-delegates/' + currentRegistrationId + '/download-passport';
+    } else if (currentPassportUrl) {
+        // Fallback to direct URL if registration ID not available
         window.open(currentPassportUrl, '_blank');
     }
 }
@@ -116,7 +123,7 @@ function downloadCurrentPassport() {
 // Initialize modal event listeners
 if (typeof window.passportModalInitialized === 'undefined') {
     window.passportModalInitialized = true;
-    
+
     document.addEventListener('DOMContentLoaded', function() {
         const modal = document.getElementById('passportPreviewModal');
         if (modal) {
@@ -127,7 +134,7 @@ if (typeof window.passportModalInitialized === 'undefined') {
                 }
             });
         }
-        
+
         // Close on ESC key
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape' || e.key === 'Esc') {

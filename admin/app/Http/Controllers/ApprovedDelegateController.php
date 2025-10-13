@@ -33,7 +33,7 @@ class ApprovedDelegateController extends Controller
                 'Youth Program Participant',
                 'Interpreter/Translators'
             ];
-            
+
             $query->whereHas('user', function($q) use ($fullySponsoredCategories) {
                 $q->whereIn('delegate_category', $fullySponsoredCategories);
             });
@@ -113,7 +113,7 @@ class ApprovedDelegateController extends Controller
                 'Youth Program Participant',
                 'Interpreter/Translators'
             ];
-            
+
             $query->whereHas('user', function($q) use ($fullySponsoredCategories) {
                 $q->whereIn('delegate_category', $fullySponsoredCategories);
             });
@@ -153,7 +153,7 @@ class ApprovedDelegateController extends Controller
 
         // Generate CSV
         $filename = 'approved_delegates_' . now()->format('Y-m-d_His') . '.csv';
-        
+
         $headers = [
             'Content-Type' => 'text/csv',
             'Content-Disposition' => "attachment; filename=\"$filename\"",
@@ -161,9 +161,9 @@ class ApprovedDelegateController extends Controller
 
         $callback = function() use ($delegates, $admin) {
             $file = fopen('php://output', 'w');
-            
+
             $isTravels = $admin->role === 'travels';
-            
+
             // CSV Headers
             $headers = [
                 'ID',
@@ -178,13 +178,13 @@ class ApprovedDelegateController extends Controller
                 'City',
                 'Delegate Category',
             ];
-            
+
             if ($isTravels) {
                 $headers[] = 'Passport Number';
                 $headers[] = 'Airport of Origin';
                 $headers[] = 'Travel Status';
             }
-            
+
             $headers = array_merge($headers, [
                 'Dietary Requirements',
                 'Special Needs',
@@ -192,7 +192,7 @@ class ApprovedDelegateController extends Controller
                 'Registration Date',
                 'Approval Date',
             ]);
-            
+
             fputcsv($file, $headers);
 
             // CSV Data
@@ -210,13 +210,13 @@ class ApprovedDelegateController extends Controller
                     $delegate->user->city ?? '',
                     $delegate->user->delegate_category ?? '',
                 ];
-                
+
                 if ($isTravels) {
                     $row[] = $delegate->user->passport_number ?? '';
                     $row[] = $delegate->user->airport_of_origin ?? '';
                     $row[] = $delegate->travel_processed ? 'Processed' : 'Pending';
                 }
-                
+
                 $row = array_merge($row, [
                     $delegate->user->dietary_requirements ?? '',
                     $delegate->user->special_needs ?? '',
@@ -224,7 +224,7 @@ class ApprovedDelegateController extends Controller
                     $delegate->created_at ? $delegate->created_at->format('Y-m-d H:i:s') : '',
                     $delegate->updated_at ? $delegate->updated_at->format('Y-m-d H:i:s') : '',
                 ]);
-                
+
                 fputcsv($file, $row);
             }
 
@@ -253,7 +253,7 @@ class ApprovedDelegateController extends Controller
         ]);
 
         $status = $registration->travel_processed ? 'processed' : 'unprocessed';
-        
+
         return redirect()->back()->with('success', "Delegate marked as {$status}.");
     }
 
@@ -274,9 +274,51 @@ class ApprovedDelegateController extends Controller
             // Dispatch passport request job
             SendPassportRequestJob::dispatch($registration->id);
 
-            return redirect()->back()->with('success', 'Passport request email has been queued for ' . $registration->user->full_name . '.');
+            return redirect()->back()->with('success', 'Passport request email has been queued for ' . $registration->user->first_name . ' ' . $registration->user->last_name . '.');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Failed to queue passport request email: ' . $e->getMessage());
         }
+    }
+
+    public function downloadPassport(Request $request, Registration $registration)
+    {
+        // Only admin and travels roles can download passport
+        $admin = Auth::guard('admin')->user();
+        if (!$admin || !in_array($admin->role, ['admin', 'travels'])) {
+            abort(403, 'Unauthorized access.');
+        }
+
+        // Load user relationship
+        $registration->load('user');
+
+        // Check if passport file exists
+        if (!$registration->user->passport_file) {
+            abort(404, 'Passport file not found.');
+        }
+
+        // Build file path
+        $parentAppUrl = env('PARENT_APP_URL', 'http://localhost:8000');
+        $passportUrl = $parentAppUrl . '/uploads/passports/' . $registration->user->passport_file;
+
+        // Generate custom filename using user's name
+        $firstName = $registration->user->first_name ?? 'Unknown';
+        $lastName = $registration->user->last_name ?? 'User';
+        $cleanFirstName = preg_replace('/[^A-Za-z0-9_\-]/', '_', $firstName);
+        $cleanLastName = preg_replace('/[^A-Za-z0-9_\-]/', '_', $lastName);
+        $customFilename = $cleanFirstName . '_' . $cleanLastName . '_Passport.pdf';
+
+        // Get file contents
+        $fileContents = @file_get_contents($passportUrl);
+
+        if ($fileContents === false) {
+            abort(404, 'Passport file could not be retrieved.');
+        }
+
+        // Return file with custom filename
+        return Response::make($fileContents, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="' . $customFilename . '"',
+            'Content-Length' => strlen($fileContents),
+        ]);
     }
 }

@@ -17,12 +17,12 @@ use OpenApi\Annotations as OA;
  *         email="admin@cphia2025.com"
  *     )
  * )
- * 
+ *
  * @OA\Server(
  *     url="http://localhost:8000/api",
  *     description="Local Development Server"
  * )
- * 
+ *
  * @OA\SecurityScheme(
  *     securityScheme="localhost",
  *     type="apiKey",
@@ -188,7 +188,7 @@ class RegistrationApiController extends Controller
         // Check if request is from localhost
         $allowedHosts = ['127.0.0.1', 'localhost', '::1'];
         $requestIp = $request->ip();
-        
+
         if (!in_array($requestIp, $allowedHosts)) {
             Log::warning("Registration API access denied from IP: {$requestIp}");
             return response()->json([
@@ -223,7 +223,8 @@ class RegistrationApiController extends Controller
             if ($request->has('search')) {
                 $search = $request->search;
                 $query->whereHas('user', function($q) use ($search) {
-                    $q->where('full_name', 'like', "%{$search}%")
+                    $q->where('first_name', 'like', "%{$search}%")
+                      ->orWhere('last_name', 'like', "%{$search}%")
                       ->orWhere('email', 'like', "%{$search}%");
                 });
             }
@@ -408,7 +409,7 @@ class RegistrationApiController extends Controller
         // Check if request is from localhost
         $allowedHosts = ['127.0.0.1', 'localhost', '::1'];
         $requestIp = $request->ip();
-        
+
         if (!in_array($requestIp, $allowedHosts)) {
             Log::warning("Registration API access denied from IP: {$requestIp}");
             return response()->json([
@@ -555,7 +556,7 @@ class RegistrationApiController extends Controller
         // Check if request is from localhost
         $allowedHosts = ['127.0.0.1', 'localhost', '::1'];
         $requestIp = $request->ip();
-        
+
         if (!in_array($requestIp, $allowedHosts)) {
             Log::warning("Registration API access denied from IP: {$requestIp}");
             return response()->json([

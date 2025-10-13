@@ -14,7 +14,7 @@ class ParticipantsController extends Controller
      */
     public function index(Request $request)
     {
-     
+
         // Get all packages for filter dropdown
         $packages = Package::orderBy('name')->get();
 
@@ -36,7 +36,8 @@ class ParticipantsController extends Controller
         if ($request->filled('search')) {
             $search = $request->search;
             $query->whereHas('user', function ($q) use ($search) {
-                $q->where('full_name', 'like', "%{$search}%")
+                $q->where('first_name', 'like', "%{$search}%")
+                  ->orWhere('last_name', 'like', "%{$search}%")
                   ->orWhere('email', 'like', "%{$search}%");
             });
         }
@@ -93,7 +94,8 @@ class ParticipantsController extends Controller
         if ($request->filled('search')) {
             $search = $request->search;
             $query->whereHas('user', function ($q) use ($search) {
-                $q->where('full_name', 'like', "%{$search}%")
+                $q->where('first_name', 'like', "%{$search}%")
+                  ->orWhere('last_name', 'like', "%{$search}%")
                   ->orWhere('email', 'like', "%{$search}%");
             });
         }
@@ -108,7 +110,7 @@ class ParticipantsController extends Controller
 
         // Generate CSV
         $filename = 'participants_' . date('Y-m-d_H-i-s') . '.csv';
-        
+
         $headers = [
             'Content-Type' => 'text/csv',
             'Content-Disposition' => 'attachment; filename="' . $filename . '"',
@@ -116,7 +118,7 @@ class ParticipantsController extends Controller
 
         $callback = function() use ($participants) {
             $file = fopen('php://output', 'w');
-            
+
             // CSV Headers
             $headers = [
                 'ID',
@@ -129,21 +131,21 @@ class ParticipantsController extends Controller
                 'Registration Date',
                 'Type'
             ];
-            
+
             // Add status columns for non-executive roles
             if (!in_array(auth('admin')->user()->role, ['executive'])) {
                 array_splice($headers, 6, 0, ['Status', 'Payment Status']);
             }
-            
+
             fputcsv($file, $headers);
 
             // CSV Data
             foreach ($participants as $participant) {
                 $type = $participant->status === 'approved' ? 'Delegate' : 'Paid Participant';
-                
+
                 $row = [
                     $participant->id,
-                    $participant->user->full_name ?? '',
+                    ($participant->user->first_name ?? '') . ' ' . ($participant->user->last_name ?? ''),
                     $participant->user->email ?? '',
                     $participant->user->phone ?? '',
                     $participant->user->country ?? '',
@@ -152,12 +154,12 @@ class ParticipantsController extends Controller
                     $participant->created_at ? $participant->created_at->format('Y-m-d H:i:s') : '',
                     $type
                 ];
-                
+
                 // Add status columns for non-executive roles
                 if (!in_array(auth('admin')->user()->role, ['executive'])) {
                     array_splice($row, 6, 0, [ucfirst($participant->status), ucfirst($participant->payment_status)]);
                 }
-                
+
                 fputcsv($file, $row);
             }
 
