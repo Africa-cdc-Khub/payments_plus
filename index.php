@@ -65,8 +65,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $package = getPackageById($_POST['package_id']);
     }
     
-    // For Students, Delegates, and Non African nationals packages, allow any nationality
-    $isFixedPricePackage = $package && in_array(strtolower($package['name']), ['students', 'delegates', 'non african nationals']);
+    // For Students, Delegates, Side Events, Exhibitions, and Non African nationals packages, allow any nationality
+    $isFixedPricePackage = $package && (
+        in_array(strtolower($package['name']), ['students', 'delegates', 'non african nationals']) ||
+        $package['type'] === 'side_event' ||
+        $package['type'] === 'exhibition' ||
+        (strtolower($package['type']) === 'group' && strpos(strtolower($package['name']), 'side event') !== false)
+    );
     
     if (!empty($_POST['nationality']) && !$isFixedPricePackage && !validateNationality($_POST['nationality'])) {
         $errors[] = "Please select a valid nationality";
@@ -184,13 +189,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
              
              // Check if this is a fixed-price package (Students, Delegates, Side Events, Exhibitions)
              $isFixedPricePackage = in_array(strtolower($package['name']), ['students', 'delegates']) || 
-                                   $isSideEvent || $isExhibition;
+                                   $isSideEvent || $isExhibition ||
+                                   (strtolower($package['type']) === 'group' && strpos(strtolower($package['name']), 'side event') !== false);
              
              if ($isFixedPricePackage) {
                  // Fixed-price packages - use exact package price, not nationality-based
                  $totalAmount = $package['price'];
              
-             if ($isSideEvent) {
+             if ($isSideEvent || (strtolower($package['type']) === 'group' && strpos(strtolower($package['name']), 'side event') !== false)) {
                      $registrationType = 'side_event';
              } else if ($isExhibition) {
                      $registrationType = 'exhibition';
@@ -354,6 +360,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $packages = getAllPackages();
 $individualPackages = getPackagesByType('individual');
 $sideEventPackages = getPackagesByType('side_event');
+$groupPackages = getPackagesByType('group');
 $exhibitionPackages = getPackagesByType('exhibition');
 
 // Check if user has existing registrations (for display purposes)
@@ -871,6 +878,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                 
          
             </div>
+                    <!-- side event Registration Row -->
+                    <div class="row g-3">
+                    <div class="col-12">
+                        <h4 class="text-center mb-3">Side Events Registration</h4>
+                    </div>
+                    <?php foreach ($groupPackages as $package): ?>
+                        <div class="col-6 col-md-6">
+                            <div class="card package-card h-100" data-package-id="<?php echo $package['id']; ?>" data-type="group">
+                                <div class="card-body d-flex flex-column p-3 text-center">
+                                    <h5 class="card-title mb-3"><?php echo htmlspecialchars($package['name']); ?></h5>
+                                    <div class="package-price h4 text-success mb-3"><?php echo formatCurrency($package['price']); ?></div>
+                                    <button type="button" class="btn btn-primary btn-lg select-package mt-auto">Select Package</button>
+                                </div>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+
+    
+        </div>
 
         </div>
 

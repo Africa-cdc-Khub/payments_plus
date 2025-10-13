@@ -446,7 +446,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         // Update participant fields
                         updateParticipantFields();
                 }
-            } else if (selectedPackage.type === 'side_event') {
+            } else if (selectedPackage.type === 'side_event' || (selectedPackage.type === 'group' && selectedPackage.name.toLowerCase().includes('side event'))) {
                 // Side event package - only allow individual registration
                 individualRadio.checked = true;
                 individualRadio.disabled = false;
@@ -579,6 +579,62 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 
                 // Make passport file optional for exhibitions
+                const passportFileField = document.getElementById('passport_file');
+                if (passportFileField) {
+                    passportFileField.required = false;
+                }
+                
+                // Update participant fields
+                updateParticipantFields();
+            } else if (selectedPackage.type === 'group' && !selectedPackage.name.toLowerCase().includes('side event')) {
+                // Regular group packages (not side events) - allow both individual and group registration
+                individualRadio.disabled = false;
+                groupRadio.disabled = false;
+                
+                // Reset group label styling
+                const groupLabel = document.querySelector('label[for="group"]');
+                if (groupLabel) {
+                    groupLabel.style.opacity = '1';
+                    groupLabel.style.cursor = 'pointer';
+                    groupLabel.title = 'Group registration is available for this package';
+                }
+                
+                // Show organization fields for group packages
+                const organizationFields = document.getElementById('organizationFields');
+                if (organizationFields) {
+                    organizationFields.style.display = 'block';
+                }
+                
+                // Reset organization and position fields
+                const organizationField = document.getElementById('organization');
+                const positionField = document.getElementById('position');
+                if (organizationField) {
+                    organizationField.value = '';
+                    organizationField.required = true;
+                }
+                if (positionField) {
+                    positionField.value = '';
+                }
+                
+                // Hide student fields
+                const studentFields = document.getElementById('studentFields');
+                if (studentFields) {
+                    studentFields.style.display = 'none';
+                }
+                
+                // Hide delegate fields
+                const delegateFields = document.getElementById('delegateFields');
+                if (delegateFields) {
+                    delegateFields.style.display = 'none';
+                }
+                
+                // Hide airport fields
+                const airportFields = document.getElementById('airportFields');
+                if (airportFields) {
+                    airportFields.style.display = 'none';
+                }
+                
+                // Make passport file optional for group packages
                 const passportFileField = document.getElementById('passport_file');
                 if (passportFileField) {
                     passportFileField.required = false;
@@ -1204,6 +1260,21 @@ document.addEventListener('DOMContentLoaded', function() {
         const nationality = $('#nationality').val();
         if (!nationality || !selectedPackage) return;
         
+        // Skip pricing updates for fixed-price packages (Students, Delegates, Side Events, Exhibitions)
+        const isFixedPricePackage = selectedPackage && (
+            selectedPackage.name.toLowerCase() === 'students' || 
+            selectedPackage.name.toLowerCase() === 'delegates' ||
+            selectedPackage.type === 'side_event' || 
+            selectedPackage.type === 'exhibition' ||
+            (selectedPackage.type === 'group' && selectedPackage.name.toLowerCase().includes('side event'))
+        );
+        
+        if (isFixedPricePackage) {
+            // For fixed-price packages, just update the summary without nationality-based pricing
+            updateSummary();
+            return;
+        }
+        
         const isAfrican = isAfricanNational(nationality);
         const registrationType = document.querySelector('input[name="registration_type"]:checked');
         
@@ -1426,7 +1497,8 @@ document.addEventListener('DOMContentLoaded', function() {
             selectedPackage.name.toLowerCase() === 'delegates' ||
             selectedPackage.type === 'side_event' || 
             selectedPackage.type === 'exhibition' ||
-            selectedPackage.name.toLowerCase().includes('african nationals')
+            selectedPackage.name.toLowerCase().includes('african nationals') ||
+            (selectedPackage.type === 'group' && selectedPackage.name.toLowerCase().includes('side event'))
         );
         
         if (isFixedPricePackage) {
@@ -2090,7 +2162,8 @@ document.addEventListener('DOMContentLoaded', function() {
             selectedPackage.name.toLowerCase() === 'students' || 
             selectedPackage.name.toLowerCase() === 'delegates' ||
             selectedPackage.type === 'side_event' || 
-            selectedPackage.type === 'exhibition'
+            selectedPackage.type === 'exhibition' ||
+            (selectedPackage.type === 'group' && selectedPackage.name.toLowerCase().includes('side event'))
         );
         
         if (isFixedPricePackage) {
