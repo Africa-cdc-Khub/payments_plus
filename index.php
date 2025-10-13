@@ -117,6 +117,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = "Please enter a valid exhibition description (5-1000 characters)";
     }
     
+    // Side event description validation - required for side event packages
+    if ($package && (strtolower($package['type']) === 'group' && strpos(strtolower($package['name']), 'side event') !== false)) {
+        if (empty($_POST['side_event_description'])) {
+            $errors[] = "Please provide a description of your side event";
+        } elseif (!validateExhibitionDescription($_POST['side_event_description'])) {
+            $errors[] = "Please enter a valid side event description (5-1000 characters)";
+        }
+    }
+    
     // Validate reCAPTCHA if enabled
     if (isRecaptchaEnabled()) {
         if (empty($_POST['g-recaptcha-response'])) {
@@ -261,7 +270,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'registration_type' => $registrationType,
                 'total_amount' => $totalAmount,
                 'currency' => 'USD',
-                'exhibition_description' => isset($_POST['exhibition_description']) ? sanitizeInput($_POST['exhibition_description']) : null
+                'exhibition_description' => isset($_POST['exhibition_description']) ? sanitizeInput($_POST['exhibition_description']) : null,
+                'side_event_description' => isset($_POST['side_event_description']) ? sanitizeInput($_POST['side_event_description']) : null
             ];
             
             $registrationId = createRegistration($registrationData);
@@ -399,6 +409,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
         'country' => cleanCountryName($_POST['country'] ?? ''),
         'num_people' => $_POST['num_people'] ?? '',
         'exhibition_description' => $_POST['exhibition_description'] ?? '',
+        'side_event_description' => $_POST['side_event_description'] ?? '',
         'participants' => $_POST['participants'] ?? []
     ];
 }
@@ -1144,6 +1155,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                                 <label for="student_id_file" class="form-label">Student ID Document <span class="asterisk">*</span></label>
                                 <input type="file" class="form-control" name="student_id_file" id="student_id_file" accept=".pdf,.jpg,.jpeg,.png">
                                 <div class="form-text">Required for student registration (PDF, JPG, PNG - max 5MB)</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Side Event Description Field (only for Side Events packages) -->
+                        <div id="sideEventFields" class="row" style="display: none;">
+                            <div class="col-12 mb-3">
+                                <label for="side_event_description" class="form-label">Side Event Description <span class="asterisk">*</span></label>
+                                <textarea class="form-control" name="side_event_description" id="side_event_description" rows="4" placeholder="Please provide a detailed description of your side event, including objectives, target audience, and any special requirements..."><?php echo htmlspecialchars($formData['side_event_description'] ?? ''); ?></textarea>
+                                <div class="form-text">Required for side event registration - describe your event in detail</div>
                             </div>
                         </div>
                     </div>
