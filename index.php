@@ -1121,10 +1121,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                     </div>
                 </div>
 
-                <!-- Address Information -->
+                <!-- Billing Address Information -->
                 <div class="card mb-4">
                     <div class="card-header">
-                        <h5 class="mb-0">Address Information</h5>
+                        <h5 class="mb-0">Billing Address Information</h5>
                     </div>
                     <div class="card-body">
                         <div class="mb-3">

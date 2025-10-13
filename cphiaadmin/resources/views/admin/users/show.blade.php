@@ -67,11 +67,11 @@
                 </div>
             </div>
 
-            <!-- Address Information -->
+            <!-- Billing Address Information -->
             @if($user->address_line1 || $user->city || $user->state || $user->postal_code)
             <div class="card card-info">
                 <div class="card-header">
-                    <h3 class="card-title"><i class="fas fa-map-marker-alt"></i> Address Information</h3>
+                    <h3 class="card-title"><i class="fas fa-map-marker-alt"></i> Billing Address Information</h3>
                 </div>
                 <div class="card-body">
                     @if($user->address_line1)

@@ -76,9 +76,9 @@
         </dl>
     </div>
 
-    <!-- Contact & Address Information -->
+    <!-- Contact & Billing Address Information -->
     <div class="bg-white rounded-lg shadow p-6">
-        <h3 class="text-lg font-semibold mb-4">Contact & Address Details</h3>
+        <h3 class="text-lg font-semibold mb-4">Contact & Billing Address Details</h3>
         <dl class="space-y-3">
             @if($registration->user->address_line1)
             <div>
