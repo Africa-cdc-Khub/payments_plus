@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\Registration;
 use App\Models\Package;
 use App\Models\Payment;
+use App\Models\RegistrationParticipant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
@@ -17,20 +19,85 @@ class DashboardController extends Controller
             return redirect()->route('participants.index');
         }
 
-        $stats = [
-            'total_registrations' => Registration::count(),
-            'paid_registrations' => Registration::where('payment_status', 'completed')->count(),
-            'pending_registrations' => Registration::where('payment_status', 'pending')->count(),
-            'total_revenue' => Registration::where('payment_status', 'completed')->sum('payment_amount'),
-            'active_packages' => Package::where('is_active', true)->count(),
+        $delegatePackageId = config('app.delegate_package_id');
+
+        // Exclude voided registrations from all counts
+        $activeRegistrations = Registration::whereNull('voided_at');
+
+        // Total participants count
+        // For individual registrations: count the registrant (1 person)
+        // For group registrations: count registrant + all registration_participants
+        $totalParticipants = $activeRegistrations->clone()->get()->sum(function($registration) {
+            if ($registration->registration_type === 'individual') {
+                return 1; // Just the registrant
+            } else {
+                // Registrant + all additional participants
+                return 1 + $registration->participants()->count();
+            }
+        });
+
+        // Paid participants (same logic)
+        $paidParticipants = $activeRegistrations->clone()
+            ->where('payment_status', 'completed')
+            ->get()
+            ->sum(function($registration) {
+                if ($registration->registration_type === 'individual') {
+                    return 1;
+                } else {
+                    return 1 + $registration->participants()->count();
+                }
+            });
+
+        // Pending payments - EXCLUDE delegates package
+        $pendingPaymentsCount = $activeRegistrations->clone()
+            ->where('payment_status', 'pending')
+            ->where('package_id', '!=', $delegatePackageId)
+            ->get()
+            ->sum(function($registration) {
+                if ($registration->registration_type === 'individual') {
+                    return 1;
+                } else {
+                    return 1 + $registration->participants()->count();
+                }
+            });
+
+        // Delegates count (all statuses)
+        $delegatesStats = [
+            'total' => $activeRegistrations->clone()
+                ->where('package_id', $delegatePackageId)
+                ->count(),
+            'approved' => $activeRegistrations->clone()
+                ->where('package_id', $delegatePackageId)
+                ->where('status', 'approved')
+                ->count(),
+            'pending' => $activeRegistrations->clone()
+                ->where('package_id', $delegatePackageId)
+                ->where('status', 'pending')
+                ->count(),
+            'rejected' => $activeRegistrations->clone()
+                ->where('package_id', $delegatePackageId)
+                ->where('status', 'rejected')
+                ->count(),
         ];
 
-        $recent_registrations = Registration::with(['user', 'package'])
+        $stats = [
+            'total_participants' => $totalParticipants,
+            'paid_participants' => $paidParticipants,
+            'pending_payments' => $pendingPaymentsCount,
+            'total_revenue' => $activeRegistrations->clone()
+                ->where('payment_status', 'completed')
+                ->sum('payment_amount'),
+            'delegates' => $delegatesStats,
+        ];
+
+        $recent_registrations = Registration::with(['user', 'package', 'participants'])
+            ->whereNull('voided_at')
             ->latest('created_at')
             ->take(10)
             ->get();
 
-        $recent_payments = Registration::with(['user', 'package'])
+        $recent_payments = Registration::with(['user', 'package', 'participants'])
+            ->whereNull('voided_at')
             ->where('payment_status', 'completed')
             ->latest('payment_completed_at')
             ->take(10)

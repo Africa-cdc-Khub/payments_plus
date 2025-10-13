@@ -11,6 +11,7 @@ class ParticipantsController extends Controller
 {
     /**
      * Display a listing of all participants (approved delegates + paid registrations)
+     * Includes both primary registrants and additional group members
      */
     public function index(Request $request)
     {
@@ -18,8 +19,8 @@ class ParticipantsController extends Controller
         // Get all packages for filter dropdown
         $packages = Package::orderBy('name')->get();
 
-        // Base query for participants
-        $query = Registration::with(['user', 'package'])
+        // Base query for registrations
+        $query = Registration::with(['user', 'package', 'participants'])
             ->where(function ($q) {
                 $q->where('status', 'approved') // Approved delegates
                   ->orWhere(function ($subQ) {
@@ -35,20 +36,32 @@ class ParticipantsController extends Controller
 
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->whereHas('user', function ($q) use ($search) {
-                $q->where('full_name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%");
+            $query->where(function($q) use ($search) {
+                $q->whereHas('user', function ($subQ) use ($search) {
+                    $subQ->where('full_name', 'like', "%{$search}%")
+                         ->orWhere('email', 'like', "%{$search}%");
+                })
+                ->orWhereHas('participants', function($subQ) use ($search) {
+                    $subQ->where('first_name', 'like', "%{$search}%")
+                         ->orWhere('last_name', 'like', "%{$search}%")
+                         ->orWhere('email', 'like', "%{$search}%");
+                });
             });
         }
 
         if ($request->filled('country')) {
-            $query->whereHas('user', function ($q) use ($request) {
-                $q->where('country', $request->country);
+            $query->where(function($q) use ($request) {
+                $q->whereHas('user', function ($subQ) use ($request) {
+                    $subQ->where('country', $request->country);
+                })
+                ->orWhereHas('participants', function($subQ) use ($request) {
+                    $subQ->where('nationality', $request->country);
+                });
             });
         }
 
-        // Get unique countries for filter dropdown
-        $countries = Registration::with('user')
+        // Get unique countries for filter dropdown (from both users and participants)
+        $userCountries = Registration::with('user')
             ->where(function ($q) {
                 $q->where('status', 'approved')
                   ->orWhere(function ($subQ) {
@@ -58,25 +71,45 @@ class ParticipantsController extends Controller
             })
             ->get()
             ->pluck('user.country')
-            ->filter()
+            ->filter();
+        
+        $participantCountries = \App\Models\RegistrationParticipant::whereHas('registration', function($q) {
+                $q->where(function ($subQ) {
+                    $subQ->where('status', 'approved')
+                      ->orWhere(function ($sub2Q) {
+                          $sub2Q->where('payment_status', 'completed')
+                               ->where('status', '!=', 'approved');
+                      });
+                });
+            })
+            ->get()
+            ->pluck('nationality')
+            ->filter();
+        
+        $countries = $userCountries->merge($participantCountries)
             ->unique()
             ->sort()
             ->values();
 
         // Order by created date (newest first)
-        $participants = $query->orderBy('created_at', 'desc')->paginate(50);
+        $registrations = $query->orderBy('created_at', 'desc')->paginate(50);
 
-        return view('participants.index', compact('participants', 'packages', 'countries'));
+        // Calculate total participant count (registrants + group members)
+        $totalParticipants = $registrations->sum(function($registration) {
+            return 1 + $registration->participants->count();
+        });
+
+        return view('participants.index', compact('registrations', 'packages', 'countries', 'totalParticipants'));
     }
 
     /**
-     * Export participants to CSV
+     * Export participants to CSV (includes both registrants and group members)
      */
     public function export(Request $request)
     {
 
-        // Base query for participants
-        $query = Registration::with(['user', 'package'])
+        // Base query for registrations
+        $query = Registration::with(['user', 'package', 'participants'])
             ->where(function ($q) {
                 $q->where('status', 'approved') // Approved delegates
                   ->orWhere(function ($subQ) {
@@ -92,19 +125,31 @@ class ParticipantsController extends Controller
 
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->whereHas('user', function ($q) use ($search) {
-                $q->where('full_name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%");
+            $query->where(function($q) use ($search) {
+                $q->whereHas('user', function ($subQ) use ($search) {
+                    $subQ->where('full_name', 'like', "%{$search}%")
+                         ->orWhere('email', 'like', "%{$search}%");
+                })
+                ->orWhereHas('participants', function($subQ) use ($search) {
+                    $subQ->where('first_name', 'like', "%{$search}%")
+                         ->orWhere('last_name', 'like', "%{$search}%")
+                         ->orWhere('email', 'like', "%{$search}%");
+                });
             });
         }
 
         if ($request->filled('country')) {
-            $query->whereHas('user', function ($q) use ($request) {
-                $q->where('country', $request->country);
+            $query->where(function($q) use ($request) {
+                $q->whereHas('user', function ($subQ) use ($request) {
+                    $subQ->where('country', $request->country);
+                })
+                ->orWhereHas('participants', function($subQ) use ($request) {
+                    $subQ->where('nationality', $request->country);
+                });
             });
         }
 
-        $participants = $query->orderBy('created_at', 'desc')->get();
+        $registrations = $query->orderBy('created_at', 'desc')->get();
 
         // Generate CSV
         $filename = 'participants_' . date('Y-m-d_H-i-s') . '.csv';
@@ -114,51 +159,77 @@ class ParticipantsController extends Controller
             'Content-Disposition' => 'attachment; filename="' . $filename . '"',
         ];
 
-        $callback = function() use ($participants) {
+        $callback = function() use ($registrations) {
             $file = fopen('php://output', 'w');
             
             // CSV Headers
-            $headers = [
-                'ID',
+            $csvHeaders = [
+                'Registration ID',
                 'Full Name',
                 'Email',
                 'Phone',
-                'Country',
+                'Country/Nationality',
                 'Package',
                 'Delegate Category',
                 'Registration Date',
-                'Type'
+                'Participant Type',
+                'Member Type'
             ];
             
             // Add status columns for non-executive roles
             if (!in_array(auth('admin')->user()->role, ['executive'])) {
-                array_splice($headers, 6, 0, ['Status', 'Payment Status']);
+                array_splice($csvHeaders, 7, 0, ['Status', 'Payment Status']);
             }
             
-            fputcsv($file, $headers);
+            fputcsv($file, $csvHeaders);
 
-            // CSV Data
-            foreach ($participants as $participant) {
-                $type = $participant->status === 'approved' ? 'Delegate' : 'Paid Participant';
+            // CSV Data - Include registrants and their group members
+            foreach ($registrations as $registration) {
+                $type = $registration->status === 'approved' ? 'Delegate' : 'Paid Participant';
                 
+                // Primary Registrant Row
                 $row = [
-                    $participant->id,
-                    $participant->user->full_name ?? '',
-                    $participant->user->email ?? '',
-                    $participant->user->phone ?? '',
-                    $participant->user->country ?? '',
-                    $participant->package->name ?? '',
-                    $participant->user->delegate_category ?? '',
-                    $participant->created_at ? $participant->created_at->format('Y-m-d H:i:s') : '',
-                    $type
+                    $registration->id,
+                    $registration->user->full_name ?? '',
+                    $registration->user->email ?? '',
+                    $registration->user->phone ?? '',
+                    $registration->user->country ?? '',
+                    $registration->package->name ?? '',
+                    $registration->user->delegate_category ?? '',
+                    $registration->created_at ? $registration->created_at->format('Y-m-d H:i:s') : '',
+                    $type,
+                    'Primary Registrant'
                 ];
                 
                 // Add status columns for non-executive roles
                 if (!in_array(auth('admin')->user()->role, ['executive'])) {
-                    array_splice($row, 6, 0, [ucfirst($participant->status), ucfirst($participant->payment_status)]);
+                    array_splice($row, 7, 0, [ucfirst($registration->status), ucfirst($registration->payment_status)]);
                 }
                 
                 fputcsv($file, $row);
+                
+                // Additional Group Members
+                foreach ($registration->participants as $groupMember) {
+                    $memberRow = [
+                        $registration->id,
+                        $groupMember->full_name ?? '',
+                        $groupMember->email ?? '',
+                        '',
+                        $groupMember->nationality ?? '',
+                        $registration->package->name ?? '',
+                        $groupMember->delegate_category ?? '',
+                        $registration->created_at ? $registration->created_at->format('Y-m-d H:i:s') : '',
+                        'Group Member',
+                        'Additional Member'
+                    ];
+                    
+                    // Add status columns for non-executive roles
+                    if (!in_array(auth('admin')->user()->role, ['executive'])) {
+                        array_splice($memberRow, 7, 0, ['Group Member', ucfirst($registration->payment_status)]);
+                    }
+                    
+                    fputcsv($file, $memberRow);
+                }
             }
 
             fclose($file);

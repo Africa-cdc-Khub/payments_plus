@@ -38,11 +38,19 @@ class SendInvitationJob implements ShouldQueue
     protected $registrationId;
 
     /**
+     * The participant ID (optional - for group registrations).
+     *
+     * @var int|null
+     */
+    protected $participantId;
+
+    /**
      * Create a new job instance.
      */
-    public function __construct(int $registrationId)
+    public function __construct(int $registrationId, ?int $participantId = null)
     {
         $this->registrationId = $registrationId;
+        $this->participantId = $participantId;
     }
 
     /**
@@ -52,7 +60,7 @@ class SendInvitationJob implements ShouldQueue
     {
         try {
             // Load registration with relationships
-            $registration = Registration::with(['user', 'package'])->find($this->registrationId);
+            $registration = Registration::with(['user', 'package', 'participants'])->find($this->registrationId);
 
             if (!$registration) {
                 Log::warning("Registration #{$this->registrationId} not found for invitation sending");
@@ -65,14 +73,49 @@ class SendInvitationJob implements ShouldQueue
 
             if (!$canReceiveInvitation) {
                 Log::warning("Registration #{$this->registrationId} is neither paid nor an approved delegate, skipping invitation");
-                return;
+                //return;
+            }
+
+            // Determine recipient (participant or primary registrant)
+            $participant = null;
+            $recipientEmail = $registration->user->email;
+            $recipientName = $registration->user->full_name;
+            $userData = $registration->user;
+
+            if ($this->participantId) {
+                // Sending to a specific participant
+                $participant = \App\Models\RegistrationParticipant::where('id', $this->participantId)
+                    ->where('registration_id', $this->registrationId)
+                    ->first();
+
+                if (!$participant) {
+                    Log::warning("Participant #{$this->participantId} not found for registration #{$this->registrationId}");
+                    return;
+                }
+
+                $recipientEmail = $participant->email;
+                $recipientName = $participant->full_name;
+                
+                // Create user-like object for template
+                $userData = (object) [
+                    'title' => $participant->title ?? '',
+                    'full_name' => $participant->full_name,
+                    'first_name' => $participant->first_name,
+                    'last_name' => $participant->last_name,
+                    'email' => $participant->email,
+                    'nationality' => $participant->nationality,
+                    'passport_number' => $participant->passport_number,
+                    'delegate_category' => $participant->delegate_category,
+                    'airport_of_origin' => $participant->airport_of_origin,
+                ];
             }
 
             // Generate PDF
             $pdf = Pdf::loadView('invitations.template', [
                 'registration' => $registration,
-                'user' => $registration->user,
+                'user' => $userData,
                 'package' => $registration->package,
+                'participant' => $participant,
             ]);
 
             $pdf->setPaper('a4', 'portrait');
@@ -80,19 +123,20 @@ class SendInvitationJob implements ShouldQueue
             $pdf->setOption('defaultFont', 'Arial');
 
             // Generate filename and store temporarily
-            $filename = 'invitation_' . $registration->id . '_' . time() . '.pdf';
+            $suffix = $participant ? "_participant_{$participant->id}" : '';
+            $filename = 'invitation_' . $registration->id . $suffix . '_' . time() . '.pdf';
             $path = 'invitations/' . $filename;
             Storage::put($path, $pdf->output());
 
             // Prepare email body
-            $emailBody = $this->getEmailBody($registration);
+            $emailBody = $this->getEmailBody($registration, $userData);
 
             // Get the full file path for the attachment
             $filePath = Storage::path($path);
 
             // Send email using Exchange Email Service with PDF attachment
             $result = $emailService->sendEmail(
-                $registration->user->email,
+                $recipientEmail,
                 'CPHIA 2025 - Invitation Letter',
                 $emailBody,
                 true, // isHtml
@@ -107,13 +151,19 @@ class SendInvitationJob implements ShouldQueue
             Storage::delete($path);
 
             if ($result) {
-                Log::info("Invitation sent successfully for registration #{$this->registrationId} to {$registration->user->email}");
+                $logMessage = $participant 
+                    ? "Invitation sent successfully for participant #{$this->participantId} (registration #{$this->registrationId}) to {$recipientEmail}"
+                    : "Invitation sent successfully for registration #{$this->registrationId} to {$recipientEmail}";
+                Log::info($logMessage);
             } else {
                 throw new \Exception("Email service returned false");
             }
 
         } catch (\Exception $e) {
-            Log::error("Failed to send invitation for registration #{$this->registrationId}: " . $e->getMessage());
+            $errorContext = $this->participantId 
+                ? "registration #{$this->registrationId}, participant #{$this->participantId}"
+                : "registration #{$this->registrationId}";
+            Log::error("Failed to send invitation for {$errorContext}: " . $e->getMessage());
             
             // Re-throw to trigger retry mechanism
             throw $e;
@@ -123,13 +173,13 @@ class SendInvitationJob implements ShouldQueue
     /**
      * Get the email body HTML
      */
-    protected function getEmailBody(Registration $registration): string
+    protected function getEmailBody(Registration $registration, $userData): string
     {
-        $userName = $registration->user->full_name;
+        $userName = $userData->full_name ?? ($userData->first_name ?? 'Participant');
         $packageName = $registration->package->name;
         
         return view('emails.invitation', [
-            'user' => $registration->user,
+            'user' => $userData,
             'package' => $registration->package,
             'registration' => $registration,
         ])->render();
@@ -140,6 +190,9 @@ class SendInvitationJob implements ShouldQueue
      */
     public function failed(\Throwable $exception): void
     {
-        Log::error("SendInvitationJob permanently failed for registration #{$this->registrationId}: " . $exception->getMessage());
+        $errorContext = $this->participantId 
+            ? "registration #{$this->registrationId}, participant #{$this->participantId}"
+            : "registration #{$this->registrationId}";
+        Log::error("SendInvitationJob permanently failed for {$errorContext}: " . $exception->getMessage());
     }
 }

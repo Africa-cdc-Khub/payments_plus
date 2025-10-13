@@ -4,13 +4,13 @@
 @section('page-title', 'Dashboard')
 
 @section('content')
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-
- @php
+@php
     $admin = auth('admin')->user();
 @endphp
 
 @if($admin && in_array($admin->role, ['admin', 'travels','secretariat','finance']))
+<!-- Main Stats Cards Row -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
     <!-- Stats Cards -->
     <div class="bg-white rounded-lg shadow p-6">
         <div class="flex items-center">
@@ -18,8 +18,9 @@
                 <i class="fas fa-users text-2xl"></i>
             </div>
             <div class="ml-4">
-                <p class="text-gray-500 text-sm">Total Registrations</p>
-                <p class="text-2xl font-bold">{{ number_format($stats['total_registrations']) }}</p>
+                <p class="text-gray-500 text-sm">Total Participants</p>
+                <p class="text-2xl font-bold">{{ number_format($stats['total_participants']) }}</p>
+                <p class="text-xs text-gray-400 mt-1">Includes group members</p>
             </div>
         </div>
     </div>
@@ -30,8 +31,9 @@
                 <i class="fas fa-check-circle text-2xl"></i>
             </div>
             <div class="ml-4">
-                <p class="text-gray-500 text-sm">Paid Registrations</p>
-                <p class="text-2xl font-bold">{{ number_format($stats['paid_registrations']) }}</p>
+                <p class="text-gray-500 text-sm">Paid Participants</p>
+                <p class="text-2xl font-bold">{{ number_format($stats['paid_participants']) }}</p>
+                <p class="text-xs text-gray-400 mt-1">Confirmed attendees</p>
             </div>
         </div>
     </div>
@@ -43,7 +45,8 @@
             </div>
             <div class="ml-4">
                 <p class="text-gray-500 text-sm">Pending Payments</p>
-                <p class="text-2xl font-bold">{{ number_format($stats['pending_registrations']) }}</p>
+                <p class="text-2xl font-bold">{{ number_format($stats['pending_payments']) }}</p>
+                <p class="text-xs text-gray-400 mt-1">Excluding delegates</p>
             </div>
         </div>
     </div>
@@ -59,8 +62,65 @@
             </div>
         </div>
     </div>
-  </div>
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+</div>
+
+<!-- Delegates Stats Row -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+    <!-- Total Delegates -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <div class="flex items-center">
+            <div class="p-3 rounded-full bg-indigo-100 text-indigo-600">
+                <i class="fas fa-user-tie text-xl"></i>
+            </div>
+            <div class="ml-4">
+                <p class="text-gray-500 text-sm">Total Delegates</p>
+                <p class="text-xl font-bold text-indigo-600">{{ number_format($stats['delegates']['total']) }}</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Approved -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <div class="flex items-center">
+            <div class="p-3 rounded-full bg-green-100 text-green-600">
+                <i class="fas fa-check-circle text-xl"></i>
+            </div>
+            <div class="ml-4">
+                <p class="text-gray-500 text-sm">Approved Delegates</p>
+                <p class="text-xl font-bold text-green-600">{{ number_format($stats['delegates']['approved']) }}</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Pending -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <div class="flex items-center">
+            <div class="p-3 rounded-full bg-yellow-100 text-yellow-600">
+                <i class="fas fa-hourglass-half text-xl"></i>
+            </div>
+            <div class="ml-4">
+                <p class="text-gray-500 text-sm">Pending Delegates</p>
+                <p class="text-xl font-bold text-yellow-600">{{ number_format($stats['delegates']['pending']) }}</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Rejected -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <div class="flex items-center">
+            <div class="p-3 rounded-full bg-red-100 text-red-600">
+                <i class="fas fa-times-circle text-xl"></i>
+            </div>
+            <div class="ml-4">
+                <p class="text-gray-500 text-sm">Rejected Delegates</p>
+                <p class="text-xl font-bold text-red-600">{{ number_format($stats['delegates']['rejected']) }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Activity Tables -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
     <!-- Recent Registrations -->
     <div class="bg-white rounded-lg shadow">
         <div class="p-6 border-b">
@@ -144,12 +204,12 @@
             </table>
         </div>
     </div>
- </div>
- @else
- <div class="bg-white rounded-lg shadow p-6">
+</div>
+@else
+<div class="bg-white rounded-lg shadow p-6">
     <h3 class="text-lg font-semibold">You are not authorized to access this page</h3>
     <p>Use Menu to navigate to the desired page</p>
- </div>
+</div>
 @endif
 
 

@@ -8,7 +8,7 @@
     <div class="p-6 border-b">
         <div class="flex justify-between items-center">
             <div class="flex items-center space-x-4">
-                <h3 class="text-lg font-semibold">All Registrations</h3>
+            <h3 class="text-lg font-semibold">All Registrations</h3>
                 @if(auth('admin')->user()->role === 'admin')
                 <button 
                     type="button" 
@@ -44,6 +44,7 @@
                         <option value="">All Status</option>
                         <option value="pending" {{ request('status') === 'pending' ? 'selected' : '' }}>Pending</option>
                         <option value="completed" {{ request('status') === 'completed' ? 'selected' : '' }}>Paid</option>
+                        <option value="voided" {{ request('status') === 'voided' ? 'selected' : '' }}>Voided</option>
                     </select>
                     <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
                         <i class="fas fa-search"></i> Search
@@ -74,12 +75,12 @@
                 <span class="font-medium">{{ $registrations->total() }}</span>
                 registrations
             </p>
-        </div>
-        
-        <div class="overflow-x-auto">
-            <table class="w-full">
-                <thead class="bg-gray-50">
-                    <tr>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-gray-50">
+                        <tr>
                             @if(auth('admin')->user()->role === 'admin')
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                 <input type="checkbox" id="selectAll" onclick="toggleSelectAll()" class="rounded">
@@ -107,7 +108,12 @@
                         <tr>
                             @if(auth('admin')->user()->role === 'admin')
                             <td class="px-6 py-4 whitespace-nowrap">
-                                @if($registration->isPending() && !$registration->isVoided())
+                                @php
+                                    $canVoid = $registration->isPending() 
+                                        && !$registration->isVoided() 
+                                        && !($isDelegate && $registration->status === 'approved');
+                                @endphp
+                                @if($canVoid)
                                 <input 
                                     type="checkbox" 
                                     class="registration-checkbox rounded" 
@@ -135,7 +141,12 @@
                             </td>
                             @if(!in_array(auth('admin')->user()->role, ['executive']))
                             <td class="px-6 py-4 whitespace-nowrap">
-                                @if($isDelegate)
+                                @if($registration->isVoided())
+                                    {{-- Voided status takes precedence --}}
+                                    <span class="px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
+                                        <i class="fas fa-ban mr-1"></i>Voided
+                                    </span>
+                                @elseif($isDelegate)
                                     {{-- For delegates, show delegate status --}}
                                     @if($registration->status === 'approved')
                                         <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
@@ -158,13 +169,24 @@
                                         </span>
                                     @else
                                         <span class="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                                            <i class="fas fa-clock mr-1"></i>Pending Payment
+                                            {{ ($registration->package_id == config('app.delegate_package_id')  ) ? 'N/A' : 'Pending Payment' }}<i class="fas fa-clock mr-1"></i>
                                         </span>
                                     @endif
                                 @endif
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                @if($registration->payment && $registration->payment->completed_by)
+                                @if($registration->isVoided() && $registration->voidedBy)
+                                    <div class="flex items-center" title="Voided by {{ $registration->voidedBy->full_name ?? $registration->voidedBy->username }}">
+                                        <i class="fas fa-ban text-red-600 mr-1"></i>
+                                        <span>{{ $registration->voidedBy->username ?? 'Admin' }}</span>
+                                    </div>
+                                    @if($registration->void_reason)
+                                        <div class="text-xs text-gray-400 mt-1" title="{{ $registration->void_reason }}">
+                                            <i class="fas fa-comment-dots"></i> 
+                                            {{ Str::limit($registration->void_reason, 30) }}
+                                        </div>
+                                    @endif
+                                @elseif($registration->payment && $registration->payment->completed_by)
                                     <div class="flex items-center" title="Manually marked as paid by {{ $registration->payment->completedBy->full_name ?? $registration->payment->completedBy->username }}">
                                         <i class="fas fa-user-check text-green-600 mr-1"></i>
                                         <span>{{ $registration->payment->completedBy->username ?? 'Admin' }}</span>
@@ -194,52 +216,91 @@
                             </td>
                             @endif
                             <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                <a href="{{ route('registrations.show', $registration) }}" class="text-blue-600 hover:text-blue-900">
-                                    <i class="fas fa-eye"></i> View
-                                </a>
-                                
-                                @can('markAsPaid', App\Models\Registration::class)
-                                @if(!$registration->isPaid() && !$isDelegate)
-                                <button type="button" 
-                                        onclick="openMarkPaidModal({{ $registration->id }}, '{{ addslashes($registration->user->full_name) }}', '{{ $registration->total_amount }}')" 
-                                        class="ml-3 text-orange-600 hover:text-orange-900"
-                                        title="Mark as Paid">
-                                    <i class="fas fa-money-bill-wave"></i> Mark Paid
-                                </button>
-                                @endif
-                                @endcan
-                                
-                                @can('viewInvitation', App\Models\Registration::class)
-                                @if($canReceiveInvitation)
-                                <button type="button" 
-                                        onclick="openPdfModal({{ $registration->id }})" 
-                                        class="ml-3 text-purple-600 hover:text-purple-900"
-                                        title="Preview Invitation">
-                                    <i class="fas fa-file-pdf"></i> Preview
-                                </button>
-                                <a href="{{ route('invitations.download', $registration) }}" class="ml-3 text-green-600 hover:text-green-900" title="Download Invitation Letter">
-                                    <i class="fas fa-download"></i> Download
-                                </a>
-                                @endif
-                                
-                                
-                                @if(auth('admin')->user()->role === 'admin')
-                                <button type="button" 
-                                        onclick="sendInvitationEmail({{ $registration->id }}, '{{ addslashes($registration->user->full_name) }}')" 
-                                        class="ml-3 text-indigo-600 hover:text-indigo-900"
-                                        title="Send Invitation Email">
-                                    <i class="fas fa-envelope"></i> Send Invitation
-                                </button>
-                                @endif
-                                @endcan
-                                
-                                @if(auth('admin')->user()->role === 'admin' && $registration->isPending() && !$registration->isVoided())
-                                <button type="button" 
-                                        onclick="openMarkVoidModal({{ $registration->id }}, '{{ addslashes($registration->user->full_name) }}')" 
-                                        class="ml-3 text-red-600 hover:text-red-900"
-                                        title="Void Registration">
-                                    <i class="fas fa-ban"></i> Void
-                                </button>
+                                @if($registration->isVoided())
+                                    {{-- Voided registrations only show View and Undo Void --}}
+                                    <a href="{{ route('registrations.show', $registration) }}" class="text-blue-600 hover:text-blue-900">
+                                        <i class="fas fa-eye"></i> View
+                                    </a>
+                                    
+                                    @if(in_array(auth('admin')->user()->role, ['admin', 'secretariat']) && $registration->registration_type !== 'individual')
+                                    <a href="{{ route('registration-participants.index', $registration) }}" 
+                                       class="ml-3 text-red-600 hover:text-red-900"
+                                       title="View Participants">
+                                        <i class="fas fa-users"></i> Participants
+                                    </a>
+                                    @endif
+                                    
+                                    @if(auth('admin')->user()->role === 'admin')
+                                    <button type="button" 
+                                            onclick="undoVoid({{ $registration->id }}, '{{ addslashes($registration->user->full_name) }}')" 
+                                            class="ml-3 text-green-600 hover:text-green-900"
+                                            title="Undo Void">
+                                        <i class="fas fa-undo"></i> Undo Void
+                                    </button>
+                                    @endif
+                                @else
+                                    {{-- Normal registrations show all actions --}}
+                                    <a href="{{ route('registrations.show', $registration) }}" class="text-blue-600 hover:text-blue-900">
+                                        <i class="fas fa-eye"></i> View
+                                    </a>
+                                    
+                                    @if(in_array(auth('admin')->user()->role, ['admin', 'secretariat']) && $registration->registration_type !== 'individual')
+                                    <a href="{{ route('registration-participants.index', $registration) }}" 
+                                       class="ml-3 text-red-600 hover:text-red-900"
+                                       title="View Participants">
+                                        <i class="fas fa-users"></i> Participants
+                                    </a>
+                                    @endif
+                                    
+                                    @can('markAsPaid', App\Models\Registration::class)
+                                    @if(!$registration->isPaid() && !$isDelegate)
+                                    <button type="button" 
+                                            onclick="openMarkPaidModal({{ $registration->id }}, '{{ addslashes($registration->user->full_name) }}', '{{ $registration->total_amount }}')" 
+                                            class="ml-3 text-orange-600 hover:text-orange-900"
+                                            title="Mark as Paid">
+                                        <i class="fas fa-money-bill-wave"></i> Mark Paid
+                                    </button>
+                                    @endif
+                                    @endcan
+                                    
+                                    @can('viewInvitation', App\Models\Registration::class)
+                                    @if($canReceiveInvitation)
+                                    <button type="button" 
+                                            onclick="openPdfModal({{ $registration->id }})" 
+                                            class="ml-3 text-purple-600 hover:text-purple-900"
+                                            title="Preview Invitation">
+                                        <i class="fas fa-file-pdf"></i> Preview
+                                    </button>
+                                    <a href="{{ route('invitations.download', $registration) }}" class="ml-3 text-green-600 hover:text-green-900" title="Download Invitation Letter">
+                                        <i class="fas fa-download"></i> Download
+                                    </a>
+                                    @endif
+                                    
+                                    
+                                    @if(auth('admin')->user()->role === 'admin')
+                                    <button type="button" 
+                                            onclick="sendInvitationEmail({{ $registration->id }}, '{{ addslashes($registration->user->full_name) }}')" 
+                                            class="ml-3 text-indigo-600 hover:text-indigo-900"
+                                            title="Send Invitation Email">
+                                        <i class="fas fa-envelope"></i> Send Invitation
+                                    </button>
+                                    @endif
+                                    @endcan
+                                    
+                                    @php
+                                        $canVoid = auth('admin')->user()->role === 'admin' 
+                                            && $registration->isPending() 
+                                            && !$registration->isVoided() 
+                                            && !($isDelegate && $registration->status === 'approved');
+                                    @endphp
+                                    @if($canVoid)
+                                    <button type="button" 
+                                            onclick="openMarkVoidModal({{ $registration->id }}, '{{ addslashes($registration->user->full_name) }}')" 
+                                            class="ml-3 text-red-600 hover:text-red-900"
+                                            title="Void Registration">
+                                        <i class="fas fa-ban"></i> Void
+                                    </button>
+                                    @endif
                                 @endif
                             </td>
                         </tr>
@@ -252,7 +313,7 @@
                 </table>
             </div>
 
-            <div class="mt-6">
+        <div class="mt-6">
                 {{ $registrations->appends(request()->query())->links() }}
             </div>
         </div>
@@ -288,7 +349,7 @@ function updateBulkVoidButton() {
         if (checkboxes.length > 0) {
             bulkBtn.classList.remove('hidden');
             countSpan.textContent = checkboxes.length;
-        } else {
+            } else {
             bulkBtn.classList.add('hidden');
             countSpan.textContent = '0';
         }
@@ -299,19 +360,39 @@ function voidSelected() {
     const checkboxes = document.querySelectorAll('.registration-checkbox:checked');
     if (checkboxes.length === 0) {
         alert('Please select at least one registration to void.');
-        return;
-    }
-    
+                return;
+            }
+
     const registrationIds = Array.from(checkboxes).map(cb => cb.value);
     openBulkVoidModal(registrationIds);
 }
-
+            
 function sendInvitationEmail(registrationId, delegateName) {
     if (confirm(`Send invitation email to ${delegateName}?\n\nThis will queue an email with their invitation letter attached.`)) {
         // Create a form to submit the request
         const form = document.createElement('form');
         form.method = 'POST';
         form.action = `{{  url('registrations') }}/${registrationId}/send-invitation`;
+        
+        // Add CSRF token
+        const csrfToken = document.createElement('input');
+        csrfToken.type = 'hidden';
+        csrfToken.name = '_token';
+        csrfToken.value = '{{ csrf_token() }}';
+        form.appendChild(csrfToken);
+        
+        // Add to body and submit
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+
+function undoVoid(registrationId, registrantName) {
+    if (confirm(`Undo void for ${registrantName}?\n\nThis will restore the registration to pending status.`)) {
+        // Create a form to submit the request
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `{{  url('registrations') }}/${registrationId}/undo-void`;
         
         // Add CSRF token
         const csrfToken = document.createElement('input');

@@ -190,7 +190,18 @@
                 <tr>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $payment->id }}</td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="text-sm font-medium text-gray-900">{{ $payment->user->full_name }}</div>
+                        <div class="text-sm font-medium text-gray-900">
+                        {{ $payment->user->full_name }}
+                        
+                        
+                        @if(in_array(auth('admin')->user()->role, ['admin', 'secretariat']) && $payment->registration_type !== 'individual')
+                        <small><a href="{{ route('registration-participants.index', $payment) }}" 
+                           class="ml-3 text-red-600 hover:text-red-900"
+                           title="View Participants">
+                            <i class="fas fa-users"></i> Participants
+                        </a></small>
+                        @endif
+                        </div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {{ $payment->user->email }}

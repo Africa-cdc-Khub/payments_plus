@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Registration;
+use App\Models\RegistrationParticipant;
 use App\Services\InvitationService;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -22,6 +23,7 @@ class InvitationController extends Controller
         
         $request->validate([
             'registration_id' => ['required', 'exists:registrations,id'],
+            'participant_id' => ['sometimes', 'exists:registration_participants,id'],
         ]);
 
         try {
@@ -37,10 +39,34 @@ class InvitationController extends Controller
                 ], 400);
             }
 
+            // Check if this is for a participant
+            $participant = null;
+            $userData = $registration->user;
+            
+            if ($request->filled('participant_id')) {
+                $participant = RegistrationParticipant::where('id', $request->participant_id)
+                    ->where('registration_id', $registration->id)
+                    ->firstOrFail();
+                
+                // Create a user-like object from participant data for template compatibility
+                $userData = (object) [
+                    'title' => $participant->title ?? '',
+                    'full_name' => $participant->full_name,
+                    'first_name' => $participant->first_name,
+                    'last_name' => $participant->last_name,
+                    'email' => $participant->email,
+                    'nationality' => $participant->nationality,
+                    'passport_number' => $participant->passport_number,
+                    'delegate_category' => $participant->delegate_category,
+                    'airport_of_origin' => $participant->airport_of_origin,
+                ];
+            }
+
             $pdf = Pdf::loadView('invitations.template', [
                 'registration' => $registration,
-                'user' => $registration->user,
+                'user' => $userData,
                 'package' => $registration->package,
+                'participant' => $participant,
             ]);
 
             // Set paper size and orientation

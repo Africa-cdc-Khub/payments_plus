@@ -29,6 +29,12 @@ Route::middleware(['admin.auth'])->group(function () {
     Route::post('registrations/{registration}/send-invitation', [RegistrationController::class, 'sendInvitation'])->name('registrations.send-invitation');
     Route::post('registrations/{registration}/void', [RegistrationController::class, 'voidRegistration'])->name('registrations.void');
     Route::post('registrations/void-bulk', [RegistrationController::class, 'voidRegistration'])->name('registrations.void-bulk');
+    Route::post('registrations/{registration}/undo-void', [RegistrationController::class, 'undoVoid'])->name('registrations.undo-void');
+    
+    // Registration Participants
+    Route::get('registrations/{registration}/participants', [\App\Http\Controllers\RegistrationParticipantsController::class, 'index'])->name('registration-participants.index');
+    Route::post('registrations/{registration}/participants/{participant}/send-invitation', [\App\Http\Controllers\RegistrationParticipantsController::class, 'sendInvitation'])->name('registration-participants.send-invitation');
+    Route::post('registrations/{registration}/participants/{participant}/request-passport', [\App\Http\Controllers\RegistrationParticipantsController::class, 'requestPassport'])->name('registration-participants.request-passport');
     
     // Payments
     Route::get('payments', [PaymentController::class, 'index'])->name('payments.index');
