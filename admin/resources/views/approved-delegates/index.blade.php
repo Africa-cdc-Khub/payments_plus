@@ -19,6 +19,9 @@
                 @if(request('search'))
                     <input type="hidden" name="search" value="{{ request('search') }}">
                 @endif
+                @if(request('travel_processed') !== null)
+                    <input type="hidden" name="travel_processed" value="{{ request('travel_processed') }}">
+                @endif
                 <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
                     <i class="fas fa-file-csv"></i> Export CSV
                 </button>

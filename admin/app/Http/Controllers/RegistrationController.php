@@ -294,7 +294,8 @@ class RegistrationController extends Controller
                 'status' => 'paid',
                 'invitation_sent_at' => now(),
                 'invitation_sent_by' => Auth::guard('admin')->id(),
-                'payment_method' => $request->payment_method
+                'payment_method' => $request->payment_method,
+                'payment_reference' => $request->remarks
             ]);
 
             DB::commit();
