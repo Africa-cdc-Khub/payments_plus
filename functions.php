@@ -351,7 +351,7 @@ function sendRegistrationEmails($user, $registrationId, $package, $amount, $part
         'amount' => $amount,
         'is_delegate_package' => ($package['id'] == DELEGATE_PACKAGE_ID),
         'is_not_delegate_package' => ($package['id'] != DELEGATE_PACKAGE_ID),
-        'payment_status_link' => $invoiceData['payment_status_link'],
+        'payment_status_link' => $invoiceData['payment_link'],
         'conference_name' => CONFERENCE_NAME,
         'conference_short_name' => CONFERENCE_SHORT_NAME,
         'conference_dates' => CONFERENCE_DATES,

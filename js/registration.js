@@ -142,9 +142,61 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // Function to reset field visibility to default state
+    function resetFieldVisibility() {
+        // Show all fields by default
+        const fieldsToShow = [
+            'nationality', 'national_id', 'passport_number', 'passport_file', 'requires_visa'
+        ];
+        
+        fieldsToShow.forEach(fieldId => {
+            const field = document.getElementById(fieldId);
+            if (field) {
+                const parentCol = field.closest('.col-md-6');
+                if (parentCol) {
+                    parentCol.style.display = 'block';
+                }
+            }
+        });
+        
+        // Reset visa requirement field visibility and required status
+        const visaFields = document.querySelectorAll('input[name="requires_visa"]');
+        if (visaFields.length > 0) {
+            const visaParent = visaFields[0].closest('.col-md-6');
+            if (visaParent) {
+                visaParent.style.display = 'block';
+            }
+            // Reset required status for visa fields
+            visaFields.forEach(field => {
+                field.required = false;
+            });
+        }
+        
+        // Hide all special fields by default
+        const specialFields = ['studentFields', 'delegateFields', 'airportFields', 'sideEventFields'];
+        specialFields.forEach(fieldId => {
+            const field = document.getElementById(fieldId);
+            if (field) {
+                field.style.display = 'none';
+            }
+        });
+        
+        // Reset required status for special fields
+        const fieldsToReset = ['nationality', 'passport_file', 'passport_number', 'national_id', 'institution', 'delegate_category', 'airport_of_origin', 'side_event_description'];
+        fieldsToReset.forEach(fieldId => {
+            const field = document.getElementById(fieldId);
+            if (field) {
+                field.required = false;
+            }
+        });
+    }
+
     function selectPackage(card) {
         try {
             console.log('Package card clicked:', card);
+            
+            // Reset field visibility to default state first
+            resetFieldVisibility();
             
             // Store selected package data
             const priceElement = card.querySelector('.package-price');
@@ -446,7 +498,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         // Update participant fields
                         updateParticipantFields();
                 }
-            } else if (selectedPackage.type === 'side_event') {
+            } else if (selectedPackage.type === 'side_event' || (selectedPackage.type === 'group' && selectedPackage.name.toLowerCase().includes('side event'))) {
                 // Side event package - only allow individual registration
                 individualRadio.checked = true;
                 individualRadio.disabled = false;
@@ -461,7 +513,44 @@ document.addEventListener('DOMContentLoaded', function() {
                     groupLabel.title = 'Group registration is not available for side event packages';
                 }
                 
-                // Show organization fields for side events
+                // Hide unnecessary fields for side events - only show: Title, First Name, Last Name, Email, Phone, Position/Title
+                // Hide nationality field
+                const nationalityField = document.getElementById('nationality');
+                if (nationalityField) {
+                    nationalityField.closest('.col-md-6').style.display = 'none';
+                    nationalityField.required = false;
+                }
+                
+                // Hide national ID field
+                const nationalIdField = document.getElementById('national_id');
+                if (nationalIdField) {
+                    nationalIdField.closest('.col-md-6').style.display = 'none';
+                    nationalIdField.required = false;
+                }
+                
+                // Hide passport fields
+                const passportNumberField = document.getElementById('passport_number');
+                const passportFileField = document.getElementById('passport_file');
+                if (passportNumberField) {
+                    passportNumberField.closest('.col-md-6').style.display = 'none';
+                    passportNumberField.required = false;
+                }
+                if (passportFileField) {
+                    passportFileField.closest('.col-md-6').style.display = 'none';
+                    passportFileField.required = false;
+                }
+                
+                // Hide visa requirement field
+                const visaFields = document.querySelectorAll('input[name="requires_visa"]');
+                if (visaFields.length > 0) {
+                    visaFields[0].closest('.col-md-6').style.display = 'none';
+                    // Remove required attribute from visa fields
+                    visaFields.forEach(field => {
+                        field.required = false;
+                    });
+                }
+                
+                // Show organization fields for side events (Organization and Position/Title)
                 const organizationFields = document.getElementById('organizationFields');
                 if (organizationFields) {
                     organizationFields.style.display = 'block';
@@ -508,10 +597,16 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 }
                 
-                // Make passport file optional for side events
-                const passportFileField = document.getElementById('passport_file');
-                if (passportFileField) {
-                    passportFileField.required = false;
+                // Show side event description field
+                const sideEventFields = document.getElementById('sideEventFields');
+                if (sideEventFields) {
+                    sideEventFields.style.display = 'block';
+                }
+                
+                // Make side event description required
+                const sideEventDescriptionField = document.getElementById('side_event_description');
+                if (sideEventDescriptionField) {
+                    sideEventDescriptionField.required = true;
                 }
                 
                 // Update participant fields
@@ -579,6 +674,62 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 
                 // Make passport file optional for exhibitions
+                const passportFileField = document.getElementById('passport_file');
+                if (passportFileField) {
+                    passportFileField.required = false;
+                }
+                
+                // Update participant fields
+                updateParticipantFields();
+            } else if (selectedPackage.type === 'group' && !selectedPackage.name.toLowerCase().includes('side event')) {
+                // Regular group packages (not side events) - allow both individual and group registration
+                individualRadio.disabled = false;
+                groupRadio.disabled = false;
+                
+                // Reset group label styling
+                const groupLabel = document.querySelector('label[for="group"]');
+                if (groupLabel) {
+                    groupLabel.style.opacity = '1';
+                    groupLabel.style.cursor = 'pointer';
+                    groupLabel.title = 'Group registration is available for this package';
+                }
+                
+                // Show organization fields for group packages
+                const organizationFields = document.getElementById('organizationFields');
+                if (organizationFields) {
+                    organizationFields.style.display = 'block';
+                }
+                
+                // Reset organization and position fields
+                const organizationField = document.getElementById('organization');
+                const positionField = document.getElementById('position');
+                if (organizationField) {
+                    organizationField.value = '';
+                    organizationField.required = true;
+                }
+                if (positionField) {
+                    positionField.value = '';
+                }
+                
+                // Hide student fields
+                const studentFields = document.getElementById('studentFields');
+                if (studentFields) {
+                    studentFields.style.display = 'none';
+                }
+                
+                // Hide delegate fields
+                const delegateFields = document.getElementById('delegateFields');
+                if (delegateFields) {
+                    delegateFields.style.display = 'none';
+                }
+                
+                // Hide airport fields
+                const airportFields = document.getElementById('airportFields');
+                if (airportFields) {
+                    airportFields.style.display = 'none';
+                }
+                
+                // Make passport file optional for group packages
                 const passportFileField = document.getElementById('passport_file');
                 if (passportFileField) {
                     passportFileField.required = false;
@@ -1204,6 +1355,21 @@ document.addEventListener('DOMContentLoaded', function() {
         const nationality = $('#nationality').val();
         if (!nationality || !selectedPackage) return;
         
+        // Skip pricing updates for fixed-price packages (Students, Delegates, Side Events, Exhibitions)
+        const isFixedPricePackage = selectedPackage && (
+            selectedPackage.name.toLowerCase() === 'students' || 
+            selectedPackage.name.toLowerCase() === 'delegates' ||
+            selectedPackage.type === 'side_event' || 
+            selectedPackage.type === 'exhibition' ||
+            (selectedPackage.type === 'group' && selectedPackage.name.toLowerCase().includes('side event'))
+        );
+        
+        if (isFixedPricePackage) {
+            // For fixed-price packages, just update the summary without nationality-based pricing
+            updateSummary();
+            return;
+        }
+        
         const isAfrican = isAfricanNational(nationality);
         const registrationType = document.querySelector('input[name="registration_type"]:checked');
         
@@ -1426,7 +1592,8 @@ document.addEventListener('DOMContentLoaded', function() {
             selectedPackage.name.toLowerCase() === 'delegates' ||
             selectedPackage.type === 'side_event' || 
             selectedPackage.type === 'exhibition' ||
-            selectedPackage.name.toLowerCase().includes('african nationals')
+            selectedPackage.name.toLowerCase().includes('african nationals') ||
+            (selectedPackage.type === 'group' && selectedPackage.name.toLowerCase().includes('side event'))
         );
         
         if (isFixedPricePackage) {
@@ -2090,7 +2257,8 @@ document.addEventListener('DOMContentLoaded', function() {
             selectedPackage.name.toLowerCase() === 'students' || 
             selectedPackage.name.toLowerCase() === 'delegates' ||
             selectedPackage.type === 'side_event' || 
-            selectedPackage.type === 'exhibition'
+            selectedPackage.type === 'exhibition' ||
+            (selectedPackage.type === 'group' && selectedPackage.name.toLowerCase().includes('side event'))
         );
         
         if (isFixedPricePackage) {
@@ -2176,6 +2344,389 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // removeParticipant function removed - participants are now automatically managed
     
+    // Function to apply field visibility based on package type
+    function applyFieldVisibilityForPackage(package) {
+        if (!package) return;
+        
+        // Reset field visibility to default state first
+        resetFieldVisibility();
+        
+        // Get radio buttons
+        const individualRadio = document.querySelector('input[name="registration_type"][value="individual"]');
+        const groupRadio = document.querySelector('input[name="registration_type"][value="group"]');
+        
+        if (package.type === 'individual') {
+            // Check if this is Students or Delegates package
+            if (package.name.toLowerCase() === 'students' || package.name.toLowerCase() === 'delegates') {
+                // Students/Delegates package - only allow individual registration
+                individualRadio.checked = true;
+                individualRadio.disabled = false;
+                groupRadio.disabled = true;
+                groupRadio.checked = false;
+                
+                // Add visual indication that group registration is not available
+                const groupLabel = document.querySelector('label[for="group"]');
+                if (groupLabel) {
+                    groupLabel.style.opacity = '0.5';
+                    groupLabel.style.cursor = 'not-allowed';
+                    groupLabel.title = 'Group registration is not available for ' + package.name + ' package';
+                }
+                
+                // Show student fields for Students package
+                if (package.name.toLowerCase() === 'students') {
+                    // Hide organization fields for students
+                    const organizationFields = document.getElementById('organizationFields');
+                    if (organizationFields) {
+                        organizationFields.style.display = 'none';
+                    }
+                    
+                    // Set default values for organization and position
+                    const organizationField = document.getElementById('organization');
+                    const positionField = document.getElementById('position');
+                    if (organizationField) {
+                        organizationField.value = 'N/A';
+                        organizationField.required = false;
+                    }
+                    if (positionField) {
+                        positionField.value = 'N/A';
+                    }
+                    
+                    // Show student fields
+                    const studentFields = document.getElementById('studentFields');
+                    if (studentFields) {
+                        studentFields.style.display = 'block';
+                        // Make institution required for students
+                        const institutionField = document.getElementById('institution');
+                        if (institutionField) {
+                            institutionField.required = true;
+                        }
+                        // Make student ID file required for students
+                        const studentIdFile = document.getElementById('student_id_file');
+                        if (studentIdFile) {
+                            studentIdFile.required = true;
+                        }
+                    }
+                    
+                    // Hide delegate fields
+                    const delegateFields = document.getElementById('delegateFields');
+                    if (delegateFields) {
+                        delegateFields.style.display = 'none';
+                        const delegateCategoryField = document.getElementById('delegate_category');
+                        if (delegateCategoryField) {
+                            delegateCategoryField.required = false;
+                        }
+                    }
+                    
+                    // Hide airport fields
+                    const airportFields = document.getElementById('airportFields');
+                    if (airportFields) {
+                        airportFields.style.display = 'none';
+                        const airportField = document.getElementById('airport_of_origin');
+                        if (airportField) {
+                            airportField.required = false;
+                        }
+                    }
+                    
+                    // Make passport file optional for non-delegates
+                    const passportFileField = document.getElementById('passport_file');
+                    if (passportFileField) {
+                        passportFileField.required = false;
+                    }
+                    
+                    // Update participant fields
+                    updateParticipantFields();
+                } else if (package.name.toLowerCase() === 'delegates') {
+                    // Show organization fields for delegates
+                    const organizationFields = document.getElementById('organizationFields');
+                    if (organizationFields) {
+                        organizationFields.style.display = 'block';
+                    }
+                    
+                    // Reset organization and position fields
+                    const organizationField = document.getElementById('organization');
+                    const positionField = document.getElementById('position');
+                    if (organizationField) {
+                        organizationField.value = '';
+                        organizationField.required = true;
+                    }
+                    if (positionField) {
+                        positionField.value = '';
+                    }
+                    
+                    // Hide student fields
+                    const studentFields = document.getElementById('studentFields');
+                    if (studentFields) {
+                        studentFields.style.display = 'none';
+                    }
+                    
+                    // Show delegate fields
+                    const delegateFields = document.getElementById('delegateFields');
+                    if (delegateFields) {
+                        delegateFields.style.display = 'block';
+                        const delegateCategoryField = document.getElementById('delegate_category');
+                        if (delegateCategoryField) {
+                            delegateCategoryField.required = true;
+                        }
+                    }
+                    
+                    // Show airport fields
+                    const airportFields = document.getElementById('airportFields');
+                    if (airportFields) {
+                        airportFields.style.display = 'block';
+                        const airportField = document.getElementById('airport_of_origin');
+                        if (airportField) {
+                            airportField.required = true;
+                        }
+                    }
+                    
+                    // Make passport file required for delegates
+                    const passportFileField = document.getElementById('passport_file');
+                    if (passportFileField) {
+                        passportFileField.required = true;
+                    }
+                    
+                    // Update participant fields
+                    updateParticipantFields();
+                }
+            }
+        } else if (package.type === 'side_event' || (package.type === 'group' && package.name.toLowerCase().includes('side event'))) {
+            // Side event package - only allow individual registration
+            individualRadio.checked = true;
+            individualRadio.disabled = false;
+            groupRadio.disabled = true;
+            groupRadio.checked = false;
+            
+            // Reset group label styling
+            const groupLabel = document.querySelector('label[for="group"]');
+            if (groupLabel) {
+                groupLabel.style.opacity = '1';
+                groupLabel.style.cursor = 'not-allowed';
+                groupLabel.title = 'Group registration is not available for side event packages';
+            }
+            
+            // Hide unnecessary fields for side events - only show: Title, First Name, Last Name, Email, Phone, Position/Title
+            // Hide nationality field
+            const nationalityField = document.getElementById('nationality');
+            if (nationalityField) {
+                nationalityField.closest('.col-md-6').style.display = 'none';
+                nationalityField.required = false;
+            }
+            
+            // Hide national ID field
+            const nationalIdField = document.getElementById('national_id');
+            if (nationalIdField) {
+                nationalIdField.closest('.col-md-6').style.display = 'none';
+                nationalIdField.required = false;
+            }
+            
+            // Hide passport fields
+            const passportNumberField = document.getElementById('passport_number');
+            const passportFileField = document.getElementById('passport_file');
+            if (passportNumberField) {
+                passportNumberField.closest('.col-md-6').style.display = 'none';
+                passportNumberField.required = false;
+            }
+            if (passportFileField) {
+                passportFileField.closest('.col-md-6').style.display = 'none';
+                passportFileField.required = false;
+            }
+            
+            // Hide visa requirement field
+            const visaFields = document.querySelectorAll('input[name="requires_visa"]');
+            if (visaFields.length > 0) {
+                visaFields[0].closest('.col-md-6').style.display = 'none';
+                // Remove required attribute from visa fields
+                visaFields.forEach(field => {
+                    field.required = false;
+                });
+            }
+            
+            // Show organization fields for side events (Organization and Position/Title)
+            const organizationFields = document.getElementById('organizationFields');
+            if (organizationFields) {
+                organizationFields.style.display = 'block';
+            }
+            
+            // Reset organization and position fields
+            const organizationField = document.getElementById('organization');
+            const positionField = document.getElementById('position');
+            if (organizationField) {
+                organizationField.value = '';
+                organizationField.required = true;
+            }
+            if (positionField) {
+                positionField.value = '';
+            }
+            
+            // Hide student fields for side events
+            const studentFields = document.getElementById('studentFields');
+            if (studentFields) {
+                studentFields.style.display = 'none';
+                const institutionField = document.getElementById('institution');
+                if (institutionField) {
+                    institutionField.required = false;
+                }
+            }
+            
+            // Hide delegate fields for side events
+            const delegateFields = document.getElementById('delegateFields');
+            if (delegateFields) {
+                delegateFields.style.display = 'none';
+                const delegateCategoryField = document.getElementById('delegate_category');
+                if (delegateCategoryField) {
+                    delegateCategoryField.required = false;
+                }
+            }
+            
+            // Hide airport fields for side events
+            const airportFields = document.getElementById('airportFields');
+            if (airportFields) {
+                airportFields.style.display = 'none';
+                const airportField = document.getElementById('airport_of_origin');
+                if (airportField) {
+                    airportField.required = false;
+                }
+            }
+            
+            // Show side event description field
+            const sideEventFields = document.getElementById('sideEventFields');
+            if (sideEventFields) {
+                sideEventFields.style.display = 'block';
+            }
+            
+            // Make side event description required
+            const sideEventDescriptionField = document.getElementById('side_event_description');
+            if (sideEventDescriptionField) {
+                sideEventDescriptionField.required = true;
+            }
+            
+            // Update participant fields
+            updateParticipantFields();
+        } else if (package.type === 'exhibition') {
+            // Exhibition package - only allow individual registration
+            individualRadio.checked = true;
+            individualRadio.disabled = false;
+            groupRadio.disabled = true;
+            groupRadio.checked = false;
+            
+            // Reset group label styling
+            const groupLabel = document.querySelector('label[for="group"]');
+            if (groupLabel) {
+                groupLabel.style.opacity = '1';
+                groupLabel.style.cursor = 'not-allowed';
+                groupLabel.title = 'Group registration is not available for exhibition packages';
+            }
+            
+            // Show organization fields for exhibitions
+            const organizationFields = document.getElementById('organizationFields');
+            if (organizationFields) {
+                organizationFields.style.display = 'block';
+            }
+            
+            // Reset organization and position fields
+            const organizationField = document.getElementById('organization');
+            const positionField = document.getElementById('position');
+            if (organizationField) {
+                organizationField.value = '';
+                organizationField.required = true;
+            }
+            if (positionField) {
+                positionField.value = '';
+            }
+            
+            // Hide student fields for exhibitions
+            const studentFields = document.getElementById('studentFields');
+            if (studentFields) {
+                studentFields.style.display = 'none';
+            }
+            
+            // Hide delegate fields for exhibitions
+            const delegateFields = document.getElementById('delegateFields');
+            if (delegateFields) {
+                delegateFields.style.display = 'none';
+            }
+            
+            // Hide airport fields for exhibitions
+            const airportFields = document.getElementById('airportFields');
+            if (airportFields) {
+                airportFields.style.display = 'none';
+            }
+            
+            // Make passport file optional for exhibitions
+            const passportFileField = document.getElementById('passport_file');
+            if (passportFileField) {
+                passportFileField.required = false;
+            }
+            
+            // Update participant fields
+            updateParticipantFields();
+        } else if (package.type === 'group' && !package.name.toLowerCase().includes('side event')) {
+            // Regular group packages (not side events) - allow both individual and group registration
+            individualRadio.disabled = false;
+            groupRadio.disabled = false;
+            
+            // Reset group label styling
+            const groupLabel = document.querySelector('label[for="group"]');
+            if (groupLabel) {
+                groupLabel.style.opacity = '1';
+                groupLabel.style.cursor = 'pointer';
+                groupLabel.title = 'Group registration is available for this package';
+            }
+            
+            // Show organization fields for group packages
+            const organizationFields = document.getElementById('organizationFields');
+            if (organizationFields) {
+                organizationFields.style.display = 'block';
+            }
+            
+            // Reset organization and position fields
+            const organizationField = document.getElementById('organization');
+            const positionField = document.getElementById('position');
+            if (organizationField) {
+                organizationField.value = '';
+                organizationField.required = true;
+            }
+            if (positionField) {
+                positionField.value = '';
+            }
+            
+            // Hide student fields
+            const studentFields = document.getElementById('studentFields');
+            if (studentFields) {
+                studentFields.style.display = 'none';
+            }
+            
+            // Hide delegate fields
+            const delegateFields = document.getElementById('delegateFields');
+            if (delegateFields) {
+                delegateFields.style.display = 'none';
+            }
+            
+            // Hide airport fields
+            const airportFields = document.getElementById('airportFields');
+            if (airportFields) {
+                airportFields.style.display = 'none';
+            }
+            
+            // Make passport file optional for group packages
+            const passportFileField = document.getElementById('passport_file');
+            if (passportFileField) {
+                passportFileField.required = false;
+            }
+            
+            // Update participant fields
+            updateParticipantFields();
+        }
+        
+        // Trigger registration type change
+        const event = new Event('change');
+        if (individualRadio.checked) {
+            individualRadio.dispatchEvent(event);
+        } else if (groupRadio.checked) {
+            groupRadio.dispatchEvent(event);
+        }
+    }
+
     // Restore form data on page load (for error handling)
     function restoreFormData() {
         // Check if we have form data to restore (from PHP)
@@ -2233,6 +2784,10 @@ document.addEventListener('DOMContentLoaded', function() {
                             icon: packageCard.querySelector('.package-icon i')?.className || 'fas fa-ticket-alt',
                             color: packageCard.querySelector('.package-icon i')?.className.split(' ').find(cls => cls.startsWith('text-')) || 'text-primary'
                         };
+                        
+                        // Apply field visibility logic based on package type
+                        applyFieldVisibilityForPackage(selectedPackage);
+                        
                         updateSelectedPackageInfo();
                         updateParticipantFields();
                     } else {
@@ -2302,21 +2857,28 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Add form validation
     form.addEventListener('submit', function(e) {
-        // Validate nationality field
+        // Validate nationality field only if it's required (not for fixed-price packages)
         const nationalitySelect = document.getElementById('nationality');
         
-        // Check if nationality dropdown is populated
-        if (nationalitySelect.options.length <= 1) {
-            e.preventDefault();
-            showAlert('error', 'Nationality dropdown is not loaded. Please refresh the page and try again.', 'Loading Error');
-            return false;
-        }
+        // Check if nationality field is visible and required
+        const nationalityParent = nationalitySelect ? nationalitySelect.closest('.col-md-6') : null;
+        const isNationalityVisible = nationalityParent && nationalityParent.style.display !== 'none';
+        const isNationalityRequired = nationalitySelect && nationalitySelect.required;
         
-        if (!nationalitySelect.value) {
-            e.preventDefault();
-            showAlert('error', 'Please select your nationality', 'Validation Error');
-            nationalitySelect.focus();
-            return false;
+        if (isNationalityVisible && isNationalityRequired) {
+            // Check if nationality dropdown is populated
+            if (nationalitySelect.options.length <= 1) {
+                e.preventDefault();
+                showAlert('error', 'Nationality dropdown is not loaded. Please refresh the page and try again.', 'Loading Error');
+                return false;
+            }
+            
+            if (!nationalitySelect.value) {
+                e.preventDefault();
+                showAlert('error', 'Please select your nationality', 'Validation Error');
+                nationalitySelect.focus();
+                return false;
+            }
         }
         
         // Validate other required fields
@@ -2334,6 +2896,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 e.preventDefault();
                 showAlert('error', `Please enter your ${field.name}`, 'Validation Error');
                 element.focus();
+                return false;
+            }
+        }
+        
+        // Validate side event description if side event fields are visible
+        const sideEventFields = document.getElementById('sideEventFields');
+        const sideEventDescription = document.getElementById('side_event_description');
+        if (sideEventFields && sideEventFields.style.display !== 'none' && sideEventDescription) {
+            if (!sideEventDescription.value.trim()) {
+                e.preventDefault();
+                showAlert('error', 'Please provide a description of your side event', 'Validation Error');
+                sideEventDescription.focus();
                 return false;
             }
         }

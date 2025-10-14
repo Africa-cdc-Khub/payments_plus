@@ -65,8 +65,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $package = getPackageById($_POST['package_id']);
     }
     
-    // For Students, Delegates, and Non African nationals packages, allow any nationality
-    $isFixedPricePackage = $package && in_array(strtolower($package['name']), ['students', 'delegates', 'non african nationals']);
+    // For Students, Delegates, Side Events, Exhibitions, and Non African nationals packages, allow any nationality
+    $isFixedPricePackage = $package && (
+        in_array(strtolower($package['name']), ['students', 'delegates', 'non african nationals']) ||
+        $package['type'] === 'side_event' ||
+        $package['type'] === 'exhibition' ||
+        (strtolower($package['type']) === 'group' && strpos(strtolower($package['name']), 'side event') !== false)
+    );
     
     if (!empty($_POST['nationality']) && !$isFixedPricePackage && !validateNationality($_POST['nationality'])) {
         $errors[] = "Please select a valid nationality";
@@ -110,6 +115,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Exhibition description is optional - only validate if provided
     if (!empty($_POST['exhibition_description']) && !validateExhibitionDescription($_POST['exhibition_description'])) {
         $errors[] = "Please enter a valid exhibition description (5-1000 characters)";
+    }
+    
+    // Side event description validation - required for side event packages
+    if ($package && (strtolower($package['type']) === 'group' && strpos(strtolower($package['name']), 'side event') !== false)) {
+        if (empty($_POST['side_event_description'])) {
+            $errors[] = "Please provide a description of your side event";
+        } elseif (!validateExhibitionDescription($_POST['side_event_description'])) {
+            $errors[] = "Please enter a valid side event description (5-1000 characters)";
+        }
     }
     
     // Validate reCAPTCHA if enabled
@@ -184,13 +198,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
              
              // Check if this is a fixed-price package (Students, Delegates, Side Events, Exhibitions)
              $isFixedPricePackage = in_array(strtolower($package['name']), ['students', 'delegates']) || 
-                                   $isSideEvent || $isExhibition;
+                                   $isSideEvent || $isExhibition ||
+                                   (strtolower($package['type']) === 'group' && strpos(strtolower($package['name']), 'side event') !== false);
              
              if ($isFixedPricePackage) {
                  // Fixed-price packages - use exact package price, not nationality-based
                  $totalAmount = $package['price'];
              
-             if ($isSideEvent) {
+             if ($isSideEvent || (strtolower($package['type']) === 'group' && strpos(strtolower($package['name']), 'side event') !== false)) {
                      $registrationType = 'side_event';
              } else if ($isExhibition) {
                      $registrationType = 'exhibition';
@@ -255,7 +270,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'registration_type' => $registrationType,
                 'total_amount' => $totalAmount,
                 'currency' => 'USD',
-                'exhibition_description' => isset($_POST['exhibition_description']) ? sanitizeInput($_POST['exhibition_description']) : null
+                'exhibition_description' => isset($_POST['exhibition_description']) ? sanitizeInput($_POST['exhibition_description']) : null,
+                'side_event_description' => isset($_POST['side_event_description']) ? sanitizeInput($_POST['side_event_description']) : null
             ];
             
             $registrationId = createRegistration($registrationData);
@@ -354,6 +370,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $packages = getAllPackages();
 $individualPackages = getPackagesByType('individual');
 $sideEventPackages = getPackagesByType('side_event');
+$groupPackages = getPackagesByType('group');
 $exhibitionPackages = getPackagesByType('exhibition');
 
 // Check if user has existing registrations (for display purposes)
@@ -392,6 +409,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
         'country' => cleanCountryName($_POST['country'] ?? ''),
         'num_people' => $_POST['num_people'] ?? '',
         'exhibition_description' => $_POST['exhibition_description'] ?? '',
+        'side_event_description' => $_POST['side_event_description'] ?? '',
         'participants' => $_POST['participants'] ?? []
     ];
 }
@@ -871,6 +889,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                 
          
             </div>
+                    <!-- side event Registration Row -->
+                    <div class="row g-3">
+                    <div class="col-12">
+                        <h4 class="text-center mb-3">Side Events Registration</h4>
+                    </div>
+                    <?php foreach ($groupPackages as $package): ?>
+                        <div class="col-6 col-md-6">
+                            <div class="card package-card h-100" data-package-id="<?php echo $package['id']; ?>" data-type="group">
+                                <div class="card-body d-flex flex-column p-3 text-center">
+                                    <h5 class="card-title mb-3"><?php echo htmlspecialchars($package['name']); ?></h5>
+                                    <div class="package-price h4 text-success mb-3"><?php echo formatCurrency($package['price']); ?></div>
+                                    <button type="button" class="btn btn-primary btn-lg select-package mt-auto">Select Package</button>
+                                </div>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+
+    
+        </div>
 
         </div>
 
@@ -1085,7 +1124,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                                     <option value="Side event focal person" <?php echo (($formData['delegate_category'] ?? '') === 'Side event focal person') ? 'selected' : ''; ?>>Side event focal person</option>
                                     <option value="Youth Program Participant" <?php echo (($formData['delegate_category'] ?? '') === 'Youth Program Participant') ? 'selected' : ''; ?>>Youth Program Participant</option>
                                     <option value="Exhibition Focal Person (Bronze+)" <?php echo (($formData['delegate_category'] ?? '') === 'Exhibition Focal Person') ? 'selected' : ''; ?>>Exhibition Focal Person (Bronze+)</option>
-                                    <option value="Local Media" <?php echo (($formData['delegate_category'] ?? '') === 'Local Media') ? 'selected' : ''; ?>>Local Media</option>
+                                    <option value="Journalist" <?php echo (($formData['delegate_category'] ?? '') === 'Journalist') ? 'selected' : ''; ?>>Journalist</option>
                                     <option value="Interpreter/Translator" <?php echo (($formData['delegate_category'] ?? '') === 'Interpreter/Translator') ? 'selected' : ''; ?>>Interpreter/Translator</option>
                                     
                                 </select>
@@ -1118,13 +1157,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                                 <div class="form-text">Required for student registration (PDF, JPG, PNG - max 5MB)</div>
                             </div>
                         </div>
+                        
+                        <!-- Side Event Description Field (only for Side Events packages) -->
+                        <div id="sideEventFields" class="row" style="display: none;">
+                            <div class="col-12 mb-3">
+                                <label for="side_event_description" class="form-label">Side Event Description <span class="asterisk">*</span></label>
+                                <textarea class="form-control" name="side_event_description" id="side_event_description" rows="4" placeholder="Please provide a detailed description of your side event, including objectives, target audience, and any special requirements..."><?php echo htmlspecialchars($formData['side_event_description'] ?? ''); ?></textarea>
+                                <div class="form-text">Required for side event registration - describe your event in detail</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Address Information -->
+                <!-- Billing Address Information -->
                 <div class="card mb-4">
                     <div class="card-header">
-                        <h5 class="mb-0">Address Information</h5>
+                        <h5 class="mb-0">Billing Address Information (Card Address)</h5>
                     </div>
                     <div class="card-body">
                         <div class="mb-3">
