@@ -283,7 +283,7 @@ $pageTitle = 'Refund Policy - ' . CONFERENCE_NAME;
 
             <div class="contact-info">
                 <h3><i class="fas fa-envelope"></i> Contact Information</h3>
-                <h4>h) For refund-related inquiries or submissions, please contact:</h4>
+                <h4 style="color: white;">h) For refund-related inquiries or submissions, please contact:</h4>
                 <p><strong>Directorate of Finance</strong><br>
                 Africa Centres for Disease Control and Prevention (Africa CDC)<br>
                 Addis Ababa, Ethiopia</p>
