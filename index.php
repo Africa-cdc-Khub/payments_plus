@@ -133,15 +133,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
     
-    // Validate reCAPTCHA if enabled
-    if (isRecaptchaEnabled()) {
-        if (empty($_POST['g-recaptcha-response'])) {
-            $errors[] = "Please complete the reCAPTCHA verification";
-        } elseif (!validateRecaptcha($_POST['g-recaptcha-response'], RECAPTCHA_SECRET_KEY)) {
-            $errors[] = "reCAPTCHA verification failed. Please try again.";
-            logSecurityEvent('recaptcha_failed', 'reCAPTCHA verification failed for IP: ' . $clientIp);
-        }
-    }
+    // // Validate reCAPTCHA if enabled
+    // if (isRecaptchaEnabled()) {
+    //     if (empty($_POST['g-recaptcha-response'])) {
+    //         $errors[] = "Please complete the reCAPTCHA verification";
+    //     } elseif (!validateRecaptcha($_POST['g-recaptcha-response'], RECAPTCHA_SECRET_KEY)) {
+    //         $errors[] = "reCAPTCHA verification failed. Please try again.";
+    //         logSecurityEvent('recaptcha_failed', 'reCAPTCHA verification failed for IP: ' . $clientIp);
+    //     }
+    // }
     
     if (empty($errors)) {
         // Check for duplicate registration using event date
