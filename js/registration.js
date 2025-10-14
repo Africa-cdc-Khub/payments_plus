@@ -2855,8 +2855,115 @@ document.addEventListener('DOMContentLoaded', function() {
     // Call restore function after a short delay to ensure everything is loaded
     setTimeout(restoreFormData, 200);
     
+    // CSRF token refresh functionality
+    let csrfRefreshInterval;
+    
+    function refreshCSRFToken() {
+        fetch('', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: 'action=refresh_csrf'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.csrf_token) {
+                const csrfInput = document.querySelector('input[name="csrf_token"]');
+                if (csrfInput) {
+                    csrfInput.value = data.csrf_token;
+                    console.log('CSRF token refreshed');
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Failed to refresh CSRF token:', error);
+        });
+    }
+    
+    // Start CSRF token refresh every 10 minutes for long forms
+    function startCSRFRefresh() {
+        if (csrfRefreshInterval) {
+            clearInterval(csrfRefreshInterval);
+        }
+        csrfRefreshInterval = setInterval(refreshCSRFToken, 10 * 60 * 1000); // 10 minutes
+    }
+    
+    // Stop CSRF token refresh
+    function stopCSRFRefresh() {
+        if (csrfRefreshInterval) {
+            clearInterval(csrfRefreshInterval);
+            csrfRefreshInterval = null;
+        }
+    }
+    
+    // Start refresh when form becomes visible
+    const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
+                const form = document.getElementById('registrationForm');
+                if (form && form.style.display !== 'none') {
+                    startCSRFRefresh();
+                } else {
+                    stopCSRFRefresh();
+                }
+            }
+        });
+    });
+    
+    const formElement = document.getElementById('registrationForm');
+    if (formElement) {
+        observer.observe(formElement, { attributes: true, attributeFilter: ['style'] });
+    }
+    
+    // Refresh CSRF token before form submission
+    function refreshCSRFTokenBeforeSubmit() {
+        return new Promise((resolve, reject) => {
+            fetch('', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'action=refresh_csrf'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.csrf_token) {
+                    const csrfInput = document.querySelector('input[name="csrf_token"]');
+                    if (csrfInput) {
+                        csrfInput.value = data.csrf_token;
+                        console.log('CSRF token refreshed before submission');
+                    }
+                    resolve();
+                } else {
+                    reject('No CSRF token received');
+                }
+            })
+            .catch(error => {
+                console.error('Failed to refresh CSRF token before submission:', error);
+                reject(error);
+            });
+        });
+    }
+
     // Add form validation
     form.addEventListener('submit', function(e) {
+        // Prevent default submission temporarily
+        e.preventDefault();
+        
+        // Refresh CSRF token before validation and submission
+        refreshCSRFTokenBeforeSubmit()
+            .then(() => {
+                // Now proceed with validation and submission
+                validateAndSubmitForm();
+            })
+            .catch((error) => {
+                console.error('Failed to refresh CSRF token:', error);
+                showAlert('error', 'Session expired. Please refresh the page and try again.', 'Session Error');
+            });
+    });
+    
+    function validateAndSubmitForm() {
         // Validate nationality field only if it's required (not for fixed-price packages)
         const nationalitySelect = document.getElementById('nationality');
         
@@ -2868,16 +2975,14 @@ document.addEventListener('DOMContentLoaded', function() {
         if (isNationalityVisible && isNationalityRequired) {
             // Check if nationality dropdown is populated
             if (nationalitySelect.options.length <= 1) {
-                e.preventDefault();
                 showAlert('error', 'Nationality dropdown is not loaded. Please refresh the page and try again.', 'Loading Error');
-                return false;
+                return;
             }
             
             if (!nationalitySelect.value) {
-                e.preventDefault();
                 showAlert('error', 'Please select your nationality', 'Validation Error');
                 nationalitySelect.focus();
-                return false;
+                return;
             }
         }
         
@@ -2893,10 +2998,9 @@ document.addEventListener('DOMContentLoaded', function() {
         for (const field of requiredFields) {
             const element = document.getElementById(field.id);
             if (element && !element.value.trim()) {
-                e.preventDefault();
                 showAlert('error', `Please enter your ${field.name}`, 'Validation Error');
                 element.focus();
-                return false;
+                return;
             }
         }
         
@@ -2905,13 +3009,17 @@ document.addEventListener('DOMContentLoaded', function() {
         const sideEventDescription = document.getElementById('side_event_description');
         if (sideEventFields && sideEventFields.style.display !== 'none' && sideEventDescription) {
             if (!sideEventDescription.value.trim()) {
-                e.preventDefault();
                 showAlert('error', 'Please provide a description of your side event', 'Validation Error');
                 sideEventDescription.focus();
-                return false;
+                return;
             }
         }
-    });
+        
+        // If all validation passes, submit the form
+        console.log('All validation passed, submitting form...');
+        form.submit();
+    }
     
     }, 100); // End of setTimeout
 }); // End of DOMContentLoaded
+

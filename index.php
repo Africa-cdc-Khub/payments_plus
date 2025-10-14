@@ -22,6 +22,13 @@ if (!isset($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
 
+// Handle AJAX CSRF token refresh
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'refresh_csrf') {
+    header('Content-Type: application/json');
+    echo json_encode(['csrf_token' => $_SESSION['csrf_token']]);
+    exit;
+}
+
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Verify CSRF token
