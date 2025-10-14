@@ -41,7 +41,7 @@
 let currentPdfUrl = '';
 let pdfLoadTimeout = null;
 
-function openPdfModal(registrationId) {
+function openPdfModal(registrationId, participantId = null) {
     const modal = document.getElementById('pdfPreviewModal');
     const iframe = document.getElementById('pdfIframe');
     const loader = document.getElementById('pdfLoader');
@@ -89,6 +89,15 @@ function openPdfModal(registrationId) {
         idInput.name = 'registration_id';
         idInput.value = registrationId;
         form.appendChild(idInput);
+        
+        // Add participant_id if provided
+        if (participantId) {
+            const participantInput = document.createElement('input');
+            participantInput.type = 'hidden';
+            participantInput.name = 'participant_id';
+            participantInput.value = participantId;
+            form.appendChild(participantInput);
+        }
         
         document.body.appendChild(form);
         form.submit();

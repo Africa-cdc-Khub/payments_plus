@@ -137,13 +137,19 @@
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Country</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Package</th>
                          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Delegate Category</th>
+                        @if(in_array(auth('admin')->user()->role, ['admin', 'hosts','travels']))
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nationality</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Passport</th>
+                        @endif
                         @if(!in_array(auth('admin')->user()->role, ['executive']))
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        @endif
+                        @if(!in_array(auth('admin')->user()->role, ['executive', 'hosts']))
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payment</th>
                         @endif
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Registered</th>
-                        @if(in_array(auth('admin')->user()->role, ['admin', 'hosts']))
+                        @if(in_array(auth('admin')->user()->role, ['admin','travels']))
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                         @endif
                     </tr>
@@ -186,6 +192,25 @@
                          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                             {{ $registration->user->delegate_category ?? '-' }}
                         </td>
+                        @if(in_array(auth('admin')->user()->role, ['admin', 'hosts','travels']))
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ $registration->user->nationality ?? '-' }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <div class="flex items-center space-x-2">
+                                <span>{{ $registration->user->passport_number ?? '-' }}</span>
+                                @if($registration->user->passport_file)
+                                    <button type="button" 
+                                            onclick="openPassportPreview('{{ env('PARENT_APP_URL') }}/uploads/passports/{{ $registration->user->passport_file }}')"
+                                            class="text-blue-600 hover:text-blue-900 font-medium">
+                                        <i class="fas fa-eye"></i> Preview
+                                    </button>
+                                @else
+                                    <span class="text-gray-400 text-xs">No document</span>
+                                @endif
+                            </div>
+                        </td>
+                        @endif
                         @if(!in_array(auth('admin')->user()->role, ['executive']))
                         <td class="px-6 py-4 whitespace-nowrap">
                             @if($registration->status === 'approved')
@@ -198,6 +223,8 @@
                                 </span>
                             @endif
                         </td>
+                        @endif
+                        @if(!in_array(auth('admin')->user()->role, ['executive', 'hosts']))
                         <td class="px-6 py-4 whitespace-nowrap">
                             @if($registration->payment_status === 'completed')
                                 <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
@@ -218,11 +245,23 @@
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             {{ $registration->created_at ? $registration->created_at->format('M d, Y') : '-' }}
                         </td>
-                        @if(in_array(auth('admin')->user()->role, ['admin', 'hosts']))
+                        @if(in_array(auth('admin')->user()->role, ['admin', 'hosts','travels']))
                         <td class="px-6 py-4 whitespace-nowrap text-sm">
-                            <a href="{{ route('registrations.show', $registration) }}" class="text-blue-600 hover:text-blue-900">
-                                <i class="fas fa-eye"></i> View Details
-                            </a>
+                            <div class="flex flex-wrap gap-3">
+                                <a href="{{ route('registrations.show', $registration) }}" class="text-blue-600 hover:text-blue-900 px-2 py-1 rounded hover:bg-blue-50">
+                                    <i class="fas fa-eye"></i> View Details
+                                </a>
+                                <button type="button" 
+                                        onclick="openPdfModal({{ $registration->id }})"
+                                        class="text-green-600 hover:text-green-900 px-2 py-1 rounded hover:bg-green-50">
+                                    <i class="fas fa-envelope"></i> Preview Invitation
+                                </button>
+                                @if($registration->invitation_sent_at)
+                                    <span class="text-xs text-green-600 bg-green-100 px-2 py-1 rounded">
+                                        <i class="fas fa-check"></i> Sent
+                                    </span>
+                                @endif
+                            </div>
                         </td>
                         @endif
                     </tr>
@@ -241,10 +280,10 @@
                             {{ $groupMember->email ?? '-' }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            -
+                            {{ $groupMember->phone ?? '-' }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {{ $groupMember->nationality ?? '-' }}
+                            {{ $groupMember->country ?? '-' }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                             <span class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
@@ -254,12 +293,33 @@
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                             {{ $groupMember->delegate_category ?? '-' }}
                         </td>
+                        @if(in_array(auth('admin')->user()->role, ['admin', 'hosts','travels']))
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ $groupMember->nationality ?? '-' }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <div class="flex items-center space-x-2">
+                                <span>{{ $groupMember->passport_number ?? '-' }}</span>
+                                @if($groupMember->passport_file)
+                                    <button type="button" 
+                                            onclick="openPassportPreview('{{ env('PARENT_APP_URL') }}/uploads/passports/{{ $groupMember->passport_file }}')"
+                                            class="text-blue-600 hover:text-blue-900 font-medium">
+                                        <i class="fas fa-eye"></i> Preview
+                                    </button>
+                                @else
+                                    <span class="text-gray-400 text-xs">No document</span>
+                                @endif
+                            </div>
+                        </td>
+                        @endif
                         @if(!in_array(auth('admin')->user()->role, ['executive']))
                         <td class="px-6 py-4 whitespace-nowrap">
                             <span class="px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-600">
                                 Group Member
                             </span>
                         </td>
+                        @endif
+                        @if(!in_array(auth('admin')->user()->role, ['executive', 'hosts']))
                         <td class="px-6 py-4 whitespace-nowrap">
                             @if($registration->payment_status === 'completed')
                                 <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
@@ -280,11 +340,23 @@
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             {{ $registration->created_at ? $registration->created_at->format('M d, Y') : '-' }}
                         </td>
-                        @if(in_array(auth('admin')->user()->role, ['admin', 'hosts']))
+                        @if(in_array(auth('admin')->user()->role, ['admin', 'hosts','travels']))
                         <td class="px-6 py-4 whitespace-nowrap text-sm">
-                            <a href="{{ route('registrations.show', $registration) }}" class="text-blue-600 hover:text-blue-900">
-                                <i class="fas fa-eye"></i> View Details
-                            </a>
+                            <div class="flex flex-wrap gap-3">
+                                <a href="{{ route('registrations.show', $registration) }}" class="text-blue-600 hover:text-blue-900 px-2 py-1 rounded hover:bg-blue-50">
+                                    <i class="fas fa-eye"></i> View Details
+                                </a>
+                                <button type="button" 
+                                        onclick="openPdfModal({{ $registration->id }}, {{ $groupMember->id }})"
+                                        class="text-green-600 hover:text-green-900 px-2 py-1 rounded hover:bg-green-50">
+                                    <i class="fas fa-envelope"></i> Preview Invitation
+                                </button>
+                                @if($groupMember->invitation_sent_at)
+                                    <span class="text-xs text-green-600 bg-green-100 px-2 py-1 rounded">
+                                        <i class="fas fa-check"></i> Sent
+                                    </span>
+                                @endif
+                            </div>
                         </td>
                         @endif
                     </tr>
@@ -294,10 +366,13 @@
                         @php
                             $colspan = 9; // Base columns
                             if (!in_array(auth('admin')->user()->role, ['executive'])) {
-                                $colspan += 2; // Status and Payment columns
+                                $colspan += 1; // Status column
                             }
-                            if (in_array(auth('admin')->user()->role, ['admin', 'hosts'])) {
-                                $colspan += 1; // Actions column
+                            if (!in_array(auth('admin')->user()->role, ['executive', 'hosts'])) {
+                                $colspan += 1; // Payment column
+                            }
+                            if (in_array(auth('admin')->user()->role, ['admin', 'hosts','travels'])) {
+                                $colspan += 3; // Actions column + Nationality + Passport columns
                             }
                         @endphp
                         <td colspan="{{ $colspan }}" class="px-6 py-4 text-center text-gray-500">
@@ -317,4 +392,14 @@
         </div>
     </div>
 </div>
+
+
+<!-- Include PDF Preview Modal -->
+@include('components.invitation-preview-modal')
+
+<!-- Include Passport Preview Modal (Admin and Hosts roles) -->
+@if(in_array(auth('admin')->user()->role, ['admin', 'hosts']))
+    @include('components.passport-preview-modal')
+@endif
+
 @endsection

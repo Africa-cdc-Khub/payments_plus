@@ -337,11 +337,11 @@
 @endif
 @endcan
 
-<div class="mt-6">
+{{-- <div class="mt-6">
     <a href="{{ route('registrations.index') }}" class="text-blue-600 hover:text-blue-800">
         <i class="fas fa-arrow-left"></i> Back to Registrations
     </a>
-</div>
+</div> --}}
 
 <!-- Include PDF Preview Modal -->
 @include('components.invitation-preview-modal')

@@ -40,12 +40,12 @@ class RegistrationParticipantsController extends Controller
         }
 
         // Check if registration is paid or approved delegate
-        $isDelegate = $registration->package_id == config('app.delegate_package_id');
-        $canReceiveInvitation = $registration->isPaid() || ($isDelegate && $registration->status === 'approved');
+        // $isDelegate = $registration->package_id == config('app.delegate_package_id');
+        // $canReceiveInvitation = $registration->isPaid() || ($isDelegate && $registration->status === 'approved');
 
-        if (!$canReceiveInvitation) {
-            return redirect()->back()->with('error', 'This registration must be paid or approved before sending invitations.');
-        }
+        // if (!$canReceiveInvitation) {
+        //     return redirect()->back()->with('error', 'This registration must be paid or approved before sending invitations.');
+        // }
 
         try {
             // Update participant invitation tracking

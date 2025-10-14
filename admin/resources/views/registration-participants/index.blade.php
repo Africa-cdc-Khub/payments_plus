@@ -48,6 +48,7 @@
                 <p class="text-sm text-gray-500">Email</p>
                 <p class="font-semibold">{{ $registration->user->email }}</p>
             </div>
+            @if(in_array(auth('admin')->user()->role, ['admin', 'hosts']))
             <div>
                 <p class="text-sm text-gray-500">Nationality</p>
                 <p class="font-semibold">{{ $registration->user->nationality ?? 'N/A' }}</p>
@@ -81,6 +82,7 @@
                     </button>
                 @endif
             </div>
+            @endif
         </div>
         <div class="mt-4 pt-4 border-t">
             <p class="text-sm text-gray-500 mb-2">Actions</p>
@@ -122,6 +124,7 @@
                     <p class="text-sm text-gray-500">Email</p>
                     <p class="font-semibold">{{ $participant->email ?? 'N/A' }}</p>
                 </div>
+                @if(in_array(auth('admin')->user()->role, ['admin', 'hosts']))
                 <div>
                     <p class="text-sm text-gray-500">Nationality</p>
                     <p class="font-semibold">{{ $participant->nationality ?? 'N/A' }}</p>
@@ -155,6 +158,7 @@
                         </button>
                     @endif
                 </div>
+                @endif
                 @if($participant->invitation_sent_at)
                 <div>
                     <p class="text-sm text-gray-500">Invitation Sent</p>
@@ -185,11 +189,11 @@
     </div>
 </div>
 
-<div class="mt-6">
+{{-- <div class="mt-6">
     <a href="{{ route('registrations.index') }}" class="text-blue-600 hover:text-blue-800">
         <i class="fas fa-arrow-left"></i> Back to Registrations
     </a>
-</div>
+</div> --}}
 
 <!-- Include PDF Preview Modal -->
 @include('components.invitation-preview-modal')

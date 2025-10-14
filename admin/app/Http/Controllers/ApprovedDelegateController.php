@@ -18,7 +18,7 @@ class ApprovedDelegateController extends Controller
             abort(403, 'Unauthorized access.');
         }
 
-        $query = Registration::with(['user', 'package'])
+        $query = Registration::with(['user', 'package', 'participants'])
             ->where('package_id', config('app.delegate_package_id'))
             ->where('status', 'approved');
 
@@ -98,7 +98,7 @@ class ApprovedDelegateController extends Controller
             abort(403, 'Unauthorized access.');
         }
 
-        $query = Registration::with(['user', 'package'])
+        $query = Registration::with(['user', 'package', 'participants'])
             ->where('package_id', config('app.delegate_package_id'))
             ->where('status', 'approved');
 
@@ -226,6 +226,39 @@ class ApprovedDelegateController extends Controller
                 ]);
                 
                 fputcsv($file, $row);
+                
+                // Include registration participants (group members) for approved delegates
+                foreach ($delegate->participants as $participant) {
+                    $participantRow = [
+                        $delegate->id . ' (Group Member)',
+                        $participant->first_name ?? '',
+                        $participant->last_name ?? '',
+                        $participant->email ?? '',
+                        $participant->phone ?? '',
+                        $participant->title ?? '',
+                        $participant->organization ?? '',
+                        $participant->position ?? '',
+                        $participant->country ?? '',
+                        $participant->city ?? '',
+                        $participant->delegate_category ?? '',
+                    ];
+                    
+                    if ($isTravels) {
+                        $participantRow[] = $participant->passport_number ?? '';
+                        $participantRow[] = $participant->airport_of_origin ?? '';
+                        $participantRow[] = $delegate->travel_processed ? 'Processed' : 'Pending';
+                    }
+                    
+                    $participantRow = array_merge($participantRow, [
+                        $participant->dietary_requirements ?? '',
+                        $participant->special_needs ?? '',
+                        $participant->requires_visa ? 'Yes' : 'No',
+                        $delegate->created_at ? $delegate->created_at->format('Y-m-d H:i:s') : '',
+                        $delegate->updated_at ? $delegate->updated_at->format('Y-m-d H:i:s') : '',
+                    ]);
+                    
+                    fputcsv($file, $participantRow);
+                }
             }
 
             fclose($file);
