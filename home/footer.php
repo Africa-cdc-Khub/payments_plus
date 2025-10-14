@@ -12,6 +12,9 @@
                 <div class="d-flex justify-content-md-end gap-3">
                     <a href="https://africacdc.org" class="text-muted text-decoration-none small" target="_blank">Africa CDC</a>
                     <a href="https://cphia2025.com" class="text-muted text-decoration-none small" target="_blank">CPHIA 2025</a>
+                    <a href="refund_policy.php" class="text-muted text-decoration-none small">
+                        <i class="fas fa-file-contract me-1"></i>Refund Policy
+                    </a>
                     <a href="mailto:<?php echo SUPPORT_EMAIL; ?>" class="text-muted text-decoration-none small">
                         <i class="fas fa-envelope me-1"></i>Support
                     </a>

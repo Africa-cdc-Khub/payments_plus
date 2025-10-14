@@ -1303,6 +1303,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                             </label>
                         </div>
                         <div class="mt-2">
+                            <a href="refund_policy.php" target="_blank" class="text-decoration-none">
+                                <i class="fas fa-file-contract me-1"></i>Read Refund Policy
+                            </a>
+                        </div>
+                        <div class="mt-2">
                             <small class="text-muted">
                                 <strong>Data Protection Notice:</strong> Your personal data is collected and processed 
                                 in accordance with the Africa CDC and African Union Data Protection Policy. 
