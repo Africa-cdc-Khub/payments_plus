@@ -23,24 +23,35 @@ class RegistrationController extends Controller
 
         // Filter by payment status
         if ($request->filled('status')) {
+            $delegatePackageId = config('app.delegate_package_id');
+            
             if ($request->status === 'voided') {
                 // Show only voided registrations
                 $query->whereNotNull('voided_at');
             } elseif ($request->status === 'pending') {
-                // For pending: exclude voided, show pending payment status, but exclude approved delegates
+                // For pending: exclude voided, show pending payment status, exclude delegates
                 $query->whereNull('voided_at');
                 $query->where('payment_status', 'pending');
-                $query->where(function($q) {
-                    $q->where('status', '!=', 'approved')
-                      ->orWhereNull('status');
-                });
+                $query->where('package_id', '!=', $delegatePackageId);
             } elseif ($request->status === 'completed') {
-                // For paid/completed: show paid registrations OR approved delegates
+                // For paid: show only actual paid registrations (NOT delegates)
                 $query->whereNull('voided_at');
-                $query->where(function($q) {
-                    $q->where('payment_status', 'completed')
-                      ->orWhere('status', 'approved');
-                });
+                $query->where('payment_status', 'completed');
+                $query->where('package_id', '!=', $delegatePackageId);
+            } elseif ($request->status === 'delegates') {
+                // For delegates: show all delegates (all statuses)
+                $query->whereNull('voided_at');
+                $query->where('package_id', $delegatePackageId);
+            } elseif ($request->status === 'approved_delegates') {
+                // For approved delegates: show only approved delegates
+                $query->whereNull('voided_at');
+                $query->where('package_id', $delegatePackageId);
+                $query->where('status', 'approved');
+            } elseif ($request->status === 'rejected') {
+                // For rejected delegates: show only rejected delegates
+                $query->whereNull('voided_at');
+                $query->where('package_id', $delegatePackageId);
+                $query->where('status', 'rejected');
             } else {
                 // For other statuses, exclude voided and filter by status
                 $query->whereNull('voided_at');
@@ -70,6 +81,156 @@ class RegistrationController extends Controller
         return view('registrations.index', compact('registrations'));
     }
 
+    public function export(Request $request)
+    {
+        // Use the same filtering logic as index method
+        $query = Registration::with(['user', 'package', 'payment.completedBy', 'invitationSentBy', 'voidedBy']);
+
+        // Filter by registration ID
+        if ($request->filled('registration_id')) {
+            $query->where('id', $request->registration_id);
+        }
+
+        // Filter by payment status
+        if ($request->filled('status')) {
+            $delegatePackageId = config('app.delegate_package_id');
+            
+            if ($request->status === 'voided') {
+                $query->whereNotNull('voided_at');
+            } elseif ($request->status === 'pending') {
+                $query->whereNull('voided_at');
+                $query->where('payment_status', 'pending');
+                $query->where('package_id', '!=', $delegatePackageId);
+            } elseif ($request->status === 'completed') {
+                $query->whereNull('voided_at');
+                $query->where('payment_status', 'completed');
+                $query->where('package_id', '!=', $delegatePackageId);
+            } elseif ($request->status === 'delegates') {
+                $query->whereNull('voided_at');
+                $query->where('package_id', $delegatePackageId);
+            } elseif ($request->status === 'approved_delegates') {
+                $query->whereNull('voided_at');
+                $query->where('package_id', $delegatePackageId);
+                $query->where('status', 'approved');
+            } elseif ($request->status === 'rejected') {
+                $query->whereNull('voided_at');
+                $query->where('package_id', $delegatePackageId);
+                $query->where('status', 'rejected');
+            } else {
+                $query->whereNull('voided_at');
+                $query->where('payment_status', $request->status);
+            }
+        } else {
+            $query->whereNull('voided_at');
+        }
+
+        // Search by user
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $search = str_replace(' ', '%', $search);
+            $query->whereHas('user', function ($q) use ($search) {
+                $q->where('first_name', 'like', "%{$search}%")
+                  ->orWhere('last_name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
+
+        $registrations = $query
+            ->orderByRaw("CASE WHEN payment_status = 'completed' THEN 0 ELSE 1 END")
+            ->latest('created_at')
+            ->get();
+
+        // Generate CSV content
+        $filename = 'registrations_' . now()->format('Y-m-d_H-i-s') . '.csv';
+        
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ];
+
+        $callback = function() use ($registrations) {
+            $file = fopen('php://output', 'w');
+            
+            // CSV headers
+            fputcsv($file, [
+                'Registration ID',
+                'First Name',
+                'Last Name',
+                'Email',
+                'Phone',
+                'Package',
+                'Registration Type',
+                'Payment Status',
+                'Amount',
+                'Payment Method',
+                'Registration Status',
+                'Registered Date',
+                'Payment Date',
+                'Marked By',
+                'Invitation Sent',
+                'Invitation Sent By',
+                'Voided',
+                'Voided By',
+                'Void Reason'
+            ]);
+
+            // CSV data
+            foreach ($registrations as $registration) {
+                // Primary registrant
+                fputcsv($file, [
+                    $registration->id,
+                    $registration->user->first_name ?? '',
+                    $registration->user->last_name ?? '',
+                    $registration->user->email ?? '',
+                    $registration->user->phone ?? '',
+                    $registration->package->name ?? '',
+                    $registration->registration_type ?? '',
+                    $registration->payment_status ?? '',
+                    $registration->package->price ?? '',
+                    $registration->payment_method ?? '',
+                    $registration->status ?? '',
+                    $registration->created_at ? $registration->created_at->format('Y-m-d H:i:s') : '',
+                    $registration->payment && $registration->payment->created_at ? $registration->payment->created_at->format('Y-m-d H:i:s') : '',
+                    $registration->payment && $registration->payment->completedBy ? $registration->payment->completedBy->full_name : '',
+                    $registration->invitation_sent_at ? 'Yes (' . $registration->invitation_sent_at->format('Y-m-d H:i:s') . ')' : 'No',
+                    $registration->invitationSentBy ? $registration->invitationSentBy->full_name : '',
+                    $registration->voided_at ? 'Yes (' . $registration->voided_at->format('Y-m-d H:i:s') . ')' : 'No',
+                    $registration->voidedBy ? $registration->voidedBy->full_name : '',
+                    $registration->void_reason ?? ''
+                ]);
+
+                // Registration participants (group members)
+                foreach ($registration->participants as $participant) {
+                    fputcsv($file, [
+                        $registration->id . ' (Group Member)',
+                        $participant->first_name ?? '',
+                        $participant->last_name ?? '',
+                        $participant->email ?? '',
+                        $participant->phone ?? '',
+                        $registration->package->name ?? '',
+                        'Group Member',
+                        $registration->payment_status ?? '',
+                        $registration->package->price ?? '',
+                        $registration->payment_method ?? '',
+                        'Group Member',
+                        $registration->created_at ? $registration->created_at->format('Y-m-d H:i:s') : '',
+                        $registration->payment && $registration->payment->created_at ? $registration->payment->created_at->format('Y-m-d H:i:s') : '',
+                        $registration->payment && $registration->payment->completedBy ? $registration->payment->completedBy->full_name : '',
+                        $participant->invitation_sent_at ? 'Yes (' . $participant->invitation_sent_at->format('Y-m-d H:i:s') . ')' : 'No',
+                        $participant->invitationSentBy ? $participant->invitationSentBy->full_name : '',
+                        $registration->voided_at ? 'Yes (' . $registration->voided_at->format('Y-m-d H:i:s') . ')' : 'No',
+                        $registration->voidedBy ? $registration->voidedBy->full_name : '',
+                        $registration->void_reason ?? ''
+                    ]);
+                }
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
     public function show(Registration $registration)
     {
         $registration->load(['user', 'package', 'participants']);
@@ -95,6 +256,7 @@ class RegistrationController extends Controller
             // Get or create payment record
             $payment = $registration->payment;
             
+            try{
             if (!$payment) {
                 // Create a new payment record
                 $payment = Payment::create([
@@ -117,12 +279,23 @@ class RegistrationController extends Controller
                     'payment_date' => $payment->payment_date ?? now(),
                     'completed_by' => Auth::guard('admin')->id(),
                     'manual_payment_remarks' => $request->remarks,
+                    'payment_reference'=>$request->remarks
                 ]);
             }
+        } catch (\Exception $e) {
+            //DB::rollBack();
+            Log::error("Failed to update payment record for registration #{$registration->id}: " . $e->getMessage());
+            //return redirect()->back()->with('error', 'Failed to update payment record. Please try again.');
+        }
 
             // Update registration payment status
             $registration->update([
                 'payment_status' => 'completed',
+                'status' => 'paid',
+                'invitation_sent_at' => now(),
+                'invitation_sent_by' => Auth::guard('admin')->id(),
+                'payment_method' => $request->payment_method,
+                'payment_reference' => $request->remarks
             ]);
 
             DB::commit();
@@ -177,20 +350,24 @@ class RegistrationController extends Controller
         // }
 
         try {
-            // Update invitation sent tracking
-            $registration->update([
-                'invitation_sent_at' => now(),
-                'invitation_sent_by' => $admin->id,
-            ]);
-
-            // Dispatch invitation job
+            // Dispatch invitation job (job will handle invitation tracking)
             SendInvitationJob::dispatch($registration->id);
 
             Log::info("Invitation email manually queued for registration #{$registration->id} by admin #" . $admin->id, [
                 'admin' => $admin->username,
             ]);
 
-            return redirect()->back()->with('success', 'Invitation email has been queued for ' . $registration->user->full_name . '.');
+            $message = 'Invitation email has been queued for ' . $registration->user->full_name;
+            
+            // Check if this is a group registration
+            if ($registration->registration_type !== 'individual' && $registration->participants()->count() > 0) {
+                $participantCount = $registration->participants()->count();
+                $message .= " and {$participantCount} additional participant" . ($participantCount > 1 ? 's' : '');
+            }
+            
+            $message .= '.';
+            
+            return redirect()->back()->with('success', $message);
         } catch (\Exception $e) {
             Log::error("Failed to queue invitation email for registration #{$registration->id}: " . $e->getMessage());
             return redirect()->back()->with('error', 'Failed to queue invitation email: ' . $e->getMessage());

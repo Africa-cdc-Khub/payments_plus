@@ -22,6 +22,13 @@
             </div>
             
             <div class="flex space-x-4">
+                <!-- Export Button -->
+                <a href="{{ route('registrations.export', request()->query()) }}" 
+                   class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center space-x-2">
+                    <i class="fas fa-download"></i>
+                    <span>Export CSV</span>
+                </a>
+                
                 <form method="GET" class="flex space-x-2">
                     <input 
                         type="text" 
@@ -44,6 +51,9 @@
                         <option value="">All Status</option>
                         <option value="pending" {{ request('status') === 'pending' ? 'selected' : '' }}>Pending</option>
                         <option value="completed" {{ request('status') === 'completed' ? 'selected' : '' }}>Paid</option>
+                        <option value="delegates" {{ request('status') === 'delegates' ? 'selected' : '' }}>Delegates</option>
+                        <option value="approved_delegates" {{ request('status') === 'approved_delegates' ? 'selected' : '' }}>Approved Delegates</option>
+                        <option value="rejected" {{ request('status') === 'rejected' ? 'selected' : '' }}>Rejected Delegate</option>
                         <option value="voided" {{ request('status') === 'voided' ? 'selected' : '' }}>Voided</option>
                     </select>
                     <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">

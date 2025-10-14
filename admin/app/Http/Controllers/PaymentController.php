@@ -57,7 +57,7 @@ class PaymentController extends Controller
     {
         $this->authorize('viewAny', \App\Models\Payment::class);
 
-        $query = Registration::with(['user', 'package', 'payment.completedBy'])
+        $query = Registration::with(['user', 'package', 'payment.completedBy', 'participants'])
             ->where('payment_status', 'completed');
 
         // Apply same filters as index
@@ -97,7 +97,8 @@ class PaymentController extends Controller
             // CSV Headers
             $headers = [
                 'ID',
-                'Name',
+                'First Name',
+                'Last Name',
                 'Email',
                 'Country',
                 'Package',
@@ -123,7 +124,8 @@ class PaymentController extends Controller
             foreach ($payments as $payment) {
                 $row = [
                     $payment->id,
-                    $payment->user->full_name,
+                    $payment->user->first_name ?? '',
+                    $payment->user->last_name ?? '',
                     $payment->user->email,
                     $payment->user->country ?? '',
                     $payment->package->name ?? '',
@@ -148,6 +150,38 @@ class PaymentController extends Controller
                 ]);
                 
                 fputcsv($file, $row);
+                
+                // Include registration participants (group members) for payments
+                foreach ($payment->participants as $participant) {
+                    $participantRow = [
+                        $payment->id . ' (Group Member)',
+                        $participant->first_name ?? '',
+                        $participant->last_name ?? '',
+                        $participant->email ?? '',
+                        $participant->country ?? '',
+                        $payment->package->name ?? '',
+                    ];
+                    
+                    if ($isTravels) {
+                        $participantRow[] = $participant->passport_number ?? '';
+                        $participantRow[] = $participant->airport_of_origin ?? '';
+                    }
+                    
+                    $participantRow = array_merge($participantRow, [
+                        $payment->total_amount ?? ($payment->payment->amount ?? ''),
+                        $payment->payment ? ucfirst(str_replace('_', ' ', $payment->payment->payment_method)) : '',
+                        $payment->payment->payment_reference ?? '',
+                        $payment->payment && $payment->payment->payment_date 
+                            ? $payment->payment->payment_date->format('Y-m-d H:i:s') 
+                            : '',
+                        $payment->payment && $payment->payment->completedBy 
+                            ? $payment->payment->completedBy->username 
+                            : '',
+                        $payment->payment->manual_payment_remarks ?? '',
+                    ]);
+                    
+                    fputcsv($file, $participantRow);
+                }
             }
 
             fclose($file);

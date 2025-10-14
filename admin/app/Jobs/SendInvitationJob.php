@@ -108,6 +108,20 @@ class SendInvitationJob implements ShouldQueue
                     'delegate_category' => $participant->delegate_category,
                     'airport_of_origin' => $participant->airport_of_origin,
                 ];
+            } else {
+                // Sending to primary registrant - check if this is a group registration
+                // If group registration, also send to all participants
+                if ($registration->registration_type !== 'individual' && $registration->participants()->count() > 0) {
+                    Log::info("Group registration detected for registration #{$this->registrationId}, dispatching invitations to all participants");
+                    
+                    // Dispatch jobs for each participant
+                    foreach ($registration->participants as $participant) {
+                        SendInvitationJob::dispatch($this->registrationId, $participant->id)
+                            ->delay(now()->addSeconds(5)); // Small delay to avoid overwhelming the queue
+                    }
+                    
+                    Log::info("Dispatched invitations to " . $registration->participants()->count() . " participants for registration #{$this->registrationId}");
+                }
             }
 
             // Generate PDF
@@ -155,6 +169,21 @@ class SendInvitationJob implements ShouldQueue
                     ? "Invitation sent successfully for participant #{$this->participantId} (registration #{$this->registrationId}) to {$recipientEmail}"
                     : "Invitation sent successfully for registration #{$this->registrationId} to {$recipientEmail}";
                 Log::info($logMessage);
+
+                // Update invitation tracking
+                if ($participant) {
+                    // Update participant invitation tracking
+                    $participant->update([
+                        'invitation_sent_at' => now(),
+                        'invitation_sent_by' => auth('admin')->id(),
+                    ]);
+                } else {
+                    // Update registration invitation tracking
+                    $registration->update([
+                        'invitation_sent_at' => now(),
+                        'invitation_sent_by' => auth('admin')->id(),
+                    ]);
+                }
             } else {
                 throw new \Exception("Email service returned false");
             }

@@ -165,7 +165,8 @@ class ParticipantsController extends Controller
             // CSV Headers
             $csvHeaders = [
                 'Registration ID',
-                'Full Name',
+                'First Name',
+                'Last Name',
                 'Email',
                 'Phone',
                 'Country/Nationality',
@@ -190,7 +191,8 @@ class ParticipantsController extends Controller
                 // Primary Registrant Row
                 $row = [
                     $registration->id,
-                    $registration->user->full_name ?? '',
+                    $registration->user->first_name ?? '',
+                    $registration->user->last_name ?? '',
                     $registration->user->email ?? '',
                     $registration->user->phone ?? '',
                     $registration->user->country ?? '',
@@ -212,7 +214,8 @@ class ParticipantsController extends Controller
                 foreach ($registration->participants as $groupMember) {
                     $memberRow = [
                         $registration->id,
-                        $groupMember->full_name ?? '',
+                        $groupMember->first_name ?? '',
+                        $groupMember->last_name ?? '',
                         $groupMember->email ?? '',
                         '',
                         $groupMember->nationality ?? '',

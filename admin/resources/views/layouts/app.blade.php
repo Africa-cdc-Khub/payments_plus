@@ -6,15 +6,23 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Admin Portal') - CPHIA 2025</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     @stack('styles')
+    
 </head>
 <body class="bg-gray-100">
     <div class="flex h-screen overflow-hidden">
+        
         <!-- Sidebar -->
         <aside class="w-64 bg-gray-800 text-white flex-shrink-0">
             <div class="p-6">
-                <h1 class="text-2xl font-bold">CPHIA 2025</h1>
-                <p class="text-gray-400 text-sm">Admin Portal</p>
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h1 class="text-2xl font-bold">CPHIA 2025</h1>
+                        <p class="text-gray-400 text-sm">Admin Portal</p>
+                    </div>
+                </div>
             </div>
             
             <nav class="mt-6">
@@ -77,7 +85,9 @@
             <!-- Top Navigation -->
             <header class="bg-white shadow-sm">
                 <div class="flex items-center justify-between px-6 py-4">
-                    <h2 class="text-xl font-semibold text-gray-800">@yield('page-title', 'Dashboard')</h2>
+                    <div class="flex items-center mr-2">
+                        <h2 class="text-xl font-semibold text-gray-800">@yield('page-title', 'Dashboard')</h2>
+                    </div>
                     
                     <div class="flex items-center space-x-4">
                         <span class="text-gray-700">{{ auth('admin')->user()->full_name }}</span>
@@ -114,6 +124,8 @@
     </div>
 
     @stack('scripts')
+    
 </body>
 </html>
+
 
