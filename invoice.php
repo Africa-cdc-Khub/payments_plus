@@ -549,9 +549,31 @@ $pageTitle = "Invoice #" . $registrationId . " - " . CONFERENCE_SHORT_NAME;
                     
                            <div class="contact-info">
                                <h4>Bank Transfer Payment Option</h4>
-                               <p>If you prefer to pay by bank transfer instead of online payment, please contact our support team for banking details:</p>
-                               <p><strong>Email:</strong> <a href="mailto:<?php echo htmlspecialchars($invoiceData['support_email']); ?>" style="color: #063218;"><?php echo htmlspecialchars($invoiceData['support_email']); ?></a></p>
-                               <p><strong>Include in your email:</strong> Your Registration ID (#<?php echo htmlspecialchars($invoiceData['registration_id']); ?>) and preferred payment method</p>
+                               <p>If you prefer to pay by bank transfer instead of online payment, please use the following banking details:</p>
+                               
+                               <div class="payment-info-box" style="background: #f0f8ff; border-left: 4px solid #007bff; margin: 15px 0;">
+                                   <h4 style="color: #007bff; margin: 0 0 15px 0;">USD Bank Account Details</h4>
+                                   <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; font-size: 14px;">
+                                       <div>
+                                           <p style="margin: 5px 0;"><strong>Bank Name:</strong> ECOBANK KENYA</p>
+                                           <p style="margin: 5px 0;"><strong>Bank Address:</strong> THE MALL, WESTLAND, NAIROBI, KENYA</p>
+                                           <p style="margin: 5px 0;"><strong>Account Number:</strong> 6640006767</p>
+                                           <p style="margin: 5px 0;"><strong>Currency:</strong> USD</p>
+                                           <p style="margin: 5px 0;"><strong>BIC/SWIFT:</strong> ECOCKENA</p>
+                                       </div>
+                                       <div>
+                                           <p style="margin: 5px 0;"><strong>IBAN/Bank Code:</strong> 043</p>
+                                           <p style="margin: 5px 0;"><strong>Account Holder:</strong> AFRICA CDC-CPHIA FUND ACCOUNT</p>
+                                           <p style="margin: 5px 0;"><strong>Account Holder Address:</strong><br>
+                                           AFRICA CDC HEADQUARTERS, HAILLE GARMENT SQUARE, NIFAS SILK LAFTO SUBCITY, ADDIS ABABA, P.O.BOX 200050, ADDIS ABABA, ETHIOPIA</p>
+                                       </div>
+                                   </div>
+                                   <div style="background: #fff3cd; padding: 10px; border-radius: 5px; margin-top: 15px; border-left: 3px solid #ffc107;">
+                                       <p style="margin: 0; color: #856404; font-size: 13px;"><strong>Important:</strong> Please include your Registration ID (#<?php echo htmlspecialchars($invoiceData['registration_id']); ?>) in the payment reference when making the transfer.</p>
+                                   </div>
+                               </div>
+                               
+                               <p><strong>Need assistance?</strong> Contact us at <a href="mailto:<?php echo htmlspecialchars($invoiceData['support_email']); ?>" style="color: #063218;"><?php echo htmlspecialchars($invoiceData['support_email']); ?></a></p>
                            </div>
                            
                            <div class="contact-info" style="background: #f8f9fa; margin-top: 15px;">
