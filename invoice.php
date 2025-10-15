@@ -571,6 +571,9 @@ $pageTitle = "Invoice #" . $registrationId . " - " . CONFERENCE_SHORT_NAME;
                                    <div style="background: #fff3cd; padding: 10px; border-radius: 5px; margin-top: 15px; border-left: 3px solid #ffc107;">
                                        <p style="margin: 0; color: #856404; font-size: 13px;"><strong>Important:</strong> Please include your Registration ID (#<?php echo htmlspecialchars($invoiceData['registration_id']); ?>) in the payment reference when making the transfer.</p>
                                    </div>
+                                   <div style="background: #d1ecf1; padding: 10px; border-radius: 5px; margin-top: 10px; border-left: 3px solid #17a2b8;">
+                                       <p style="margin: 0; color: #0c5460; font-size: 13px;"><strong>⚠️ Required:</strong> After making the bank transfer, please send proof of payment (bank receipt/confirmation) to <a href="mailto:<?php echo htmlspecialchars($invoiceData['support_email']); ?>" style="color: #0c5460; font-weight: bold;"><?php echo htmlspecialchars($invoiceData['support_email']); ?></a> to complete your registration.</p>
+                                   </div>
                                </div>
                                
                                <p><strong>Need assistance?</strong> Contact us at <a href="mailto:<?php echo htmlspecialchars($invoiceData['support_email']); ?>" style="color: #063218;"><?php echo htmlspecialchars($invoiceData['support_email']); ?></a></p>
