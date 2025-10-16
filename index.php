@@ -194,7 +194,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Calculate total amount based on African status
             $nationality = sanitizeInput($_POST['nationality']);
             $isAfrican = isAfricanNational($nationality);
-            error_log("Main user nationality: " . $nationality . ", isAfrican: " . ($isAfrican ? 'true' : 'false'));
             
             // Package already retrieved above
             
@@ -234,7 +233,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if ($isFixedPricePackage) {
                     $errors[] = "Group registration is not available for " . $package['name'] . " package";
                 } else {
-                // Regular group registration
+                // Regular group registration - use the package selected by frontend
                 $numPeople = (int)$_POST['num_people'];
                 
                 // Validate group size limit
@@ -244,34 +243,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $errors[] = "Group size cannot exceed 40 people";
                 }
                 
-                // Check if any participants are non-African (only for non-fixed-price packages)
-                $hasNonAfricanParticipants = false;
-                    if (isset($_POST['participants']) && !$isFixedPricePackage) {
-                    error_log("Checking participants for non-African status. Number of participants: " . count($_POST['participants']));
-                    foreach ($_POST['participants'] as $index => $participant) {
-                        if (!empty($participant['nationality'])) {
-                            $participantIsAfrican = isAfricanNational($participant['nationality']);
-                            error_log("Participant $index nationality: " . $participant['nationality'] . ", isAfrican: " . ($participantIsAfrican ? 'true' : 'false'));
-                            if (!$participantIsAfrican) {
-                                $hasNonAfricanParticipants = true;
-                                error_log("Found non-African participant, setting hasNonAfricanParticipants to true");
-                                break;
-                            }
-                        }
-                    }
-                }
-                
-                // Use non-African pricing if any participant is non-African
-                if ($hasNonAfricanParticipants || !$isAfrican) {
-                    $package = getPackageById(20); // Non-African nationals package
-                    error_log("Group registration: Using Non-African package (ID: 20) - hasNonAfricanParticipants: " . ($hasNonAfricanParticipants ? 'true' : 'false') . ", isAfrican: " . ($isAfrican ? 'true' : 'false'));
-                } else {
-                    $package = getPackageById(19); // African Nationals package
-                    error_log("Group registration: Using African package (ID: 19) - hasNonAfricanParticipants: " . ($hasNonAfricanParticipants ? 'true' : 'false') . ", isAfrican: " . ($isAfrican ? 'true' : 'false'));
-                }
-                
+                // Use the package selected by the frontend (no backend nationality validation)
+                // The frontend already handles package selection correctly
                 $totalAmount = $package['price'] * $numPeople;
                 $registrationType = 'group';
+                error_log("Group registration: Using frontend-selected package (ID: " . $package['id'] . ", Name: " . $package['name'] . ") for " . $numPeople . " people");
                 }
             } else {
                 // Default to selected package
@@ -289,8 +265,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'exhibition_description' => isset($_POST['exhibition_description']) ? sanitizeInput($_POST['exhibition_description']) : null,
                 'side_event_description' => isset($_POST['side_event_description']) ? sanitizeInput($_POST['side_event_description']) : null
             ];
-            
-            error_log("Final registration data - Package ID: " . $package['id'] . ", Package Name: " . $package['name'] . ", Registration Type: " . $registrationType . ", Total Amount: " . $totalAmount);
             
             $registrationId = createRegistration($registrationData);
             
