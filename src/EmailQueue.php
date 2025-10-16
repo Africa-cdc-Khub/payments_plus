@@ -40,6 +40,24 @@ class EmailQueue
     public function addToQueue($toEmail, $toName, $subject, $templateName, $templateData, $emailType, $priority = 5)
     {
         try {
+            // Check for duplicate emails in the last 24 hours to prevent spam
+            $duplicateCheck = $this->pdo->prepare("
+                SELECT COUNT(*) as count
+                FROM email_queue
+                WHERE to_email = ? 
+                AND subject = ?
+                AND template_name = ?
+                AND created_at > DATE_SUB(NOW(), INTERVAL 24 HOUR)
+                AND status IN ('pending', 'sent', 'processing')
+            ");
+            $duplicateCheck->execute([$toEmail, $subject, $templateName]);
+            $duplicateCount = $duplicateCheck->fetch(\PDO::FETCH_ASSOC)['count'];
+            
+            if ($duplicateCount > 0) {
+                error_log("Duplicate email prevented - To: $toEmail, Subject: $subject, Template: $templateName");
+                return false;
+            }
+            
             // Add email to queue instead of sending immediately
             $stmt = $this->pdo->prepare("
                 INSERT INTO email_queue 
@@ -410,13 +428,14 @@ class EmailQueue
             
             foreach ($pendingRegistrations as $registration) {
                 // Check if we already sent a reminder in the last 7 days
+                // Include 'failed' status to prevent duplicates when failed emails are reset
                 $checkStmt = $this->pdo->prepare("
                     SELECT COUNT(*) as count
                     FROM email_queue
                     WHERE template_name = 'payment_reminder'
                     AND JSON_EXTRACT(template_data, '$.registration_id') = ?
                     AND created_at > DATE_SUB(NOW(), INTERVAL 7 DAY)
-                    AND status IN ('pending', 'sent')
+                    AND status IN ('pending', 'sent', 'failed')
                 ");
                 $checkStmt->execute([$registration['id']]);
                 $existingReminder = $checkStmt->fetch(\PDO::FETCH_ASSOC);
@@ -549,6 +568,8 @@ class EmailQueue
     public function resetFailedEmails($hours = 24)
     {
         try {
+            // Only reset failed emails that are older than the specified hours
+            // and have less than 3 attempts to prevent infinite retries
             $stmt = $this->pdo->prepare("
                 UPDATE email_queue 
                 SET status = 'pending', 
@@ -558,10 +579,15 @@ class EmailQueue
                 WHERE status = 'failed' 
                 AND created_at < DATE_SUB(NOW(), INTERVAL ? HOUR)
                 AND attempts < 3
+                AND updated_at < DATE_SUB(NOW(), INTERVAL 1 HOUR)
             ");
             
             $stmt->execute([$hours]);
             $resetCount = $stmt->rowCount();
+            
+            if ($resetCount > 0) {
+                error_log("Reset $resetCount failed emails for retry");
+            }
             
             return $resetCount;
             

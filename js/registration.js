@@ -777,14 +777,30 @@ document.addEventListener('DOMContentLoaded', function() {
                             const escapedNationality = n.nationality.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
                             $nat.append(`<option value="${escapedNationality}" data-continent="${n.continent}"${sel}>${n.country_name} (${n.nationality})</option>`);
                         });
-                        // Repopulate country select
+                        // Repopulate country select with ALL countries (billing address should allow all countries)
                         const countryValue = $country.val() || '';
                         $country.empty().append('<option value="">Select Country</option>');
-                        (data.countries || []).forEach(c => {
-                            const sel = countryValue && countryValue === c.name ? ' selected' : '';
-                            const escapedName = c.name.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-                            $country.append(`<option value="${escapedName}" data-continent="${c.continent}"${sel}>${c.name}</option>`);
-                        });
+                        // Load all countries for billing address, not filtered by continent policy
+                        fetch('api/get_countries.php?include_nationalities=false')
+                            .then(r => r.json())
+                            .then(allCountriesData => {
+                                if (allCountriesData.success && allCountriesData.countries) {
+                                    allCountriesData.countries.forEach(c => {
+                                        const sel = countryValue && countryValue === c.name ? ' selected' : '';
+                                        const escapedName = c.name.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+                                        $country.append(`<option value="${escapedName}" data-continent="${c.continent}"${sel}>${c.name}</option>`);
+                                    });
+                                }
+                            })
+                            .catch(err => {
+                                console.error('Error loading all countries for billing address:', err);
+                                // Fallback: use the filtered countries if all countries fetch fails
+                                (data.countries || []).forEach(c => {
+                                    const sel = countryValue && countryValue === c.name ? ' selected' : '';
+                                    const escapedName = c.name.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+                                    $country.append(`<option value="${escapedName}" data-continent="${c.continent}"${sel}>${c.name}</option>`);
+                                });
+                            });
                         // Re-init Select2 directly to avoid double-binding
                         $nat.select2({ theme: 'bootstrap-5', placeholder: 'Select Nationality', allowClear: true, width: '100%' });
                         $country.select2({ theme: 'bootstrap-5', placeholder: 'Select Country', allowClear: true, width: '100%' });
@@ -1044,8 +1060,8 @@ document.addEventListener('DOMContentLoaded', function() {
         // Reinitialize Select2 to reflect changes
         initializeSelect2();
 
-        // Also filter country select by package continent policy
-        filterCountrySelectByPackagePolicy();
+        // Also filter nationality select by package continent policy
+        filterNationalitySelectByPackagePolicy();
     }
 
     // Initialize Select2 for nationality and country dropdowns
@@ -1085,14 +1101,15 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Filter country dropdown based on selectedPackage.continent policy
-    function filterCountrySelectByPackagePolicy() {
-        const countrySelect = document.getElementById('country');
-        if (!countrySelect) return;
-        const options = Array.from(countrySelect.options).slice(1);
+    // Filter nationality dropdown based on selectedPackage.continent policy
+    // Note: This only affects the nationality field in Personal Information, not the country field in Billing Address
+    function filterNationalitySelectByPackagePolicy() {
+        const nationalitySelect = document.getElementById('nationality');
+        if (!nationalitySelect) return;
+        const options = Array.from(nationalitySelect.options).slice(1);
         if (!selectedPackage) {
             options.forEach(o => { o.style.display = ''; });
-            $('#country').trigger('change.select2');
+            $('#nationality').trigger('change.select2');
             return;
         }
         const policy = (selectedPackage.continent || 'all').toString().toLowerCase();
@@ -1109,11 +1126,11 @@ document.addEventListener('DOMContentLoaded', function() {
             option.style.display = show ? '' : 'none';
         });
         // If current value is hidden by filter, reset selection
-        const selectedOption = countrySelect.selectedOptions[0];
+        const selectedOption = nationalitySelect.selectedOptions[0];
         if (selectedOption && selectedOption.style.display === 'none') {
-            countrySelect.value = '';
+            nationalitySelect.value = '';
         }
-        $('#country').trigger('change.select2');
+        $('#nationality').trigger('change.select2');
     }
 
     // Restore package selection from form data
