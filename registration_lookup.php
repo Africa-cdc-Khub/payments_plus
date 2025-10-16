@@ -218,12 +218,17 @@ if (isset($_GET['view']) && is_numeric($_GET['view'])) {
                                                 
                                                 if ($amount == 0): ?>
                                                     <span class="badge bg-info">Awaiting Approval</span>
+                                                <?php elseif ($paymentStatus === 'voided'): ?>
+                                                    <span class="badge bg-danger">Cancelled</span>
                                                 <?php elseif ($paymentStatus !== 'completed'): ?>
                                                     <a href="?action=pay&id=<?php echo $registration['id']; ?>" class="btn btn-success btn-sm">
                                                         <i class="fas fa-credit-card me-1"></i>Pay
                                                     </a>
                                                     <button onclick="requestInvoice(<?php echo $registration['id']; ?>)" class="btn btn-outline-primary btn-sm">
                                                         <i class="fas fa-file-invoice me-1"></i>Invoice
+                                                    </button>
+                                                    <button onclick="cancelRegistration(<?php echo $registration['id']; ?>, '<?php echo htmlspecialchars($registration['email']); ?>')" class="btn btn-outline-danger btn-sm">
+                                                        <i class="fas fa-times me-1"></i>Cancel
                                                     </button>
                                                 <?php endif; ?>
                                                 
@@ -439,6 +444,16 @@ if (isset($_GET['view']) && is_numeric($_GET['view'])) {
                             <div class="mt-3">
                                 <span class="badge bg-info fs-6">Awaiting Approval</span>
                             </div>
+                            <?php elseif ($paymentStatus === 'voided'): ?>
+                            <div class="mt-3">
+                                <span class="badge bg-danger fs-6">Registration Cancelled</span>
+                                <div class="mt-2">
+                                    <small class="text-muted">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        This registration has been cancelled. Payment reminders have been stopped.
+                                    </small>
+                                </div>
+                            </div>
                             <?php elseif ($paymentStatus !== 'completed'): ?>
                             <div class="mt-3">
                                 <h6 class="fw-bold">Payment Options</h6>
@@ -449,11 +464,14 @@ if (isset($_GET['view']) && is_numeric($_GET['view'])) {
                                     <button onclick="requestInvoice(<?php echo $registrationDetails['id']; ?>)" class="btn btn-outline-primary">
                                         <i class="fas fa-file-invoice me-2"></i>Request Invoice
                                     </button>
+                                    <button onclick="cancelRegistration(<?php echo $registrationDetails['id']; ?>, '<?php echo htmlspecialchars($registrationDetails['email']); ?>')" class="btn btn-outline-danger">
+                                        <i class="fas fa-times me-2"></i>Cancel Registration
+                                    </button>
                                 </div>
                                 <div class="mt-2">
                                     <small class="text-muted">
                                         <i class="fas fa-info-circle me-1"></i>
-                                        You can pay immediately or request an invoice to be sent to your email for later payment.
+                                        You can pay immediately, request an invoice, or cancel your registration. Cancelling will stop payment reminders.
                                     </small>
                                 </div>
                             </div>
@@ -575,6 +593,62 @@ if (isset($_GET['view']) && is_numeric($_GET['view'])) {
                     button.innerHTML = originalText;
                     button.disabled = false;
                     showAlert('Failed to send invoice. Please try again.', 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                button.innerHTML = originalText;
+                button.disabled = false;
+                showAlert('An error occurred. Please try again.', 'danger');
+            });
+        }
+        
+        // Function to cancel registration
+        function cancelRegistration(registrationId, email) {
+            if (!confirm('Are you sure you want to cancel this registration? This action cannot be undone and payment reminders will stop.')) {
+                return;
+            }
+            
+            const button = event.target;
+            const originalText = button.innerHTML;
+            
+            // Show loading state
+            button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Cancelling...';
+            button.disabled = true;
+            
+            // Send AJAX request
+            fetch('cancel_registration.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    registration_id: registrationId,
+                    email: email,
+                    reason: 'Cancelled by User'
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Show success message
+                    button.innerHTML = '<i class="fas fa-check me-2"></i>Cancelled';
+                    button.classList.remove('btn-outline-danger');
+                    button.classList.add('btn-danger');
+                    button.disabled = true;
+                    
+                    // Show success alert
+                    showAlert('Registration cancelled successfully. Payment reminders have been stopped.', 'success');
+                    
+                    // Reload the page after a short delay to show updated status
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 2000);
+                } else {
+                    // Show error message
+                    button.innerHTML = originalText;
+                    button.disabled = false;
+                    showAlert(data.message || 'Failed to cancel registration. Please try again.', 'danger');
                 }
             })
             .catch(error => {

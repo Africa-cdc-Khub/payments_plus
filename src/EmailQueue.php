@@ -384,6 +384,7 @@ class EmailQueue
     {
         try {
             // Find registrations that are pending payment, have amount > 0, and created more than 24 hours ago
+            // Exclude voided registrations, delegates, and approved registrations
             $stmt = $this->pdo->prepare("
                 SELECT r.id, r.total_amount, r.currency, r.created_at,
                        u.first_name, u.last_name, u.email,
@@ -393,9 +394,12 @@ class EmailQueue
                 JOIN packages p ON r.package_id = p.id
                 WHERE r.payment_status = 'pending'
                 AND r.status != 'cancelled'
+                AND r.status != 'approved'
                 AND r.total_amount > 0
                 AND r.created_at < DATE_SUB(NOW(), INTERVAL 24 HOUR)
                 AND r.created_at > DATE_SUB(NOW(), INTERVAL 30 DAY)
+                AND r.payment_status != 'voided'
+                AND LOWER(p.name) NOT LIKE '%delegate%'
                 ORDER BY r.created_at ASC
             ");
             
@@ -477,14 +481,19 @@ class EmailQueue
     {
         try {
             // Check if there are pending registrations that need admin attention
+            // Exclude voided registrations, delegates, and approved registrations
             $stmt = $this->pdo->prepare("
                 SELECT COUNT(*) as count
-                FROM registrations
-                WHERE payment_status = 'pending'
-                AND status != 'cancelled'
-                AND total_amount > 0
-                AND created_at < DATE_SUB(NOW(), INTERVAL 48 HOUR)
-                AND created_at > DATE_SUB(NOW(), INTERVAL 7 DAY)
+                FROM registrations r
+                JOIN packages p ON r.package_id = p.id
+                WHERE r.payment_status = 'pending'
+                AND r.status != 'cancelled'
+                AND r.status != 'approved'
+                AND r.total_amount > 0
+                AND r.created_at < DATE_SUB(NOW(), INTERVAL 48 HOUR)
+                AND r.created_at > DATE_SUB(NOW(), INTERVAL 7 DAY)
+                AND r.payment_status != 'voided'
+                AND LOWER(p.name) NOT LIKE '%delegate%'
             ");
             $stmt->execute();
             $pendingCount = $stmt->fetch(\PDO::FETCH_ASSOC)['count'];
@@ -841,7 +850,7 @@ class EmailQueue
             <meta charset="UTF-8">
             <title>{{conference_short_name}} - Group Registration Receipts</title>
         </head>
-        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto;">
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 0 auto;">
             <div style="background: #059669; color: white; padding: 20px; text-align: center;">
                 <h1>{{conference_short_name}}</h1>
                 <p>{{conference_name}}</p>
@@ -869,13 +878,33 @@ class EmailQueue
                 </div>
                 
                 <div style="background: white; padding: 15px; border-radius: 5px; margin: 20px 0;">
-                    <h3>Participants</h3>
-                    <p>Individual receipts with QR codes for each participant will be displayed here.</p>
+                    <h3>Participants ({{participants_count}})</h3>
+                    {{participants_list}}
+                </div>
+                
+                <div style="background: white; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                    <h3>QR Codes for Check-in</h3>
+                    <p>Each participant has a unique QR code for conference check-in. Please save these images or print them for easy access during the event.</p>
+                    {{qr_codes_display}}
+                </div>
+                
+                <div style="background: #f0f9ff; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #0ea5e9;">
+                    <h4 style="margin-top: 0; color: #0c4a6e;">Important Information</h4>
+                    <ul style="margin: 10px 0; padding-left: 20px;">
+                        <li>Each participant must present their QR code at the conference check-in desk</li>
+                        <li>QR codes are unique to each participant and cannot be shared</li>
+                        <li>Please arrive at least 30 minutes before your first session</li>
+                        <li>If you have any questions, contact us at {{support_email}}</li>
+                    </ul>
                 </div>
             </div>
             
             <div style="text-align: center; padding: 20px; background: #e2e8f0; color: #666;">
                 <p>Best regards,<br>{{conference_short_name}} Team</p>
+                <p style="font-size: 12px; margin-top: 10px;">
+                    For support, email: {{support_email}}<br>
+                    Visit our website for more information about the conference
+                </p>
             </div>
         </body>
         </html>';

@@ -305,6 +305,32 @@ function generateInvoiceData($user, $registrationId, $package, $amount, $partici
         $participantsWithAmount[] = $participant;
     }
     
+    // Generate participants HTML table for invoice template
+    $participantsHtml = '';
+    if (!empty($participantsWithAmount)) {
+        $participantsHtml .= '<table class="participants-table">';
+        $participantsHtml .= '<thead><tr>';
+        $participantsHtml .= '<th>#</th>';
+        $participantsHtml .= '<th>Full Name</th>';
+        $participantsHtml .= '<th>Email</th>';
+        $participantsHtml .= '<th>Nationality</th>';
+        $participantsHtml .= '<th>Amount</th>';
+        $participantsHtml .= '</tr></thead>';
+        $participantsHtml .= '<tbody>';
+        
+        foreach ($participantsWithAmount as $index => $participant) {
+            $participantsHtml .= '<tr>';
+            $participantsHtml .= '<td>' . ($index + 1) . '</td>';
+            $participantsHtml .= '<td>' . htmlspecialchars($participant['first_name'] . ' ' . $participant['last_name']) . '</td>';
+            $participantsHtml .= '<td>' . htmlspecialchars($participant['email']) . '</td>';
+            $participantsHtml .= '<td>' . htmlspecialchars($participant['nationality']) . '</td>';
+            $participantsHtml .= '<td class="amount-cell">$' . $participant['amount'] . '</td>';
+            $participantsHtml .= '</tr>';
+        }
+        
+        $participantsHtml .= '</tbody></table>';
+    }
+    
     // Format dates
     $invoiceDate = date('F j, Y');
     $dueDate = date('F j, Y', strtotime('+30 days')); // 30 days from now
@@ -320,6 +346,7 @@ function generateInvoiceData($user, $registrationId, $package, $amount, $partici
         'num_participants' => $numParticipants,
         'total_amount' => number_format($amount, 2),
         'participants' => $participantsWithAmount,
+        'participants_html' => $participantsHtml,
         'conference_name' => CONFERENCE_NAME,
         'conference_short_name' => CONFERENCE_SHORT_NAME,
         'conference_dates' => CONFERENCE_DATES,
@@ -1270,6 +1297,35 @@ function sendReceiptEmails($registration, $package, $user, $participants = []) {
             $navigationQrCodes[] = $participantReceipt['navigation_qr_code'];
         }
         
+        // Generate formatted participant list
+        $participantsList = '';
+        foreach ($receiptData as $index => $participant) {
+            $participantsList .= '<div style="border: 1px solid #e5e7eb; padding: 15px; margin: 10px 0; border-radius: 5px; background: #f9fafb;">';
+            $participantsList .= '<h4 style="margin: 0 0 10px 0; color: #374151;">Participant ' . ($index + 1) . '</h4>';
+            $participantsList .= '<p style="margin: 5px 0;"><strong>Name:</strong> ' . htmlspecialchars($participant['name']) . '</p>';
+            $participantsList .= '<p style="margin: 5px 0;"><strong>Email:</strong> ' . htmlspecialchars($participant['email']) . '</p>';
+            $participantsList .= '<p style="margin: 5px 0;"><strong>Phone:</strong> ' . htmlspecialchars($participant['phone'] ?? 'N/A') . '</p>';
+            $participantsList .= '<p style="margin: 5px 0;"><strong>Nationality:</strong> ' . htmlspecialchars($participant['nationality'] ?? 'N/A') . '</p>';
+            if (!empty($participant['institution'])) {
+                $participantsList .= '<p style="margin: 5px 0;"><strong>Institution:</strong> ' . htmlspecialchars($participant['institution']) . '</p>';
+            }
+            if (!empty($participant['position'])) {
+                $participantsList .= '<p style="margin: 5px 0;"><strong>Position:</strong> ' . htmlspecialchars($participant['position']) . '</p>';
+            }
+            $participantsList .= '</div>';
+        }
+        
+        // Generate QR codes display
+        $qrCodesDisplay = '';
+        foreach ($qrCodes as $index => $qrCode) {
+            $participantName = $receiptData[$index]['name'];
+            $qrCodesDisplay .= '<div style="text-align: center; margin: 20px 0; padding: 15px; border: 1px solid #e5e7eb; border-radius: 5px; background: white;">';
+            $qrCodesDisplay .= '<h4 style="margin: 0 0 10px 0; color: #374151;">' . htmlspecialchars($participantName) . '</h4>';
+            $qrCodesDisplay .= '<img src="data:image/png;base64,' . $qrCode . '" alt="QR Code for ' . htmlspecialchars($participantName) . '" style="max-width: 200px; height: auto; border: 1px solid #d1d5db;">';
+            $qrCodesDisplay .= '<p style="margin: 10px 0 0 0; font-size: 12px; color: #6b7280;">Scan this QR code at conference check-in</p>';
+            $qrCodesDisplay .= '</div>';
+        }
+        
         $templateData = [
             'conference_name' => CONFERENCE_NAME,
             'conference_short_name' => CONFERENCE_SHORT_NAME,
@@ -1281,13 +1337,16 @@ function sendReceiptEmails($registration, $package, $user, $participants = []) {
             'package_name' => $package['name'],
             'total_amount' => formatCurrency($registration['total_amount'], $registration['currency']),
             'payment_date' => date('F j, Y \a\t g:i A'),
+            'participants_count' => count($receiptData),
+            'participants_list' => $participantsList,
+            'qr_codes_display' => $qrCodesDisplay,
             'participants' => $receiptData,
             'qr_codes' => $qrCodes,
             'verification_qr_codes' => $verificationQrCodes,
             'navigation_qr_codes' => $navigationQrCodes,
             'logo_url' => EMAIL_LOGO_URL,
             'mail_from_address' => MAIL_FROM_ADDRESS,
-        'support_email' => SUPPORT_EMAIL
+            'support_email' => SUPPORT_EMAIL
         ];
         
         $success = $emailQueue->addToQueue(

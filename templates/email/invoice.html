@@ -356,28 +356,7 @@
             
             {{#if participants}}
             <h3>Participants</h3>
-            <table class="participants-table">
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Full Name</th>
-                        <th>Email</th>
-                        <th>Nationality</th>
-                        <th>Amount</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {{#each participants}}
-                    <tr>
-                        <td>{{@index}}</td>
-                        <td>{{first_name}} {{last_name}}</td>
-                        <td>{{email}}</td>
-                        <td>{{nationality}}</td>
-                        <td class="amount-cell">${{amount}}</td>
-                    </tr>
-                    {{/each}}
-                </tbody>
-            </table>
+            {{participants_html}}
             {{/if}}
             
             <div class="total-section">
