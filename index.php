@@ -200,9 +200,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Get or create user
             $user = getOrCreateUser($userData);
             
-            // Calculate total amount based on African status
+            // Get nationality for data storage (no longer used for pricing)
             $nationality = sanitizeInput($_POST['nationality']);
-            $isAfrican = isAfricanNational($nationality);
             
             // Package already retrieved above
             
@@ -229,14 +228,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                      $registrationType = 'individual'; // Students and Delegates are individual only
                  }
             } else if ($_POST['registration_type'] === 'individual') {
-                // Regular individual registration - use African/Non-African pricing
-                if ($isAfrican) {
-                    $package = getPackageById(19); // African Nationals package
-                } else {
-                    $package = getPackageById(20); // Non-African nationals package
-                }
+                // Regular individual registration - use the package selected by frontend
+                // No backend nationality validation - frontend handles package selection correctly
                 $totalAmount = $package['price'];
                 $registrationType = 'individual';
+                error_log("Individual registration: Using frontend-selected package (ID: " . $package['id'] . ", Name: " . $package['name'] . ")");
             } else if ($_POST['registration_type'] === 'group' && isset($_POST['num_people'])) {
                 // Group registration - not allowed for fixed-price packages
                 if ($isFixedPricePackage) {
