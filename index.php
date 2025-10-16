@@ -194,6 +194,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Calculate total amount based on African status
             $nationality = sanitizeInput($_POST['nationality']);
             $isAfrican = isAfricanNational($nationality);
+            error_log("Main user nationality: " . $nationality . ", isAfrican: " . ($isAfrican ? 'true' : 'false'));
             
             // Package already retrieved above
             
@@ -246,10 +247,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // Check if any participants are non-African (only for non-fixed-price packages)
                 $hasNonAfricanParticipants = false;
                     if (isset($_POST['participants']) && !$isFixedPricePackage) {
-                    foreach ($_POST['participants'] as $participant) {
-                        if (!empty($participant['nationality']) && !isAfricanNational($participant['nationality'])) {
-                            $hasNonAfricanParticipants = true;
-                            break;
+                    error_log("Checking participants for non-African status. Number of participants: " . count($_POST['participants']));
+                    foreach ($_POST['participants'] as $index => $participant) {
+                        if (!empty($participant['nationality'])) {
+                            $participantIsAfrican = isAfricanNational($participant['nationality']);
+                            error_log("Participant $index nationality: " . $participant['nationality'] . ", isAfrican: " . ($participantIsAfrican ? 'true' : 'false'));
+                            if (!$participantIsAfrican) {
+                                $hasNonAfricanParticipants = true;
+                                error_log("Found non-African participant, setting hasNonAfricanParticipants to true");
+                                break;
+                            }
                         }
                     }
                 }
@@ -257,8 +264,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // Use non-African pricing if any participant is non-African
                 if ($hasNonAfricanParticipants || !$isAfrican) {
                     $package = getPackageById(20); // Non-African nationals package
+                    error_log("Group registration: Using Non-African package (ID: 20) - hasNonAfricanParticipants: " . ($hasNonAfricanParticipants ? 'true' : 'false') . ", isAfrican: " . ($isAfrican ? 'true' : 'false'));
                 } else {
                     $package = getPackageById(19); // African Nationals package
+                    error_log("Group registration: Using African package (ID: 19) - hasNonAfricanParticipants: " . ($hasNonAfricanParticipants ? 'true' : 'false') . ", isAfrican: " . ($isAfrican ? 'true' : 'false'));
                 }
                 
                 $totalAmount = $package['price'] * $numPeople;
@@ -280,6 +289,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'exhibition_description' => isset($_POST['exhibition_description']) ? sanitizeInput($_POST['exhibition_description']) : null,
                 'side_event_description' => isset($_POST['side_event_description']) ? sanitizeInput($_POST['side_event_description']) : null
             ];
+            
+            error_log("Final registration data - Package ID: " . $package['id'] . ", Package Name: " . $package['name'] . ", Registration Type: " . $registrationType . ", Total Amount: " . $totalAmount);
             
             $registrationId = createRegistration($registrationData);
             
@@ -1132,7 +1143,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                                     <option value="Exhibition Focal Person (Bronze+)" <?php echo (($formData['delegate_category'] ?? '') === 'Exhibition Focal Person') ? 'selected' : ''; ?>>Exhibition Focal Person (Bronze+)</option>
                                     <option value="Journalist" <?php echo (($formData['delegate_category'] ?? '') === 'Journalist') ? 'selected' : ''; ?>>Journalist</option>
                                     <option value="Interpreter/Translator" <?php echo (($formData['delegate_category'] ?? '') === 'Interpreter/Translator') ? 'selected' : ''; ?>>Interpreter/Translator</option>
-                                    
+                                    <option value="Approved Staff" <?php echo (($formData['delegate_category'] ?? '') === 'Approved Staff') ? 'selected' : ''; ?>>Approved Staff</option>
                                 </select>
                                 <div class="form-text">Required for delegate registration</div>
                             </div>
