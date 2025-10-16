@@ -124,12 +124,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = "Please enter a valid exhibition description (5-1000 characters)";
     }
     
-    // Side event description validation - required for side event packages
+    // Side event name validation - required for side event packages
     if ($package && (strtolower($package['type']) === 'group' && strpos(strtolower($package['name']), 'side event') !== false)) {
         if (empty($_POST['side_event_description'])) {
-            $errors[] = "Please provide a description of your side event";
-        } elseif (!validateExhibitionDescription($_POST['side_event_description'])) {
-            $errors[] = "Please enter a valid side event description (5-1000 characters)";
+            $errors[] = "Please enter the name of your side event";
+        } else {
+            $sideEventName = trim($_POST['side_event_description']);
+            $words = preg_split('/\s+/', $sideEventName);
+            $words = array_filter($words, function($word) { return strlen($word) > 0; });
+            if (count($words) === 0) {
+                $errors[] = "Please enter a valid name for your side event (at least one word)";
+            } elseif (strlen($sideEventName) < 2) {
+                $errors[] = "Side event name must be at least 2 characters long";
+            } elseif (strlen($sideEventName) > 100) {
+                $errors[] = "Side event name must not exceed 100 characters";
+            }
         }
     }
     
@@ -1149,12 +1158,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                             </div>
                         </div>
                         
-                        <!-- Side Event Description Field (only for Side Events packages) -->
+                        <!-- Side Event Name Field (only for Side Events packages) -->
                         <div id="sideEventFields" class="row" style="display: none;">
                             <div class="col-12 mb-3">
-                                <label for="side_event_description" class="form-label">Side Event Description <span class="asterisk">*</span></label>
-                                <textarea class="form-control" name="side_event_description" id="side_event_description" rows="4" placeholder="Please provide a detailed description of your side event, including objectives, target audience, and any special requirements..."><?php echo htmlspecialchars($formData['side_event_description'] ?? ''); ?></textarea>
-                                <div class="form-text">Required for side event registration - describe your event in detail</div>
+                                <label for="side_event_description" class="form-label">Side Event Name <span class="asterisk">*</span></label>
+                                <input type="text" class="form-control" name="side_event_description" id="side_event_description" placeholder="Enter the name of your side event" value="<?php echo htmlspecialchars($formData['side_event_description'] ?? ''); ?>">
+                                <div class="form-text">Required for side event registration - enter the name of your event</div>
                             </div>
                         </div>
                     </div>

@@ -3004,12 +3004,20 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
         
-        // Validate side event description if side event fields are visible
+        // Validate side event name if side event fields are visible
         const sideEventFields = document.getElementById('sideEventFields');
         const sideEventDescription = document.getElementById('side_event_description');
         if (sideEventFields && sideEventFields.style.display !== 'none' && sideEventDescription) {
-            if (!sideEventDescription.value.trim()) {
-                showAlert('error', 'Please provide a description of your side event', 'Validation Error');
+            const sideEventName = sideEventDescription.value.trim();
+            if (!sideEventName) {
+                showAlert('error', 'Please enter the name of your side event', 'Validation Error');
+                sideEventDescription.focus();
+                return;
+            }
+            // Check if it contains at least one word (not just spaces)
+            const words = sideEventName.split(/\s+/).filter(word => word.length > 0);
+            if (words.length === 0) {
+                showAlert('error', 'Please enter a valid name for your side event (at least one word)', 'Validation Error');
                 sideEventDescription.focus();
                 return;
             }
