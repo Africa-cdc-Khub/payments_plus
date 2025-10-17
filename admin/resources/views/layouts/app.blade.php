@@ -60,6 +60,12 @@
                 </a>
                 @endif
                 
+                @if($admin && $admin->role === 'admin')
+                <a href="{{ route('invoices.index') }}" class="block px-6 py-3 hover:bg-gray-700 {{ request()->routeIs('invoices.*') ? 'bg-gray-700' : '' }}">
+                    <i class="fas fa-file-invoice mr-2"></i> Invoices
+                </a>
+                @endif
+                
                 @if($admin && in_array($admin->role, ['admin', 'executive','secretariat','finance','hosts']))
                 <a href="{{ route('participants.index') }}" class="block px-6 py-3 hover:bg-gray-700 {{ request()->routeIs('participants.*') ? 'bg-gray-700' : '' }}">
                     <i class="fas fa-users mr-2"></i> Participants

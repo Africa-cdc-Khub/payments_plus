@@ -26,6 +26,7 @@ Route::middleware(['admin.auth'])->group(function () {
     // Registrations
     Route::resource('registrations', RegistrationController::class);
     Route::get('registrations/export/csv', [RegistrationController::class, 'export'])->name('registrations.export');
+    Route::get('registrations/{registration}/invoice', [RegistrationController::class, 'invoice'])->name('registrations.invoice');
     Route::post('registrations/{registration}/mark-paid', [RegistrationController::class, 'markAsPaid'])->name('registrations.mark-paid');
     Route::post('registrations/{registration}/send-invitation', [RegistrationController::class, 'sendInvitation'])->name('registrations.send-invitation');
     Route::post('registrations/{registration}/void', [RegistrationController::class, 'voidRegistration'])->name('registrations.void');
@@ -64,6 +65,17 @@ Route::middleware(['admin.auth'])->group(function () {
     Route::post('delegates/{registration}/approve', [DelegateController::class, 'approve'])->name('delegates.approve');
     Route::post('delegates/{registration}/reject', [DelegateController::class, 'reject'])->name('delegates.reject');
     Route::post('delegates/{registration}/reset-to-pending', [DelegateController::class, 'resetToPending'])->name('delegates.reset-to-pending');
+    
+    // Invoices (Admin only)
+    Route::middleware(['auth:admin'])->group(function () {
+        Route::resource('invoices', \App\Http\Controllers\InvoiceController::class);
+        Route::get('invoices/export/csv', [\App\Http\Controllers\InvoiceController::class, 'export'])->name('invoices.export');
+        Route::post('invoices/{invoice}/mark-paid', [\App\Http\Controllers\InvoiceController::class, 'markAsPaid'])->name('invoices.mark-paid');
+        Route::post('invoices/{invoice}/cancel', [\App\Http\Controllers\InvoiceController::class, 'cancel'])->name('invoices.cancel');
+        Route::get('invoices/{invoice}/download', [\App\Http\Controllers\InvoiceController::class, 'download'])->name('invoices.download');
+        Route::get('invoices/{invoice}/preview', [\App\Http\Controllers\InvoiceController::class, 'preview'])->name('invoices.preview');
+        Route::post('invoices/{invoice}/send', [\App\Http\Controllers\InvoiceController::class, 'send'])->name('invoices.send');
+    });
     
     // Approved Delegates
     Route::get('approved-delegates', [\App\Http\Controllers\ApprovedDelegateController::class, 'index'])->name('approved-delegates.index');

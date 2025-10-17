@@ -286,6 +286,11 @@
                                     </a>
                                     @endif
                                     
+                                    @if($registration->isPaid() && in_array(auth('admin')->user()->role, ['admin', 'finance']))
+                                    <a href="{{ route('registrations.invoice', $registration) }}" class="ml-3 text-blue-600 hover:text-blue-900" title="Generate Invoice">
+                                        <i class="fas fa-file-invoice"></i> Invoice
+                                    </a>
+                                    @endif
                                     
                                     @if(auth('admin')->user()->role === 'admin')
                                     <button type="button" 
