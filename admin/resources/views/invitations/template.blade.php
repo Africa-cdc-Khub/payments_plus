@@ -106,9 +106,12 @@
 </head>
 <body>
 @php
-    $fullySponsoredCategories = [
+    $speakersCategories = [
         'Oral abstract presenter',
-        'Invited speaker/Moderator',
+        'Invited speaker/Moderator'
+    ];
+    
+    $otherFullySponsoredCategories = [
         'Scientific Program Committee Member',
         'Secretariat',
         'Media Partner',
@@ -117,7 +120,10 @@
         'Interpreter/Translators'
     ];
     
-    $isFullySponsored = in_array(trim($registration->user->delegate_category) ?? '', $fullySponsoredCategories);
+    $delegateCategory = trim($registration->user->delegate_category) ?? '';
+    $isSpeaker = in_array($delegateCategory, $speakersCategories);
+    $isOtherFullySponsored = in_array($delegateCategory, $otherFullySponsoredCategories);
+    $isFullySponsored = $isSpeaker || $isOtherFullySponsored;
 @endphp
     <div class="container">
         <header class="header">
@@ -141,7 +147,9 @@
 
             <p>This marks the fourth iteration of the conference, initially held virtually in 2021 and then in-person in 2022 and 2023 in Kigali, Rwanda, and Lusaka, Zambia, respectively. As African Union Member States accelerate the realisation of universal health coverage, annual CPHIAs are helping define how Africa can be more self-reliant in the delivery of quality health care to achieve a healthier, more prosperous Africa – for the continent, and the world.</p>
 
-            @if($isFullySponsored)
+            @if($isSpeaker)
+                <p>{{ config('app.speakers_sponsorship_message') }}</p>
+            @elseif($isOtherFullySponsored)
                 <p>{{ config('app.fully_sponsored_message') }}</p>
             @endif
             <p>If you have any questions, do not hesitate to contact the CPHIA 2025 Secretariat support team at <a href="mailto:cphiasecretariat@africacdc.org" class="link">cphiasecretariat@africacdc.org</a>.</p>
