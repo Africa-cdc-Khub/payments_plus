@@ -47,6 +47,9 @@
                 <p class="text-gray-500 text-sm">Pending Payments</p>
                 <p class="text-2xl font-bold">{{ number_format($stats['pending_payments']) }}</p>
                 <p class="text-xs text-gray-400 mt-1">Excluding delegates</p>
+                @if($stats['pending_invoices_revenue'] > 0)
+                <small class="text-gray-500 image.png">Invoice value: ${{ number_format($stats['pending_invoices_revenue'], 2) }}</small>
+                @endif
             </div>
         </div>
     </div>
@@ -59,6 +62,9 @@
             <div class="ml-4">
                 <p class="text-gray-500 text-sm">Total Revenue</p>
                 <p class="text-2xl font-bold">${{ number_format($stats['total_revenue'], 2) }}</p>
+                @if($stats['pending_invoices_revenue'] > 0)
+                <small class="text-gray-500 image.png">Invoice value: ${{ number_format($stats['paid_invoices_revenue'], 2) }}</small>
+                @endif
             </div>
         </div>
     </div>

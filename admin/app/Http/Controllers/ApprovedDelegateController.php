@@ -31,6 +31,7 @@ class ApprovedDelegateController extends Controller
                 'Secretariat',
                 'Media Partner',
                 'Youth Program Participant',
+                'Interpreter/Translator',
                 'Interpreter/Translators'
             ];
             
@@ -111,6 +112,7 @@ class ApprovedDelegateController extends Controller
                 'Secretariat',
                 'Media Partner',
                 'Youth Program Participant',
+                'Interpreter/Translator',
                 'Interpreter/Translators'
             ];
             

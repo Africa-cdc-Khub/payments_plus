@@ -116,7 +116,7 @@
                     </div>
                     <div class="py-2">
                         <p class="text-sm text-gray-600">Total Payments</p>
-                        <p class="text-2xl font-bold text-gray-900">{{ $payments->total() }}</p>
+                        <p class="text-2xl font-bold text-gray-900">${{ number_format($totalPaymentAmount, 2) }}</p>
                     </div>
                 </div>
             </div>
