@@ -18,7 +18,7 @@
                 <i class="fas fa-users text-2xl"></i>
             </div>
             <div class="ml-4">
-                <p class="text-gray-500 text-sm">Total Participants</p>
+                <p class="text-gray-500 text-sm">Total Registrations</p>
                 <p class="text-2xl font-bold">{{ number_format($stats['total_participants']) }}</p>
                 <p class="text-xs text-gray-400 mt-1">Includes group members</p>
             </div>
