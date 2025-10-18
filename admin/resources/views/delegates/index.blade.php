@@ -112,6 +112,9 @@
                 <a href="{{ route('delegates.index') }}" class="px-4 py-2 bg-gray-400 text-white rounded-lg hover:bg-gray-500 whitespace-nowrap">
                     <i class="fas fa-times"></i> Clear
                 </a>
+                <a href="{{ route('delegates.export', request()->query()) }}" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 whitespace-nowrap">
+                    <i class="fas fa-download"></i> Export CSV
+                </a>
             </div>
         </form>
 

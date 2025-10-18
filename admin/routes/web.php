@@ -61,6 +61,7 @@ Route::middleware(['admin.auth'])->group(function () {
     
     // Delegates
     Route::get('delegates', [DelegateController::class, 'index'])->name('delegates.index');
+    Route::get('delegates/export/csv', [DelegateController::class, 'export'])->name('delegates.export');
     Route::get('delegates/{registration}', [DelegateController::class, 'show'])->name('delegates.show');
     Route::post('delegates/{registration}/approve', [DelegateController::class, 'approve'])->name('delegates.approve');
     Route::post('delegates/{registration}/reject', [DelegateController::class, 'reject'])->name('delegates.reject');

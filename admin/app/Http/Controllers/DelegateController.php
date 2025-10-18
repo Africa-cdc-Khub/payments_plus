@@ -9,6 +9,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Response;
 
 class DelegateController extends Controller
 {
@@ -215,6 +216,156 @@ class DelegateController extends Controller
         $registration->load(['user', 'package', 'participants']);
         
         return view('delegates.show', compact('registration'));
+    }
+
+    /**
+     * Export delegates to CSV
+     */
+    public function export(Request $request)
+    {
+        $this->authorize('manageDelegates', Registration::class);
+        
+        $delegatePackageId = config('app.delegate_package_id');
+        
+        $query = Registration::with(['user', 'package', 'participants'])
+            ->where('package_id', $delegatePackageId);
+
+        // Apply same filters as index
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->whereHas('user', function ($q) use ($search) {
+                $q->where('first_name', 'like', "%{$search}%")
+                  ->orWhere('last_name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('delegate_category')) {
+            $query->whereHas('user', function ($q) use ($request) {
+                $q->where('delegate_category', $request->delegate_category);
+            });
+        }
+
+        if ($request->filled('country')) {
+            $query->whereHas('user', function ($q) use ($request) {
+                $q->where('country', $request->country);
+            });
+        }
+
+        // Order by status priority, then by creation date
+        $delegates = $query
+            ->orderByRaw("CASE 
+                WHEN status = 'pending' THEN 1 
+                WHEN status = 'approved' THEN 2 
+                WHEN status = 'rejected' THEN 3 
+                ELSE 4 END")
+            ->latest('created_at')
+            ->get();
+
+        // Generate CSV
+        $filename = 'delegates_' . now()->format('Y-m-d_His') . '.csv';
+        
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => "attachment; filename=\"$filename\"",
+        ];
+
+        $callback = function() use ($delegates) {
+            $file = fopen('php://output', 'w');
+            
+            // Add UTF-8 BOM for proper accent display in Excel and other applications
+            fwrite($file, "\xEF\xBB\xBF");
+            
+            // Helper function: ensure value is UTF-8 and safe for Excel (handles accents/diacritics correctly)
+            $safeValue = function($value) {
+                if (is_null($value)) return '';
+                // If already UTF-8, keep as-is, but ensure any improper bytes fixed
+                $str = (string)$value;
+                if (!mb_detect_encoding($str, 'UTF-8', true)) {
+                    $str = mb_convert_encoding($str, 'UTF-8');
+                }
+                // Some Office/Excel versions may break on long accented chars if not normalized:
+                return normalizer_is_normalized($str, \Normalizer::FORM_C) ? $str : normalizer_normalize($str, \Normalizer::FORM_C);
+            };
+            
+            // CSV Headers
+            $headers = [
+                'ID',
+                'Title',
+                'First Name',
+                'Last Name',
+                'Email',
+                'Phone',
+                'Nationality',
+                'Organization',
+                'Position',
+                'Country',
+                'City',
+                'Delegate Category',
+                'Status',
+                'Registration Date',
+                'Updated Date',
+                'Rejection Reason'
+            ];
+            
+            fputcsv($file, $headers);
+
+            // CSV Data
+            foreach ($delegates as $delegate) {
+                $row = [
+                    $delegate->id,
+                    $safeValue($delegate->user->title ?? ''),
+                    $safeValue($delegate->user->first_name ?? ''),
+                    $safeValue($delegate->user->last_name ?? ''),
+                    $safeValue($delegate->user->email ?? ''),
+                    $safeValue($delegate->user->phone ?? ''),
+                    $safeValue($delegate->user->nationality ?? ''),
+                    $safeValue($delegate->user->organization ?? ''),
+                    $safeValue($delegate->user->position ?? ''),
+                    $safeValue($delegate->user->country ?? ''),
+                    $safeValue($delegate->user->city ?? ''),
+                    $safeValue($delegate->user->delegate_category ?? ''),
+                    ucfirst($delegate->status),
+                    $delegate->created_at ? $delegate->created_at->format('Y-m-d H:i:s') : '',
+                    $delegate->updated_at ? $delegate->updated_at->format('Y-m-d H:i:s') : '',
+                    $safeValue($delegate->rejection_reason ?? ''),
+                ];
+                
+                fputcsv($file, $row);
+                
+                // Include registration participants (group members) for delegates
+                foreach ($delegate->participants as $participant) {
+                    $participantRow = [
+                        $delegate->id . ' (Group Member)',
+                        $safeValue($participant->title ?? ''),
+                        $safeValue($participant->first_name ?? ''),
+                        $safeValue($participant->last_name ?? ''),
+                        $safeValue($participant->email ?? ''),
+                        $safeValue($participant->phone ?? ''),
+                        $safeValue($participant->nationality ?? ''),
+                        $safeValue($participant->organization ?? ''),
+                        $safeValue($participant->position ?? ''),
+                        $safeValue($participant->country ?? ''),
+                        $safeValue($participant->city ?? ''),
+                        $safeValue($participant->delegate_category ?? ''),
+                        ucfirst($delegate->status),
+                        $delegate->created_at ? $delegate->created_at->format('Y-m-d H:i:s') : '',
+                        $delegate->updated_at ? $delegate->updated_at->format('Y-m-d H:i:s') : '',
+                        $safeValue($delegate->rejection_reason ?? ''),
+                    ];
+                    
+                    fputcsv($file, $participantRow);
+                }
+            }
+
+            fclose($file);
+        };
+
+        return Response::stream($callback, 200, $headers);
     }
 }
 
