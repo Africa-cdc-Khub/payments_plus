@@ -105,7 +105,11 @@ class RegistrationController extends Controller
                 break;
         }
 
-        $registrations = $query->paginate(20);
+        // Handle per page parameter
+        $perPage = $request->get('per_page', 50);
+        $perPage = min(max($perPage, 10), 200); // Min 10, Max 200
+        
+        $registrations = $query->paginate($perPage);
 
         return view('registrations.index', compact('registrations'));
     }

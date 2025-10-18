@@ -61,7 +61,11 @@ class InvoiceController extends Controller
                 break;
         }
 
-        $invoices = $query->paginate(20);
+        // Handle per page parameter
+        $perPage = $request->get('per_page', 50);
+        $perPage = min(max($perPage, 10), 200); // Min 10, Max 200
+        
+        $invoices = $query->paginate($perPage);
 
         return view('invoices.index', compact('invoices'));
     }

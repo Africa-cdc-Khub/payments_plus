@@ -79,7 +79,11 @@ class PaymentController extends Controller
                 break;
         }
 
-        $payments = $query->paginate(20);
+        // Handle per page parameter
+        $perPage = $request->get('per_page', 50);
+        $perPage = min(max($perPage, 10), 200); // Min 10, Max 200
+        
+        $payments = $query->paginate($perPage);
         
         // Calculate total payment amount
         $totalPaymentAmount = $query->clone()->sum('payment_amount');

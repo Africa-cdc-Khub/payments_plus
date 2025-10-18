@@ -101,7 +101,11 @@ class ApprovedDelegateController extends Controller
                 break;
         }
 
-        $delegates = $query->paginate(20);
+        // Handle per page parameter
+        $perPage = $request->get('per_page', 50);
+        $perPage = min(max($perPage, 10), 200); // Min 10, Max 200
+        
+        $delegates = $query->paginate($perPage);
 
         // Get unique delegate categories for filter - from all users with delegate category
         $delegateCategories = \App\Models\User::whereNotNull('delegate_category')

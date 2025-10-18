@@ -166,8 +166,8 @@
         </div>
     </div>
 
-    <!-- Showing records info -->
-    <div class="mb-4 mt-2">
+    <!-- Showing records info and per-page selector -->
+    <div class="mb-4 mt-2 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <p class="text-sm text-gray-700 leading-5">
             Showing
             @if ($payments->firstItem())
@@ -181,6 +181,9 @@
             <span class="font-medium">{{ $payments->total() }}</span>
             payments
         </p>
+        
+        <!-- Per-page selector -->
+        <x-per-page-selector :paginator="$payments" :current-per-page="request('per_page', 50)" />
     </div>
 
     <div class="table-container">

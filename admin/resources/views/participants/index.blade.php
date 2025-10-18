@@ -120,12 +120,17 @@
 
     <!-- Participants Table -->
     <div class="bg-white rounded-lg shadow overflow-hidden mt-2">
-        <div class="px-6 py-4 border-b border-gray-200">
-            <h3 class="text-lg font-medium text-gray-900">All Participants</h3>
-            <p class="text-sm text-gray-500 mt-1">
-                Showing {{ $registrations->firstItem() ?? 0 }} to {{ $registrations->lastItem() ?? 0 }} of {{ $registrations->total() }} registrations
-                <span class="text-gray-700 font-medium">({{ $totalParticipants }} total people including group members)</span>
-            </p>
+        <div class="px-6 py-4 border-b border-gray-200 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+            <div>
+                <h3 class="text-lg font-medium text-gray-900">All Participants</h3>
+                <p class="text-sm text-gray-500 mt-1">
+                    Showing {{ $registrations->firstItem() ?? 0 }} to {{ $registrations->lastItem() ?? 0 }} of {{ $registrations->total() }} registrations
+                    <span class="text-gray-700 font-medium">({{ $totalParticipants }} total people including group members)</span>
+                </p>
+            </div>
+            
+            <!-- Per-page selector -->
+            <x-per-page-selector :paginator="$registrations" :current-per-page="request('per_page', 50)" />
         </div>
 
         <div class="table-container">

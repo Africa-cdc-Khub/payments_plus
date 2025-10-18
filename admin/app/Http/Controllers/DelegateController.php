@@ -90,7 +90,11 @@ class DelegateController extends Controller
                 break;
         }
 
-        $delegates = $query->paginate(20);
+        // Handle per page parameter
+        $perPage = $request->get('per_page', 50);
+        $perPage = min(max($perPage, 10), 200); // Min 10, Max 200
+        
+        $delegates = $query->paginate($perPage);
 
         $statusCounts = Registration::where('package_id', $delegatePackageId)
             ->select('status', DB::raw('count(*) as count'))

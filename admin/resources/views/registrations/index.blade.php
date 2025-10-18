@@ -91,22 +91,25 @@
     </div>
 
     <div class="p-6">
-        <!-- Showing records info -->
-        <div class="mb-4 mt-2">
-            <p class="text-sm text-gray-700 leading-5">
-                Showing
-                @if ($registrations->firstItem())
-                    <span class="font-medium">{{ $registrations->firstItem() }}</span>
-                    to
-                    <span class="font-medium">{{ $registrations->lastItem() }}</span>
-                @else
-                    {{ $registrations->count() }}
-                @endif
-                of
-                <span class="font-medium">{{ $registrations->total() }}</span>
-                registrations
-            </p>
-            </div>
+    <!-- Showing records info and per-page selector -->
+    <div class="mb-4 mt-2 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+        <p class="text-sm text-gray-700 leading-5">
+            Showing
+            @if ($registrations->firstItem())
+                <span class="font-medium">{{ $registrations->firstItem() }}</span>
+                to
+                <span class="font-medium">{{ $registrations->lastItem() }}</span>
+            @else
+                {{ $registrations->count() }}
+            @endif
+            of
+            <span class="font-medium">{{ $registrations->total() }}</span>
+            registrations
+        </p>
+        
+        <!-- Per-page selector -->
+        <x-per-page-selector :paginator="$registrations" :current-per-page="request('per_page', 50)" />
+    </div>
 
             <div class="table-container">
                 <div class="overflow-x-auto">

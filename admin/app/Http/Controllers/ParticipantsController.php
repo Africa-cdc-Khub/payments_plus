@@ -91,8 +91,12 @@ class ParticipantsController extends Controller
             ->sort()
             ->values();
 
+        // Handle per page parameter
+        $perPage = $request->get('per_page', 50);
+        $perPage = min(max($perPage, 10), 200); // Min 10, Max 200
+        
         // Order by created date (newest first)
-        $registrations = $query->orderBy('created_at', 'desc')->paginate(50);
+        $registrations = $query->orderBy('created_at', 'desc')->paginate($perPage);
 
         // Calculate total participant count (registrants + group members)
         $totalParticipants = $registrations->sum(function($registration) {
