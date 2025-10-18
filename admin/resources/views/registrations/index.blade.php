@@ -24,9 +24,9 @@
         <!-- Filter Form -->
         <form method="GET" class="bg-gray-50 p-4 rounded-lg">
             <!-- Filter Fields in One Row -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+            <div class="flex flex-col sm:flex-row gap-4 mb-4">
                 <!-- Registration ID Field -->
-                <div>
+                <div class="flex-1">
                     <label class="block text-sm font-medium text-gray-700 mb-2">
                         <i class="fas fa-hashtag mr-1"></i>Registration ID
                     </label>
@@ -40,7 +40,7 @@
                 </div>
 
                 <!-- Search Field -->
-                <div>
+                <div class="flex-1">
                     <label class="block text-sm font-medium text-gray-700 mb-2">
                         <i class="fas fa-search mr-1"></i>Search
                     </label>
@@ -54,7 +54,7 @@
                 </div>
 
                 <!-- Status Filter -->
-                <div>
+                <div class="flex-1">
                     <label class="block text-sm font-medium text-gray-700 mb-2">
                         <i class="fas fa-flag mr-1"></i>Status
                     </label>
@@ -73,16 +73,16 @@
                 </div>
             </div>
 
-            <!-- Action Buttons Below Form -->
+            <!-- Action Buttons in One Row -->
             <div class="flex flex-col sm:flex-row gap-3 sm:gap-2">
                 <button type="submit" class="flex-1 sm:flex-none px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 text-sm font-medium">
                     <i class="fas fa-search mr-2"></i>Apply Filters
-                    </button>
-                    @if(request()->hasAny(['registration_id', 'search', 'status']))
+                </button>
+                @if(request()->hasAny(['registration_id', 'search', 'status']))
                 <a href="{{ route('registrations.index') }}" class="flex-1 sm:flex-none px-4 py-2 bg-gray-400 text-white rounded-lg hover:bg-gray-500 transition-colors duration-200 text-sm font-medium text-center">
                     <i class="fas fa-times mr-2"></i>Clear Filters
-                    </a>
-                    @endif
+                </a>
+                @endif
                 <a href="{{ route('registrations.export', request()->query()) }}" class="flex-1 sm:flex-none px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 text-sm font-medium text-center">
                     <i class="fas fa-download mr-2"></i>Export CSV
                 </a>
