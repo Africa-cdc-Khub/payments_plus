@@ -3,6 +3,39 @@
 @section('title', 'Dashboard')
 @section('page-title', 'Dashboard')
 
+@push('styles')
+<!-- Highcharts Core -->
+<script src="https://code.highcharts.com/highcharts.js"></script>
+
+<!-- Essential Highcharts Modules -->
+<script src="https://code.highcharts.com/modules/exporting.js"></script>
+<script src="https://code.highcharts.com/modules/export-data.js"></script>
+<script src="https://code.highcharts.com/modules/accessibility.js"></script>
+<script src="https://code.highcharts.com/modules/no-data-to-display.js"></script>
+<script src="https://code.highcharts.com/modules/offline-exporting.js"></script>
+
+<!-- Additional useful modules -->
+<script src="https://code.highcharts.com/modules/annotations.js"></script>
+<script src="https://code.highcharts.com/modules/drilldown.js"></script>
+<script src="https://code.highcharts.com/modules/heatmap.js"></script>
+<script src="https://code.highcharts.com/modules/treemap.js"></script>
+<script src="https://code.highcharts.com/modules/sankey.js"></script>
+<script src="https://code.highcharts.com/modules/sunburst.js"></script>
+<script src="https://code.highcharts.com/modules/waterfall.js"></script>
+<script src="https://code.highcharts.com/modules/funnel.js"></script>
+<script src="https://code.highcharts.com/modules/variable-pie.js"></script>
+<script src="https://code.highcharts.com/modules/wordcloud.js"></script>
+
+<!-- Highcharts 3D -->
+<script src="https://code.highcharts.com/highcharts-3d.js"></script>
+
+<!-- Highcharts Maps -->
+<script src="https://code.highcharts.com/maps/modules/map.js"></script>
+<script src="https://code.highcharts.com/maps/modules/mapline.js"></script>
+<script src="https://code.highcharts.com/maps/modules/mappoint.js"></script>
+<script src="https://code.highcharts.com/maps/modules/mapbubble.js"></script>
+@endpush
+
 @section('content')
 @php
     $admin = auth('admin')->user();
@@ -125,6 +158,36 @@
     </div>
 </div>
 
+<!-- Charts Section -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    <!-- Delegate Categories Chart -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <h3 class="text-lg font-semibold mb-4 text-gray-800">Registrations by Delegate Category</h3>
+        <div id="delegateCategoryChart" style="width: 100%; height: 400px;"></div>
+    </div>
+
+    <!-- Delegate Approvals Chart -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <h3 class="text-lg font-semibold mb-4 text-gray-800">Approvals by Delegate Category</h3>
+        <div id="delegateApprovalChart" style="width: 100%; height: 400px;"></div>
+    </div>
+</div>
+
+<!-- Geographic Charts Section -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    <!-- Participants by Continent -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <h3 class="text-lg font-semibold mb-4 text-gray-800">Participants by Continent</h3>
+        <div id="continentChart" style="width: 100%; height: 400px;"></div>
+    </div>
+
+    <!-- Participants by Nationality -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <h3 class="text-lg font-semibold mb-4 text-gray-800">Top 10 Nationalities</h3>
+        <div id="nationalityChart" style="width: 100%; height: 400px;"></div>
+    </div>
+</div>
+
 <!-- Recent Activity Tables -->
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
     <!-- Recent Registrations -->
@@ -218,6 +281,240 @@
 </div>
 @endif
 
-
 @endsection
+
+@push('scripts')
+<script>
+// Wait for both DOM and Highcharts to be ready
+function initializeCharts() {
+    // Check if Highcharts is loaded
+    if (typeof Highcharts === 'undefined') {
+        console.log('Highcharts not loaded yet, retrying...');
+        setTimeout(initializeCharts, 200);
+        return;
+    }
+
+    // Check if DOM elements exist
+    const chartContainers = [
+        'delegateCategoryChart',
+        'delegateApprovalChart', 
+        'continentChart',
+        'nationalityChart'
+    ];
+    
+    const missingContainers = chartContainers.filter(id => !document.getElementById(id));
+    if (missingContainers.length > 0) {
+        console.log('Missing chart containers:', missingContainers);
+        setTimeout(initializeCharts, 200);
+        return;
+    }
+
+    console.log('All chart containers found, initializing charts...');
+
+    try {
+        // Global Highcharts options
+        Highcharts.setOptions({
+            credits: {
+                enabled: false
+            },
+            accessibility: {
+                enabled: false
+            },
+            chart: {
+                style: {
+                    fontFamily: 'Inter, system-ui, sans-serif'
+                },
+                backgroundColor: 'transparent'
+            },
+            exporting: {
+                enabled: true,
+                buttons: {
+                    contextButton: {
+                        menuItems: [
+                            'downloadPNG',
+                            'downloadJPEG',
+                            'downloadPDF',
+                            'downloadSVG',
+                            'separator',
+                            'downloadCSV',
+                            'downloadXLS',
+                            'viewData',
+                            'separator',
+                            'printChart'
+                        ]
+                    }
+                }
+            },
+            lang: {
+                downloadPNG: 'Download PNG',
+                downloadJPEG: 'Download JPEG',
+                downloadPDF: 'Download PDF',
+                downloadSVG: 'Download SVG',
+                downloadCSV: 'Download CSV',
+                downloadXLS: 'Download XLS',
+                viewData: 'View data table',
+                printChart: 'Print chart'
+            }
+        });
+
+// Delegate Categories Chart
+const delegateCategoryData = @json($delegateCategoryStats);
+console.log('Delegate Category Data:', delegateCategoryData);
+
+if (document.getElementById('delegateCategoryChart')) {
+    console.log('Creating delegate category chart...');
+    Highcharts.chart('delegateCategoryChart', {
+        chart: {
+            type: 'pie'
+        },
+        title: {
+            text: 'Registrations by Delegate Category'
+        },
+        series: [{
+            name: 'Registrations',
+            data: delegateCategoryData.map((item, index) => ({
+                name: item.delegate_category || 'Not Specified',
+                y: parseInt(item.total) || 0
+            }))
+        }]
+    });
+    console.log('Delegate category chart created');
+} else {
+    console.log('Delegate category chart container not found');
+}
+
+// Delegate Approvals Chart
+const delegateApprovalData = @json($delegateApprovalStats);
+console.log('Delegate Approval Data:', delegateApprovalData);
+
+const approvalData = {};
+delegateApprovalData.forEach(item => {
+    if (!approvalData[item.delegate_category]) {
+        approvalData[item.delegate_category] = { approved: 0, pending: 0, rejected: 0 };
+    }
+    approvalData[item.delegate_category][item.status] = parseInt(item.total) || 0;
+});
+
+const categories = Object.keys(approvalData);
+const approvedData = categories.map(cat => approvalData[cat].approved || 0);
+const pendingData = categories.map(cat => approvalData[cat].pending || 0);
+const rejectedData = categories.map(cat => approvalData[cat].rejected || 0);
+
+if (document.getElementById('delegateApprovalChart')) {
+    console.log('Creating delegate approval chart...');
+    Highcharts.chart('delegateApprovalChart', {
+        chart: {
+            type: 'column'
+        },
+        title: {
+            text: 'Approvals by Delegate Category'
+        },
+        xAxis: {
+            categories: categories.map(cat => cat || 'Not Specified')
+        },
+        yAxis: {
+            min: 0,
+            title: {
+                text: 'Number of Delegates'
+            }
+        },
+        series: [{
+            name: 'Approved',
+            data: approvedData,
+            color: '#059669'
+        }, {
+            name: 'Pending',
+            data: pendingData,
+            color: '#eab308'
+        }, {
+            name: 'Rejected',
+            data: rejectedData,
+            color: '#ef4444'
+        }]
+    });
+    console.log('Delegate approval chart created');
+} else {
+    console.log('Delegate approval chart container not found');
+}
+
+// Continent Chart
+const continentData = @json($continentStats);
+console.log('Continent Data:', continentData);
+
+const continentEntries = Object.entries(continentData);
+if (document.getElementById('continentChart')) {
+    console.log('Creating continent chart...');
+    Highcharts.chart('continentChart', {
+        chart: {
+            type: 'pie'
+        },
+        title: {
+            text: 'Participants by Continent'
+        },
+        series: [{
+            name: 'Participants',
+            data: continentEntries.map(([continent, total]) => ({
+                name: continent,
+                y: parseInt(total) || 0
+            }))
+        }]
+    });
+    console.log('Continent chart created');
+} else {
+    console.log('Continent chart container not found');
+}
+
+// Nationality Chart
+const nationalityData = @json($nationalityStats);
+console.log('Nationality Data:', nationalityData);
+
+if (document.getElementById('nationalityChart')) {
+    console.log('Creating nationality chart...');
+    Highcharts.chart('nationalityChart', {
+        chart: {
+            type: 'bar'
+        },
+        title: {
+            text: 'Top 10 Nationalities'
+        },
+        xAxis: {
+            categories: nationalityData.map(item => item.nationality)
+        },
+        yAxis: {
+            min: 0,
+            title: {
+                text: 'Number of Participants'
+            }
+        },
+        series: [{
+            name: 'Participants',
+            data: nationalityData.map(item => parseInt(item.total) || 0),
+            color: '#1e40af'
+        }]
+    });
+    console.log('Nationality chart created');
+} else {
+    console.log('Nationality chart container not found');
+}
+
+        } catch (error) {
+            console.error('Error initializing charts:', error);
+        }
+    }
+
+// Initialize charts when DOM is ready
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded, starting chart initialization...');
+    initializeCharts();
+});
+
+// Also try after a short delay to ensure everything is loaded
+setTimeout(function() {
+    if (typeof Highcharts !== 'undefined') {
+        console.log('Fallback initialization...');
+        initializeCharts();
+    }
+}, 1000);
+</script>
+@endpush
 
