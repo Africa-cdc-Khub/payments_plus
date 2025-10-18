@@ -157,23 +157,39 @@ class ApprovedDelegateController extends Controller
         $filename = 'approved_delegates_' . now()->format('Y-m-d_His') . '.csv';
         
         $headers = [
-            'Content-Type' => 'text/csv',
+            'Content-Type' => 'text/csv; charset=UTF-8',
             'Content-Disposition' => "attachment; filename=\"$filename\"",
         ];
 
         $callback = function() use ($delegates, $admin) {
             $file = fopen('php://output', 'w');
             
+            // Add UTF-8 BOM for proper accent display in Excel and other applications
+            fwrite($file, "\xEF\xBB\xBF");
+            
             $isTravels = $admin->role === 'travels';
+            
+            // Helper function: ensure value is UTF-8 and safe for Excel (handles accents/diacritics correctly)
+            $safeValue = function($value) {
+                if (is_null($value)) return '';
+                // If already UTF-8, keep as-is, but ensure any improper bytes fixed
+                $str = (string)$value;
+                if (!mb_detect_encoding($str, 'UTF-8', true)) {
+                    $str = mb_convert_encoding($str, 'UTF-8');
+                }
+                // Some Office/Excel versions may break on long accented chars if not normalized:
+                return normalizer_is_normalized($str, \Normalizer::FORM_C) ? $str : normalizer_normalize($str, \Normalizer::FORM_C);
+            };
             
             // CSV Headers
             $headers = [
-                'ID',
+                'ID',   
+                'Title',
                 'First Name',
                 'Last Name',
                 'Email',
                 'Phone',
-                'Title',
+                'Nationality',
                 'Organization',
                 'Position',
                 'Country',
@@ -201,27 +217,28 @@ class ApprovedDelegateController extends Controller
             foreach ($delegates as $delegate) {
                 $row = [
                     $delegate->id,
-                    $delegate->user->first_name ?? '',
-                    $delegate->user->last_name ?? '',
-                    $delegate->user->email ?? '',
-                    $delegate->user->phone ?? '',
-                    $delegate->user->title ?? '',
-                    $delegate->user->organization ?? '',
-                    $delegate->user->position ?? '',
-                    $delegate->user->country ?? '',
-                    $delegate->user->city ?? '',
-                    $delegate->user->delegate_category ?? '',
+                    $safeValue($delegate->user->title ?? ''),
+                    $safeValue($delegate->user->first_name ?? ''),
+                    $safeValue($delegate->user->last_name ?? ''),
+                    $safeValue($delegate->user->email ?? ''),
+                    $safeValue($delegate->user->phone ?? ''),
+                   $safeValue($delegate->user->nationality ?? ''),
+                    $safeValue($delegate->user->organization ?? ''),
+                    $safeValue($delegate->user->position ?? ''),
+                    $safeValue($delegate->user->country ?? ''),
+                    $safeValue($delegate->user->city ?? ''),
+                    $safeValue($delegate->user->delegate_category ?? ''),
                 ];
                 
                 if ($isTravels) {
-                    $row[] = $delegate->user->passport_number ?? '';
-                    $row[] = $delegate->user->airport_of_origin ?? '';
+                    $row[] = $safeValue($delegate->user->passport_number ?? '');
+                    $row[] = $safeValue($delegate->user->airport_of_origin ?? '');
                     $row[] = $delegate->travel_processed ? 'Processed' : 'Pending';
                 }
                 
                 $row = array_merge($row, [
-                    $delegate->user->dietary_requirements ?? '',
-                    $delegate->user->special_needs ?? '',
+                    $safeValue($delegate->user->dietary_requirements ?? ''),
+                    $safeValue($delegate->user->special_needs ?? ''),
                     $delegate->user->requires_visa ? 'Yes' : 'No',
                     $delegate->created_at ? $delegate->created_at->format('Y-m-d H:i:s') : '',
                     $delegate->updated_at ? $delegate->updated_at->format('Y-m-d H:i:s') : '',
@@ -233,27 +250,28 @@ class ApprovedDelegateController extends Controller
                 foreach ($delegate->participants as $participant) {
                     $participantRow = [
                         $delegate->id . ' (Group Member)',
-                        $participant->first_name ?? '',
-                        $participant->last_name ?? '',
-                        $participant->email ?? '',
-                        $participant->phone ?? '',
-                        $participant->title ?? '',
-                        $participant->organization ?? '',
-                        $participant->position ?? '',
-                        $participant->country ?? '',
-                        $participant->city ?? '',
-                        $participant->delegate_category ?? '',
+                        $safeValue($participant->title ?? ''),      
+                        $safeValue($participant->first_name ?? ''),
+                        $safeValue($participant->last_name ?? ''),
+                        $safeValue($participant->email ?? ''),
+                        $safeValue($participant->phone ?? ''),
+                        $safeValue($participant->nationality ?? ''),                    
+                        $safeValue($participant->organization ?? ''),
+                        $safeValue($participant->position ?? ''),
+                        $safeValue($participant->country ?? ''),
+                        $safeValue($participant->city ?? ''),
+                        $safeValue($participant->delegate_category ?? ''),
                     ];
                     
                     if ($isTravels) {
-                        $participantRow[] = $participant->passport_number ?? '';
-                        $participantRow[] = $participant->airport_of_origin ?? '';
+                        $participantRow[] = $safeValue($participant->passport_number ?? '');
+                        $participantRow[] = $safeValue($participant->airport_of_origin ?? '');
                         $participantRow[] = $delegate->travel_processed ? 'Processed' : 'Pending';
                     }
                     
                     $participantRow = array_merge($participantRow, [
-                        $participant->dietary_requirements ?? '',
-                        $participant->special_needs ?? '',
+                        $safeValue($participant->dietary_requirements ?? ''),
+                        $safeValue($participant->special_needs ?? ''),
                         $participant->requires_visa ? 'Yes' : 'No',
                         $delegate->created_at ? $delegate->created_at->format('Y-m-d H:i:s') : '',
                         $delegate->updated_at ? $delegate->updated_at->format('Y-m-d H:i:s') : '',

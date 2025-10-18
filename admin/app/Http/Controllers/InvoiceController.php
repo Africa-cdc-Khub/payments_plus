@@ -336,12 +336,27 @@ class InvoiceController extends Controller
         $filename = 'invoices_' . now()->format('Y-m-d_His') . '.csv';
         
         $headers = [
-            'Content-Type' => 'text/csv',
+            'Content-Type' => 'text/csv; charset=UTF-8',
             'Content-Disposition' => "attachment; filename=\"$filename\"",
         ];
 
         $callback = function() use ($invoices) {
             $file = fopen('php://output', 'w');
+            
+            // Add UTF-8 BOM for proper accent display in Excel and other applications
+            fwrite($file, "\xEF\xBB\xBF");
+            
+            // Helper function: ensure value is UTF-8 and safe for Excel (handles accents/diacritics correctly)
+            $safeValue = function($value) {
+                if (is_null($value)) return '';
+                // If already UTF-8, keep as-is, but ensure any improper bytes fixed
+                $str = (string)$value;
+                if (!mb_detect_encoding($str, 'UTF-8', true)) {
+                    $str = mb_convert_encoding($str, 'UTF-8');
+                }
+                // Some Office/Excel versions may break on long accented chars if not normalized:
+                return normalizer_is_normalized($str, \Normalizer::FORM_C) ? $str : normalizer_normalize($str, \Normalizer::FORM_C);
+            };
             
             // CSV Headers
             fputcsv($file, [
@@ -362,15 +377,15 @@ class InvoiceController extends Controller
             // CSV Data
             foreach ($invoices as $invoice) {
                 fputcsv($file, [
-                    $invoice->invoice_number,
-                    $invoice->biller_name,
-                    $invoice->biller_email,
-                    $invoice->biller_address,
-                    $invoice->item,
-                    $invoice->description,
+                    $safeValue($invoice->invoice_number),
+                    $safeValue($invoice->biller_name),
+                    $safeValue($invoice->biller_email),
+                    $safeValue($invoice->biller_address),
+                    $safeValue($invoice->item),
+                    $safeValue($invoice->description),
                     $invoice->amount,
-                    $invoice->currency,
-                    ucfirst($invoice->status),
+                    $safeValue($invoice->currency),
+                    $safeValue(ucfirst($invoice->status)),
                     $invoice->created_at ? $invoice->created_at->format('Y-m-d H:i:s') : '',
                     $invoice->paid_at ? $invoice->paid_at->format('Y-m-d H:i:s') : '',
                     $invoice->cancelled_at ? $invoice->cancelled_at->format('Y-m-d H:i:s') : '',

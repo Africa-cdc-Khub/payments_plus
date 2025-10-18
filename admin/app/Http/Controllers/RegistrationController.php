@@ -144,20 +144,37 @@ class RegistrationController extends Controller
         $filename = 'registrations_' . now()->format('Y-m-d_H-i-s') . '.csv';
         
         $headers = [
-            'Content-Type' => 'text/csv',
+            'Content-Type' => 'text/csv; charset=UTF-8',
             'Content-Disposition' => 'attachment; filename="' . $filename . '"',
         ];
 
         $callback = function() use ($registrations) {
             $file = fopen('php://output', 'w');
             
+            // Add UTF-8 BOM for proper accent display in Excel and other applications
+            fwrite($file, "\xEF\xBB\xBF");
+            
+            // Helper function: ensure value is UTF-8 and safe for Excel (handles accents/diacritics correctly)
+            $safeValue = function($value) {
+                if (is_null($value)) return '';
+                // If already UTF-8, keep as-is, but ensure any improper bytes fixed
+                $str = (string)$value;
+                if (!mb_detect_encoding($str, 'UTF-8', true)) {
+                    $str = mb_convert_encoding($str, 'UTF-8');
+                }
+                // Some Office/Excel versions may break on long accented chars if not normalized:
+                return normalizer_is_normalized($str, \Normalizer::FORM_C) ? $str : normalizer_normalize($str, \Normalizer::FORM_C);
+            };
+            
             // CSV headers
             fputcsv($file, [
                 'Registration ID',
+                'Title',
                 'First Name',
                 'Last Name',
                 'Email',
                 'Phone',
+                'Nationality',
                 'Package',
                 'Registration Type',
                 'Payment Status',
@@ -179,48 +196,40 @@ class RegistrationController extends Controller
                 // Primary registrant
                 fputcsv($file, [
                     $registration->id,
-                    $registration->user->first_name ?? '',
-                    $registration->user->last_name ?? '',
-                    $registration->user->email ?? '',
-                    $registration->user->phone ?? '',
-                    $registration->package->name ?? '',
-                    $registration->registration_type ?? '',
-                    $registration->payment_status ?? '',
+                    $safeValue($registration->user->title ?? ''),
+                    $safeValue($registration->user->first_name ?? ''),
+                    $safeValue($registration->user->last_name ?? ''),
+                    $safeValue($registration->user->email ?? ''),
+                    $safeValue($registration->user->phone ?? ''),
+                    $safeValue($registration->user->nationality ?? ''),
+                    $safeValue($registration->package->name ?? ''),
+                    $safeValue($registration->registration_type ?? ''),
+                    $safeValue($registration->payment_status ?? ''),
                     $registration->package->price ?? '',
-                    $registration->payment_method ?? '',
-                    $registration->status ?? '',
+                    $safeValue($registration->payment_method ?? ''),
+                    $safeValue($registration->status ?? ''),
                     $registration->created_at ? $registration->created_at->format('Y-m-d H:i:s') : '',
                     $registration->payment && $registration->payment->created_at ? $registration->payment->created_at->format('Y-m-d H:i:s') : '',
-                    $registration->payment && $registration->payment->completedBy ? $registration->payment->completedBy->full_name : '',
+                    $registration->payment && $registration->payment->completedBy ? $safeValue($registration->payment->completedBy->full_name) : '',
                     $registration->invitation_sent_at ? 'Yes (' . $registration->invitation_sent_at->format('Y-m-d H:i:s') . ')' : 'No',
-                    $registration->invitationSentBy ? $registration->invitationSentBy->full_name : '',
+                    $registration->invitationSentBy ? $safeValue($registration->invitationSentBy->full_name) : '',
                     $registration->voided_at ? 'Yes (' . $registration->voided_at->format('Y-m-d H:i:s') . ')' : 'No',
-                    $registration->voidedBy ? $registration->voidedBy->full_name : '',
-                    $registration->void_reason ?? ''
+                    $registration->voidedBy ? $safeValue($registration->voidedBy->full_name) : '',
+                    $safeValue($registration->void_reason ?? '')
                 ]);
 
                 // Registration participants (group members)
                 foreach ($registration->participants as $participant) {
                     fputcsv($file, [
                         $registration->id . ' (Group Member)',
-                        $participant->first_name ?? '',
-                        $participant->last_name ?? '',
-                        $participant->email ?? '',
-                        $participant->phone ?? '',
-                        $registration->package->name ?? '',
-                        'Group Member',
-                        $registration->payment_status ?? '',
-                        $registration->package->price ?? '',
-                        $registration->payment_method ?? '',
-                        'Group Member',
-                        $registration->created_at ? $registration->created_at->format('Y-m-d H:i:s') : '',
-                        $registration->payment && $registration->payment->created_at ? $registration->payment->created_at->format('Y-m-d H:i:s') : '',
-                        $registration->payment && $registration->payment->completedBy ? $registration->payment->completedBy->full_name : '',
-                        $participant->invitation_sent_at ? 'Yes (' . $participant->invitation_sent_at->format('Y-m-d H:i:s') . ')' : 'No',
-                        $participant->invitationSentBy ? $participant->invitationSentBy->full_name : '',
-                        $registration->voided_at ? 'Yes (' . $registration->voided_at->format('Y-m-d H:i:s') . ')' : 'No',
-                        $registration->voidedBy ? $registration->voidedBy->full_name : '',
-                        $registration->void_reason ?? ''
+                        $safeValue($registration->user->title ?? ''),
+                        $safeValue($participant->first_name ?? ''),
+                        $safeValue($participant->last_name ?? ''),
+                        $safeValue($participant->email ?? ''),
+                        $safeValue($participant->phone ?? ''),
+                        $safeValue($participant->nationality ?? ''),
+                        $safeValue($registration->package->name ?? ''),
+                        
                     ]);
                 }
             }

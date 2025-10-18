@@ -88,7 +88,7 @@ class PaymentController extends Controller
         $filename = 'payments_' . date('Y-m-d_His') . '.csv';
 
         $headers = [
-            'Content-Type' => 'text/csv',
+            'Content-Type' => 'text/csv; charset=UTF-8',
             'Content-Disposition' => "attachment; filename=\"{$filename}\"",
         ];
 
@@ -96,14 +96,31 @@ class PaymentController extends Controller
         
         $callback = function() use ($payments, $isTravels) {
             $file = fopen('php://output', 'w');
+            
+            // Add UTF-8 BOM for proper accent display in Excel and other applications
+            fwrite($file, "\xEF\xBB\xBF");
+            
+            // Helper function: ensure value is UTF-8 and safe for Excel (handles accents/diacritics correctly)
+            $safeValue = function($value) {
+                if (is_null($value)) return '';
+                // If already UTF-8, keep as-is, but ensure any improper bytes fixed
+                $str = (string)$value;
+                if (!mb_detect_encoding($str, 'UTF-8', true)) {
+                    $str = mb_convert_encoding($str, 'UTF-8');
+                }
+                // Some Office/Excel versions may break on long accented chars if not normalized:
+                return normalizer_is_normalized($str, \Normalizer::FORM_C) ? $str : normalizer_normalize($str, \Normalizer::FORM_C);
+            };
 
             // CSV Headers
             $headers = [
                 'ID',
-                'First Name',
+                'Title',
+                'First Name',   
                 'Last Name',
+                'Phone',
+                'Nationality',
                 'Email',
-                'Country',
                 'Package',
             ];
             
@@ -127,29 +144,31 @@ class PaymentController extends Controller
             foreach ($payments as $payment) {
                 $row = [
                     $payment->id,
-                    $payment->user->first_name ?? '',
-                    $payment->user->last_name ?? '',
-                    $payment->user->email,
-                    $payment->user->country ?? '',
-                    $payment->package->name ?? '',
+                    $safeValue($payment->user->title ?? ''),
+                    $safeValue($payment->user->first_name ?? ''),
+                    $safeValue($payment->user->last_name ?? ''),
+                    $safeValue($payment->user->email),
+                    $safeValue($payment->user->phone ?? ''),
+                    $safeValue($payment->user->nationality ?? ''),
+                    $safeValue($payment->package->name ?? ''),
                 ];
                 
                 if ($isTravels) {
-                    $row[] = $payment->user->passport_number ?? '';
-                    $row[] = $payment->user->airport_of_origin ?? '';
+                    $row[] = $safeValue($payment->user->passport_number ?? '');
+                    $row[] = $safeValue($payment->user->airport_of_origin ?? '');
                 }
                 
                 $row = array_merge($row, [
                     $payment->total_amount ?? ($payment->payment->amount ?? ''),
-                    $payment->payment ? ucfirst(str_replace('_', ' ', $payment->payment->payment_method)) : '',
-                    $payment->payment->payment_reference ?? '',
+                    $payment->payment ? $safeValue(ucfirst(str_replace('_', ' ', $payment->payment->payment_method))) : '',
+                    $safeValue($payment->payment->payment_reference ?? ''),
                     $payment->payment && $payment->payment->payment_date 
                         ? $payment->payment->payment_date->format('Y-m-d H:i:s') 
                         : '',
                     $payment->payment && $payment->payment->completedBy 
-                        ? $payment->payment->completedBy->username 
+                        ? $safeValue($payment->payment->completedBy->username) 
                         : '',
-                    $payment->payment->manual_payment_remarks ?? '',
+                    $safeValue($payment->payment->manual_payment_remarks ?? ''),
                 ]);
                 
                 fputcsv($file, $row);
@@ -158,29 +177,31 @@ class PaymentController extends Controller
                 foreach ($payment->participants as $participant) {
                     $participantRow = [
                         $payment->id . ' (Group Member)',
-                        $participant->first_name ?? '',
-                        $participant->last_name ?? '',
-                        $participant->email ?? '',
-                        $participant->country ?? '',
-                        $payment->package->name ?? '',
+                        $safeValue($payment->user->title ?? ''),                    
+                        $safeValue($payment->user->first_name ?? ''),
+                        $safeValue($payment->user->last_name ?? ''),
+                        $safeValue($payment->user->email ?? ''),
+                        $safeValue($payment->user->phone ?? ''),
+                        $safeValue($payment->user->nationality ?? ''),
+                        $safeValue($payment->package->name ?? ''),
                     ];
                     
                     if ($isTravels) {
-                        $participantRow[] = $participant->passport_number ?? '';
-                        $participantRow[] = $participant->airport_of_origin ?? '';
+                        $participantRow[] = $safeValue($participant->passport_number ?? '');
+                        $participantRow[] = $safeValue($participant->airport_of_origin ?? '');
                     }
                     
                     $participantRow = array_merge($participantRow, [
                         $payment->total_amount ?? ($payment->payment->amount ?? ''),
-                        $payment->payment ? ucfirst(str_replace('_', ' ', $payment->payment->payment_method)) : '',
-                        $payment->payment->payment_reference ?? '',
+                        $payment->payment ? $safeValue(ucfirst(str_replace('_', ' ', $payment->payment->payment_method))) : '',
+                        $safeValue($payment->payment->payment_reference ?? ''),
                         $payment->payment && $payment->payment->payment_date 
                             ? $payment->payment->payment_date->format('Y-m-d H:i:s') 
                             : '',
                         $payment->payment && $payment->payment->completedBy 
-                            ? $payment->payment->completedBy->username 
+                            ? $safeValue($payment->payment->completedBy->username) 
                             : '',
-                        $payment->payment->manual_payment_remarks ?? '',
+                        $safeValue($payment->payment->manual_payment_remarks ?? ''),
                     ]);
                     
                     fputcsv($file, $participantRow);
