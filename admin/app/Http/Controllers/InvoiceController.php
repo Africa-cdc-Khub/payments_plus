@@ -35,7 +35,33 @@ class InvoiceController extends Controller
             });
         }
 
-        $invoices = $query->orderBy('created_at', 'desc')->paginate(20);
+        // Handle sorting
+        $sortField = $request->get('sort', 'created_at');
+        $sortDirection = $request->get('direction', 'desc');
+        
+        switch ($sortField) {
+            case 'biller_name':
+                $query->orderBy('biller_name', $sortDirection);
+                break;
+            case 'biller_email':
+                $query->orderBy('biller_email', $sortDirection);
+                break;
+            case 'invoice_number':
+                $query->orderBy('invoice_number', $sortDirection);
+                break;
+            case 'amount':
+                $query->orderBy('amount', $sortDirection);
+                break;
+            case 'status':
+                $query->orderBy('status', $sortDirection);
+                break;
+            case 'created_at':
+            default:
+                $query->orderBy('created_at', $sortDirection);
+                break;
+        }
+
+        $invoices = $query->paginate(20);
 
         return view('invoices.index', compact('invoices'));
     }

@@ -54,14 +54,43 @@ class DelegateController extends Controller
             });
         }
 
-        $delegates = $query
-            ->orderByRaw("CASE 
-                WHEN status = 'pending' THEN 1 
-                WHEN status = 'approved' THEN 2 
-                WHEN status = 'rejected' THEN 3 
-                ELSE 4 END")
-            ->latest('created_at')
-            ->paginate(20);
+        // Handle sorting
+        $sortField = $request->get('sort', 'status_priority');
+        $sortDirection = $request->get('direction', 'asc');
+        
+        switch ($sortField) {
+            case 'name':
+                $query->join('users', 'registrations.user_id', '=', 'users.id')
+                      ->orderBy('users.first_name', $sortDirection)
+                      ->orderBy('users.last_name', $sortDirection);
+                break;
+            case 'email':
+                $query->join('users', 'registrations.user_id', '=', 'users.id')
+                      ->orderBy('users.email', $sortDirection);
+                break;
+            case 'delegate_category':
+                $query->join('users', 'registrations.user_id', '=', 'users.id')
+                      ->orderBy('users.delegate_category', $sortDirection);
+                break;
+            case 'country':
+                $query->join('users', 'registrations.user_id', '=', 'users.id')
+                      ->orderBy('users.country', $sortDirection);
+                break;
+            case 'created_at':
+                $query->orderBy('registrations.created_at', $sortDirection);
+                break;
+            case 'status_priority':
+            default:
+                $query->orderByRaw("CASE 
+                    WHEN status = 'pending' THEN 1 
+                    WHEN status = 'approved' THEN 2 
+                    WHEN status = 'rejected' THEN 3 
+                    ELSE 4 END")
+                      ->orderBy('created_at', 'desc');
+                break;
+        }
+
+        $delegates = $query->paginate(20);
 
         $statusCounts = Registration::where('package_id', $delegatePackageId)
             ->select('status', DB::raw('count(*) as count'))

@@ -164,17 +164,54 @@
             </p>
         </div>
         
-        <div class="overflow-x-auto">
-            <table class="w-full">
+        <div class="table-container">
+            <div class="overflow-x-auto">
+                <table class="w-full min-w-full">
                 <thead class="bg-gray-50">
                     <tr>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">#</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">REG ID</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Category</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                <a href="{{ request()->fullUrlWithQuery(['sort' => 'name', 'direction' => request('sort') == 'name' && request('direction') == 'asc' ? 'desc' : 'asc']) }}" class="flex items-center space-x-1 hover:text-gray-700">
+                                    <span>Name</span>
+                                    @if(request('sort') == 'name')
+                                        <i class="fas fa-sort-{{ request('direction') == 'asc' ? 'up' : 'down' }} text-xs"></i>
+                                    @else
+                                        <i class="fas fa-sort text-xs opacity-50"></i>
+                                    @endif
+                                </a>
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                <a href="{{ request()->fullUrlWithQuery(['sort' => 'email', 'direction' => request('sort') == 'email' && request('direction') == 'asc' ? 'desc' : 'asc']) }}" class="flex items-center space-x-1 hover:text-gray-700">
+                                    <span>Email</span>
+                                    @if(request('sort') == 'email')
+                                        <i class="fas fa-sort-{{ request('direction') == 'asc' ? 'up' : 'down' }} text-xs"></i>
+                                    @else
+                                        <i class="fas fa-sort text-xs opacity-50"></i>
+                                    @endif
+                                </a>
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                <a href="{{ request()->fullUrlWithQuery(['sort' => 'delegate_category', 'direction' => request('sort') == 'delegate_category' && request('direction') == 'asc' ? 'desc' : 'asc']) }}" class="flex items-center space-x-1 hover:text-gray-700">
+                                    <span>Category</span>
+                                    @if(request('sort') == 'delegate_category')
+                                        <i class="fas fa-sort-{{ request('direction') == 'asc' ? 'up' : 'down' }} text-xs"></i>
+                                    @else
+                                        <i class="fas fa-sort text-xs opacity-50"></i>
+                                    @endif
+                                </a>
+                            </th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                <a href="{{ request()->fullUrlWithQuery(['sort' => 'created_at', 'direction' => request('sort') == 'created_at' && request('direction') == 'asc' ? 'desc' : 'asc']) }}" class="flex items-center space-x-1 hover:text-gray-700">
+                                    <span>Date</span>
+                                    @if(request('sort') == 'created_at')
+                                        <i class="fas fa-sort-{{ request('direction') == 'asc' ? 'up' : 'down' }} text-xs"></i>
+                                    @else
+                                        <i class="fas fa-sort text-xs opacity-50"></i>
+                                    @endif
+                                </a>
+                            </th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
                         </tr>
                     </thead>
@@ -280,6 +317,7 @@
                     </tbody>
                 </table>
             </div>
+        </div>
 
             <div class="mt-6">
                 {{ $delegates->appends(request()->query())->links() }}

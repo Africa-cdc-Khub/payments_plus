@@ -57,6 +57,22 @@
                 margin-left: 0;
             }
         }
+        
+        /* Table spacing improvements */
+        .table-container {
+            border-radius: 0.5rem;
+            overflow: hidden;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+        }
+        
+        .table-container table {
+            margin: 0;
+        }
+        
+        /* Ensure proper spacing for table content */
+        .table-container .overflow-x-auto {
+            padding: 0;
+        }
     </style>
 </head>
 <body class="bg-gray-100">
@@ -170,7 +186,7 @@
             </header>
 
             <!-- Page Content -->
-            <main class="flex-1 overflow-y-auto p-3 md:p-6">
+            <main class="flex-1 overflow-y-auto p-4 md:p-6">
                 @if (session('success'))
                     <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
                         {{ session('success') }}

@@ -73,10 +73,39 @@ class RegistrationController extends Controller
             });
         }
 
-        $registrations = $query
-            ->orderByRaw("CASE WHEN payment_status = 'completed' THEN 0 ELSE 1 END")
-            ->latest('created_at')
-            ->paginate(20);
+        // Handle sorting
+        $sortField = $request->get('sort', 'payment_status');
+        $sortDirection = $request->get('direction', 'asc');
+        
+        switch ($sortField) {
+            case 'name':
+                $query->join('users', 'registrations.user_id', '=', 'users.id')
+                      ->orderBy('users.first_name', $sortDirection)
+                      ->orderBy('users.last_name', $sortDirection);
+                break;
+            case 'email':
+                $query->join('users', 'registrations.user_id', '=', 'users.id')
+                      ->orderBy('users.email', $sortDirection);
+                break;
+            case 'package':
+                $query->join('packages', 'registrations.package_id', '=', 'packages.id')
+                      ->orderBy('packages.name', $sortDirection);
+                break;
+            case 'amount':
+                $query->join('packages', 'registrations.package_id', '=', 'packages.id')
+                      ->orderBy('packages.price', $sortDirection);
+                break;
+            case 'created_at':
+                $query->orderBy('registrations.created_at', $sortDirection);
+                break;
+            case 'payment_status':
+            default:
+                $query->orderByRaw("CASE WHEN payment_status = 'completed' THEN 0 ELSE 1 END")
+                      ->orderBy('created_at', 'desc');
+                break;
+        }
+
+        $registrations = $query->paginate(20);
 
         return view('registrations.index', compact('registrations'));
     }

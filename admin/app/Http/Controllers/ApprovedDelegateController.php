@@ -69,10 +69,39 @@ class ApprovedDelegateController extends Controller
             $query->where('travel_processed', $request->travel_processed);
         }
 
-        // Order by unprocessed first, then by creation date
-        $delegates = $query->orderBy('travel_processed', 'asc')
-                          ->orderBy('created_at', 'desc')
-                          ->paginate(20);
+        // Handle sorting
+        $sortField = $request->get('sort', 'travel_processed');
+        $sortDirection = $request->get('direction', 'asc');
+        
+        switch ($sortField) {
+            case 'name':
+                $query->join('users', 'registrations.user_id', '=', 'users.id')
+                      ->orderBy('users.first_name', $sortDirection)
+                      ->orderBy('users.last_name', $sortDirection);
+                break;
+            case 'email':
+                $query->join('users', 'registrations.user_id', '=', 'users.id')
+                      ->orderBy('users.email', $sortDirection);
+                break;
+            case 'delegate_category':
+                $query->join('users', 'registrations.user_id', '=', 'users.id')
+                      ->orderBy('users.delegate_category', $sortDirection);
+                break;
+            case 'country':
+                $query->join('users', 'registrations.user_id', '=', 'users.id')
+                      ->orderBy('users.country', $sortDirection);
+                break;
+            case 'created_at':
+                $query->orderBy('registrations.created_at', $sortDirection);
+                break;
+            case 'travel_processed':
+            default:
+                $query->orderBy('travel_processed', $sortDirection)
+                      ->orderBy('created_at', 'desc');
+                break;
+        }
+
+        $delegates = $query->paginate(20);
 
         // Get unique delegate categories for filter - from all users with delegate category
         $delegateCategories = \App\Models\User::whereNotNull('delegate_category')

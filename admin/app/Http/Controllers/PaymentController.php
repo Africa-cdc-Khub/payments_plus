@@ -48,7 +48,38 @@ class PaymentController extends Controller
             ->orderBy('country')
             ->pluck('country');
 
-        $payments = $query->latest('payment_completed_at')->paginate(20);
+        // Handle sorting
+        $sortField = $request->get('sort', 'payment_completed_at');
+        $sortDirection = $request->get('direction', 'desc');
+        
+        switch ($sortField) {
+            case 'name':
+                $query->join('users', 'registrations.user_id', '=', 'users.id')
+                      ->orderBy('users.first_name', $sortDirection)
+                      ->orderBy('users.last_name', $sortDirection);
+                break;
+            case 'email':
+                $query->join('users', 'registrations.user_id', '=', 'users.id')
+                      ->orderBy('users.email', $sortDirection);
+                break;
+            case 'package':
+                $query->join('packages', 'registrations.package_id', '=', 'packages.id')
+                      ->orderBy('packages.name', $sortDirection);
+                break;
+            case 'amount':
+                $query->orderBy('payment_amount', $sortDirection);
+                break;
+            case 'country':
+                $query->join('users', 'registrations.user_id', '=', 'users.id')
+                      ->orderBy('users.country', $sortDirection);
+                break;
+            case 'payment_completed_at':
+            default:
+                $query->orderBy('payment_completed_at', $sortDirection);
+                break;
+        }
+
+        $payments = $query->paginate(20);
         
         // Calculate total payment amount
         $totalPaymentAmount = $query->clone()->sum('payment_amount');
