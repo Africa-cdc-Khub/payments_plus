@@ -85,9 +85,10 @@
         <aside class="sidebar w-64 bg-gray-800 text-white flex-shrink-0" id="sidebar">
             <div class="p-6">
                 <div class="flex items-center justify-between">
-                    <div>
-                        <h1 class="text-2xl font-bold">CPHIA 2025</h1>
-                        <p class="text-gray-400 text-sm">Admin Portal</p>
+                    <div class="flex items-center">
+                        <img src="{{ asset('images/CPHIA-2025-logo_reverse.webp') }}" 
+                             alt="CPHIA 2025" 
+                             class="h-8 w-auto opacity-90 hover:opacity-100 transition-opacity duration-200">
                     </div>
                     <!-- Mobile close button -->
                     <button class="md:hidden text-gray-400 hover:text-white" onclick="toggleSidebar()">
