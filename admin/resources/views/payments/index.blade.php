@@ -26,24 +26,32 @@
         </div>
 
         <!-- Filter Form - Always Visible -->
+        <!-- Responsive Filter Form -->
         <form method="GET" class="bg-gray-50 p-4 rounded-lg">
-            <div class="flex flex-wrap gap-3 mb-3">
-                <div class="flex-1 min-w-[200px]">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Search</label>
+            <!-- Mobile: Stack vertically, Desktop: Grid layout -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                <!-- Search Field -->
+                <div class="sm:col-span-2 lg:col-span-1">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-search mr-1"></i>Search
+                    </label>
                     <input 
                         type="text" 
                         name="search" 
                         placeholder="Name or email..." 
                         value="{{ request('search') }}"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                     >
                 </div>
 
-                <div class="flex-1 min-w-[200px]">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Package</label>
+                <!-- Package Filter -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-box mr-1"></i>Package
+                    </label>
                     <select 
                         name="package_id" 
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                     >
                         <option value="">All Packages</option>
                         @foreach($packages as $package)
@@ -54,11 +62,14 @@
                     </select>
                 </div>
 
-                <div class="flex-1 min-w-[200px]">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Country</label>
+                <!-- Country Filter -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-globe mr-1"></i>Country
+                    </label>
                     <select 
                         name="country" 
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                     >
                         <option value="">All Countries</option>
                         @foreach($countries as $country)
@@ -70,12 +81,16 @@
                 </div>
             </div>
 
-            <div class="flex gap-2 mt-2">
-                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 whitespace-nowrap">
-                    <i class="fas fa-search"></i> Apply Filters
+            <!-- Action Buttons - Responsive Layout -->
+            <div class="flex flex-col sm:flex-row gap-3 sm:gap-2">
+                <button type="submit" class="flex-1 sm:flex-none px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 text-sm font-medium">
+                    <i class="fas fa-search mr-2"></i>Apply Filters
                 </button>
-                <a href="{{ route('payments.index') }}" class="px-4 ml-2 py-2 bg-gray-400 text-white rounded-lg hover:bg-gray-500 whitespace-nowrap">
-                    <i class="fas fa-times"></i> Clear
+                <a href="{{ route('payments.index') }}" class="flex-1 sm:flex-none px-4 py-2 bg-gray-400 text-white rounded-lg hover:bg-gray-500 transition-colors duration-200 text-sm font-medium text-center">
+                    <i class="fas fa-times mr-2"></i>Clear Filters
+                </a>
+                <a href="{{ route('payments.export', request()->query()) }}" class="flex-1 sm:flex-none px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 text-sm font-medium text-center">
+                    <i class="fas fa-download mr-2"></i>Export CSV
                 </a>
             </div>
         </form>

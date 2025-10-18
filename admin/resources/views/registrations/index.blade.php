@@ -6,47 +6,61 @@
 @section('content')
 <div class="bg-white rounded-lg shadow">
     <div class="p-6 border-b">
-        <div class="flex justify-between items-center">
-            <div class="flex items-center space-x-4">
-            <h3 class="text-lg font-semibold">All Registrations</h3>
-                @if(auth('admin')->user()->role === 'admin')
-                <button 
-                    type="button" 
-                    id="bulkVoidBtn"
-                    onclick="voidSelected()"
-                    class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 hidden"
-                >
-                    <i class="fas fa-ban"></i> Void Selected (<span id="selectedCount">0</span>)
-                </button>
-                @endif
-            </div>
-            
-            <div class="flex space-x-4">
-                <!-- Export Button -->
-                <a href="{{ route('registrations.export', request()->query()) }}" 
-                   class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center space-x-2">
-                    <i class="fas fa-download"></i>
-                    <span>Export CSV</span>
-                </a>
-                
-                <form method="GET" class="flex space-x-2">
+        <!-- Page Title Row -->
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-lg font-semibold text-gray-800">All Registrations</h3>
+            @if(auth('admin')->user()->role === 'admin')
+            <button 
+                type="button" 
+                id="bulkVoidBtn"
+                onclick="voidSelected()"
+                class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 hidden"
+            >
+                <i class="fas fa-ban"></i> Void Selected (<span id="selectedCount">0</span>)
+            </button>
+            @endif
+        </div>
+
+        <!-- Filter Form -->
+        <form method="GET" class="bg-gray-50 p-4 rounded-lg">
+            <!-- Filter Fields in One Row -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+                <!-- Registration ID Field -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-hashtag mr-1"></i>Registration ID
+                    </label>
                     <input 
                         type="text" 
                         name="registration_id" 
                         placeholder="Registration ID..." 
                         value="{{ request('registration_id') }}"
-                        class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-40"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                     >
+                </div>
+
+                <!-- Search Field -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-search mr-1"></i>Search
+                    </label>
                     <input 
                         type="text" 
                         name="search" 
-                        placeholder="Search by name or email..." 
+                        placeholder="Name or email..." 
                         value="{{ request('search') }}"
-                        class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                     >
+                </div>
+
+                <!-- Status Filter -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-flag mr-1"></i>Status
+                    </label>
                     <select 
                         name="status" 
-                        class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                     >
                         <option value="">All Status</option>
                         <option value="pending" {{ request('status') === 'pending' ? 'selected' : '' }}>Pending</option>
@@ -56,17 +70,24 @@
                         <option value="rejected" {{ request('status') === 'rejected' ? 'selected' : '' }}>Rejected Delegate</option>
                         <option value="voided" {{ request('status') === 'voided' ? 'selected' : '' }}>Voided</option>
                     </select>
-                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                        <i class="fas fa-search"></i> Search
-                    </button>
-                    @if(request()->hasAny(['registration_id', 'search', 'status']))
-                    <a href="{{ route('registrations.index') }}" class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600">
-                        <i class="fas fa-times"></i> Clear
-                    </a>
-                    @endif
-                </form>
+                </div>
             </div>
-        </div>
+
+            <!-- Action Buttons Below Form -->
+            <div class="flex flex-col sm:flex-row gap-3 sm:gap-2">
+                <button type="submit" class="flex-1 sm:flex-none px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 text-sm font-medium">
+                    <i class="fas fa-search mr-2"></i>Apply Filters
+                </button>
+                @if(request()->hasAny(['registration_id', 'search', 'status']))
+                <a href="{{ route('registrations.index') }}" class="flex-1 sm:flex-none px-4 py-2 bg-gray-400 text-white rounded-lg hover:bg-gray-500 transition-colors duration-200 text-sm font-medium text-center">
+                    <i class="fas fa-times mr-2"></i>Clear Filters
+                </a>
+                @endif
+                <a href="{{ route('registrations.export', request()->query()) }}" class="flex-1 sm:flex-none px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 text-sm font-medium text-center">
+                    <i class="fas fa-download mr-2"></i>Export CSV
+                </a>
+            </div>
+        </form>
     </div>
 
     <div class="p-6">
