@@ -10,30 +10,71 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     @stack('styles')
     
+    <style>
+        /* Mobile sidebar overlay */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 40;
+        }
+        
+        .sidebar-overlay.active {
+            display: block;
+        }
+        
+        /* Sidebar responsive behavior */
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: -256px;
+                height: 100vh;
+                z-index: 50;
+                transition: left 0.3s ease;
+            }
+            
+            .sidebar.open {
+                left: 0;
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+        }
+        
+        @media (min-width: 769px) {
+            .sidebar {
+                position: relative;
+                left: 0;
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+        }
+    </style>
 </head>
 <body class="bg-gray-100">
+    <!-- Mobile sidebar overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+    
     <div class="flex h-screen overflow-hidden">
         
-        <!-- Mobile menu button -->
-        <div class="lg:hidden fixed top-4 left-4 z-50">
-            <button id="mobile-menu-button" class="bg-gray-800 text-white p-2 rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500">
-                <i class="fas fa-bars text-xl"></i>
-            </button>
-        </div>
-
-        <!-- Mobile overlay -->
-        <div id="mobile-overlay" class="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-40 hidden"></div>
-        
         <!-- Sidebar -->
-        <aside id="sidebar" class="w-64 bg-gray-800 text-white flex-shrink-0 transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out fixed lg:static inset-y-0 left-0 z-50">
+        <aside class="sidebar w-64 bg-gray-800 text-white flex-shrink-0" id="sidebar">
             <div class="p-6">
                 <div class="flex items-center justify-between">
                     <div>
                         <h1 class="text-2xl font-bold">CPHIA 2025</h1>
                         <p class="text-gray-400 text-sm">Admin Portal</p>
                     </div>
-                    <!-- Close button for mobile -->
-                    <button id="close-sidebar" class="lg:hidden text-gray-400 hover:text-white">
+                    <!-- Mobile close button -->
+                    <button class="md:hidden text-gray-400 hover:text-white" onclick="toggleSidebar()">
                         <i class="fas fa-times text-xl"></i>
                     </button>
                 </div>
@@ -101,23 +142,27 @@
         </aside>
 
         <!-- Main Content -->
-        <div class="flex-1 flex flex-col overflow-hidden lg:ml-0">
+        <div class="main-content flex-1 flex flex-col overflow-hidden">
             <!-- Top Navigation -->
             <header class="bg-white shadow-sm">
-                <div class="flex items-center justify-between px-6 py-4 lg:pl-6 pl-16">
+                <div class="flex items-center justify-between px-6 py-4">
                     <div class="flex items-center mr-2">
+                        <!-- Mobile menu button -->
+                        <button class="md:hidden mr-3 text-gray-600 hover:text-gray-800" onclick="toggleSidebar()">
+                            <i class="fas fa-bars text-xl"></i>
+                        </button>
                         <h2 class="text-xl font-semibold text-gray-800">@yield('page-title', 'Dashboard')</h2>
                     </div>
                     
-                    <div class="flex items-center space-x-4">
-                        <span class="text-gray-700">{{ auth('admin')->user()->full_name }}</span>
-                        <a href="{{ route('change-password') }}" class="text-blue-600 hover:text-blue-800">
-                            <i class="fas fa-key mr-1"></i> Change Password
+                    <div class="flex items-center space-x-2 md:space-x-4">
+                        <span class="text-gray-700 text-sm md:text-base hidden sm:block">{{ auth('admin')->user()->full_name }}</span>
+                        <a href="{{ route('change-password') }}" class="text-blue-600 hover:text-blue-800 text-sm md:text-base" title="Change Password">
+                            <i class="fas fa-key mr-1"></i> <span class="hidden sm:inline">Change Password</span>
                         </a>
                         <form method="POST" action="{{ route('logout') }}" class="inline">
                             @csrf
-                            <button type="submit" class="text-red-600 hover:text-red-800">
-                                <i class="fas fa-sign-out-alt mr-1"></i> Logout
+                            <button type="submit" class="text-red-600 hover:text-red-800 text-sm md:text-base" title="Logout">
+                                <i class="fas fa-sign-out-alt mr-1"></i> <span class="hidden sm:inline">Logout</span>
                             </button>
                         </form>
                     </div>
@@ -125,7 +170,7 @@
             </header>
 
             <!-- Page Content -->
-            <main class="flex-1 overflow-y-auto p-6">
+            <main class="flex-1 overflow-y-auto p-3 md:p-6">
                 @if (session('success'))
                     <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
                         {{ session('success') }}
@@ -146,46 +191,35 @@
     @stack('scripts')
     
     <script>
-        // Mobile sidebar functionality
-        document.addEventListener('DOMContentLoaded', function() {
-            const mobileMenuButton = document.getElementById('mobile-menu-button');
-            const closeSidebarButton = document.getElementById('close-sidebar');
+        function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
-            const mobileOverlay = document.getElementById('mobile-overlay');
-
-            // Open sidebar
-            mobileMenuButton.addEventListener('click', function() {
-                sidebar.classList.remove('-translate-x-full');
-                mobileOverlay.classList.remove('hidden');
-                document.body.classList.add('overflow-hidden');
-            });
-
-            // Close sidebar
-            function closeSidebar() {
-                sidebar.classList.add('-translate-x-full');
-                mobileOverlay.classList.add('hidden');
-                document.body.classList.remove('overflow-hidden');
-            }
-
-            closeSidebarButton.addEventListener('click', closeSidebar);
-            mobileOverlay.addEventListener('click', closeSidebar);
-
-            // Close sidebar when clicking on navigation links (mobile)
-            const navLinks = sidebar.querySelectorAll('a');
+            const overlay = document.getElementById('sidebarOverlay');
+            
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('active');
+        }
+        
+        // Close sidebar when clicking on navigation links on mobile
+        document.addEventListener('DOMContentLoaded', function() {
+            const navLinks = document.querySelectorAll('aside nav a');
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            
             navLinks.forEach(link => {
                 link.addEventListener('click', function() {
-                    if (window.innerWidth < 1024) { // lg breakpoint
-                        closeSidebar();
+                    // Only close on mobile devices
+                    if (window.innerWidth <= 768) {
+                        sidebar.classList.remove('open');
+                        overlay.classList.remove('active');
                     }
                 });
             });
-
-            // Handle window resize
+            
+            // Close sidebar when window is resized to desktop
             window.addEventListener('resize', function() {
-                if (window.innerWidth >= 1024) { // lg breakpoint
-                    sidebar.classList.remove('-translate-x-full');
-                    mobileOverlay.classList.add('hidden');
-                    document.body.classList.remove('overflow-hidden');
+                if (window.innerWidth > 768) {
+                    sidebar.classList.remove('open');
+                    overlay.classList.remove('active');
                 }
             });
         });
