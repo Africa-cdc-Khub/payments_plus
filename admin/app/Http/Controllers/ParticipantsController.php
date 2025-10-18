@@ -105,9 +105,11 @@ class ParticipantsController extends Controller
     /**
      * Export participants to CSV (includes both registrants and group members)
      */
+    /**
+     * Export participants to CSV (handles Latin, French, and Spanish names with accents)
+     */
     public function export(Request $request)
     {
-
         // Base query for registrations
         $query = Registration::with(['user', 'package', 'participants'])
             ->where(function ($q) {
@@ -151,20 +153,23 @@ class ParticipantsController extends Controller
 
         $registrations = $query->orderBy('created_at', 'desc')->get();
 
-        // Generate CSV
+        // Generate CSV with UTF-8 BOM for proper encoding (required for accented names!)
         $filename = 'participants_' . date('Y-m-d_H-i-s') . '.csv';
-        
         $headers = [
-            'Content-Type' => 'text/csv',
+            'Content-Type' => 'text/csv; charset=UTF-8',
             'Content-Disposition' => 'attachment; filename="' . $filename . '"',
         ];
 
         $callback = function() use ($registrations) {
             $file = fopen('php://output', 'w');
-            
+
+            // Add UTF-8 BOM for Excel/Windows compatibility (so accented chars are not corrupted)
+            fwrite($file, "\xEF\xBB\xBF");
+
             // CSV Headers
             $csvHeaders = [
                 'Registration ID',
+                'Title',
                 'First Name',
                 'Last Name',
                 'Email',
@@ -176,61 +181,79 @@ class ParticipantsController extends Controller
                 'Participant Type',
                 'Member Type'
             ];
-            
+
             // Add status columns for non-executive roles
             if (!in_array(auth('admin')->user()->role, ['executive'])) {
                 array_splice($csvHeaders, 7, 0, ['Status', 'Payment Status']);
             }
-            
+
             fputcsv($file, $csvHeaders);
 
-            // CSV Data - Include registrants and their group members
+            // Helper function: ensure value is UTF-8 and safe for Excel (handles accents/diacritics correctly)
+            $safeValue = function($value) {
+                if (is_null($value)) return '';
+                // If already UTF-8, keep as-is, but ensure any improper bytes fixed
+                $str = (string)$value;
+                if (!mb_detect_encoding($str, 'UTF-8', true)) {
+                    $str = mb_convert_encoding($str, 'UTF-8');
+                }
+                // Some Office/Excel versions may break on long accented chars if not normalized:
+                return normalizer_is_normalized($str, \Normalizer::FORM_C) ? $str : normalizer_normalize($str, \Normalizer::FORM_C);
+            };
+
             foreach ($registrations as $registration) {
                 $type = $registration->status === 'approved' ? 'Delegate' : 'Paid Participant';
-                
+
                 // Primary Registrant Row
                 $row = [
                     $registration->id,
-                    $registration->user->first_name ?? '',
-                    $registration->user->last_name ?? '',
-                    $registration->user->email ?? '',
-                    $registration->user->phone ?? '',
-                    $registration->user->country ?? '',
-                    $registration->package->name ?? '',
-                    $registration->user->delegate_category ?? '',
+                    $safeValue($registration->user->title ?? ''),
+                    $safeValue($registration->user->first_name ?? ''),
+                    $safeValue($registration->user->last_name ?? ''),
+                    $safeValue($registration->user->email ?? ''),
+                    $safeValue($registration->user->phone ?? ''),
+                    $safeValue($registration->user->country ?? ''),
+                    $safeValue($registration->package->name ?? ''),
+                    $safeValue($registration->user->delegate_category ?? ''),
                     $registration->created_at ? $registration->created_at->format('Y-m-d H:i:s') : '',
                     $type,
                     'Primary Registrant'
                 ];
-                
+
                 // Add status columns for non-executive roles
                 if (!in_array(auth('admin')->user()->role, ['executive'])) {
-                    array_splice($row, 7, 0, [ucfirst($registration->status), ucfirst($registration->payment_status)]);
+                    array_splice($row, 7, 0, [
+                        $safeValue(ucfirst($registration->status)),
+                        $safeValue(ucfirst($registration->payment_status))
+                    ]);
                 }
-                
+
                 fputcsv($file, $row);
-                
-                // Additional Group Members
+
                 foreach ($registration->participants as $groupMember) {
                     $memberRow = [
                         $registration->id,
-                        $groupMember->first_name ?? '',
-                        $groupMember->last_name ?? '',
-                        $groupMember->email ?? '',
+                        $safeValue($groupMember->title ?? ''),
+                        $safeValue($groupMember->first_name ?? ''),
+                        $safeValue($groupMember->last_name ?? ''),
+                        $safeValue($groupMember->email ?? ''),
                         '',
-                        $groupMember->nationality ?? '',
-                        $registration->package->name ?? '',
-                        $groupMember->delegate_category ?? '',
+                        $safeValue($groupMember->nationality ?? ''),
+                        $safeValue($registration->package->name ?? ''),
+                        $safeValue($groupMember->delegate_category ?? ''),
                         $registration->created_at ? $registration->created_at->format('Y-m-d H:i:s') : '',
                         'Group Member',
                         'Additional Member'
                     ];
-                    
+
                     // Add status columns for non-executive roles
                     if (!in_array(auth('admin')->user()->role, ['executive'])) {
-                        array_splice($memberRow, 7, 0, ['Group Member', ucfirst($registration->payment_status)]);
+                        array_splice($memberRow, 7, 0, [
+                            'Group Member',
+                            $safeValue(ucfirst($registration->payment_status))
+                        ]);
                     }
-                    
+
                     fputcsv($file, $memberRow);
                 }
             }
@@ -238,6 +261,6 @@ class ParticipantsController extends Controller
             fclose($file);
         };
 
-        return Response::stream($callback, 200, $headers);
+        return response()->stream($callback, 200, $headers);
     }
 }
