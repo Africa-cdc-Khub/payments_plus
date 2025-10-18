@@ -49,7 +49,7 @@
 
         <!-- Filter Form - Always Visible Horizontal Layout -->
         <form method="GET" class="bg-gray-50 p-4 rounded-lg">
-            <div class="flex flex-wrap gap-3 mb-3">
+            <div class="flex flex-wrap gap-3 mb-6">
                 <div class="flex-1 min-w-[200px]">
                     <label class="block text-sm font-medium text-gray-700 mb-2">Search</label>
                     <input 
@@ -57,7 +57,7 @@
                         name="search" 
                         placeholder="Name or email..." 
                         value="{{ request('search') }}"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                     >
                 </div>
 
@@ -65,7 +65,7 @@
                     <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
                     <select 
                         name="status" 
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                     >
                         <option value="">All Status</option>
                         <option value="pending" {{ request('status') === 'pending' ? 'selected' : '' }}>Pending</option>
@@ -78,7 +78,7 @@
                     <label class="block text-sm font-medium text-gray-700 mb-2">Delegate Category</label>
                     <select 
                         name="delegate_category" 
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                     >
                         <option value="">All Categories</option>
                         @foreach($delegateCategories as $category)
@@ -93,7 +93,7 @@
                     <label class="block text-sm font-medium text-gray-700 mb-2">Country</label>
                     <select 
                         name="country" 
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                     >
                         <option value="">All Countries</option>
                         @foreach($countries as $country)
@@ -105,14 +105,14 @@
                 </div>
             </div>
 
-            <div class="flex gap-2">
-                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 whitespace-nowrap">
+            <div class="flex gap-3">
+                <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 whitespace-nowrap">
                     <i class="fas fa-search"></i> Apply Filters
                 </button>
                 <a href="{{ route('delegates.index') }}" class="px-4 py-2 bg-gray-400 text-white rounded-lg hover:bg-gray-500 whitespace-nowrap">
                     <i class="fas fa-times"></i> Clear
                 </a>
-                <a href="{{ route('delegates.export', request()->query()) }}" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 whitespace-nowrap">
+                <a href="{{ route('delegates.export', request()->query()) }}" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 whitespace-nowrap">
                     <i class="fas fa-download"></i> Export CSV
                 </a>
             </div>
@@ -146,7 +146,7 @@
         @endif
     </div>
 
-    <div class="p-6">
+    <div class="p-6 pt-8">
         <!-- Showing records info -->
         <div class="mb-4 mt-2">
             <p class="text-sm text-gray-700 leading-5">
