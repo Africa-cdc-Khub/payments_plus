@@ -14,14 +14,28 @@
 <body class="bg-gray-100">
     <div class="flex h-screen overflow-hidden">
         
+        <!-- Mobile menu button -->
+        <div class="lg:hidden fixed top-4 left-4 z-50">
+            <button id="mobile-menu-button" class="bg-gray-800 text-white p-2 rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500">
+                <i class="fas fa-bars text-xl"></i>
+            </button>
+        </div>
+
+        <!-- Mobile overlay -->
+        <div id="mobile-overlay" class="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-40 hidden"></div>
+        
         <!-- Sidebar -->
-        <aside class="w-64 bg-gray-800 text-white flex-shrink-0">
+        <aside id="sidebar" class="w-64 bg-gray-800 text-white flex-shrink-0 transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out fixed lg:static inset-y-0 left-0 z-50">
             <div class="p-6">
                 <div class="flex items-center justify-between">
                     <div>
                         <h1 class="text-2xl font-bold">CPHIA 2025</h1>
                         <p class="text-gray-400 text-sm">Admin Portal</p>
                     </div>
+                    <!-- Close button for mobile -->
+                    <button id="close-sidebar" class="lg:hidden text-gray-400 hover:text-white">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
                 </div>
             </div>
             
@@ -87,10 +101,10 @@
         </aside>
 
         <!-- Main Content -->
-        <div class="flex-1 flex flex-col overflow-hidden">
+        <div class="flex-1 flex flex-col overflow-hidden lg:ml-0">
             <!-- Top Navigation -->
             <header class="bg-white shadow-sm">
-                <div class="flex items-center justify-between px-6 py-4">
+                <div class="flex items-center justify-between px-6 py-4 lg:pl-6 pl-16">
                     <div class="flex items-center mr-2">
                         <h2 class="text-xl font-semibold text-gray-800">@yield('page-title', 'Dashboard')</h2>
                     </div>
@@ -130,6 +144,52 @@
     </div>
 
     @stack('scripts')
+    
+    <script>
+        // Mobile sidebar functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const closeSidebarButton = document.getElementById('close-sidebar');
+            const sidebar = document.getElementById('sidebar');
+            const mobileOverlay = document.getElementById('mobile-overlay');
+
+            // Open sidebar
+            mobileMenuButton.addEventListener('click', function() {
+                sidebar.classList.remove('-translate-x-full');
+                mobileOverlay.classList.remove('hidden');
+                document.body.classList.add('overflow-hidden');
+            });
+
+            // Close sidebar
+            function closeSidebar() {
+                sidebar.classList.add('-translate-x-full');
+                mobileOverlay.classList.add('hidden');
+                document.body.classList.remove('overflow-hidden');
+            }
+
+            closeSidebarButton.addEventListener('click', closeSidebar);
+            mobileOverlay.addEventListener('click', closeSidebar);
+
+            // Close sidebar when clicking on navigation links (mobile)
+            const navLinks = sidebar.querySelectorAll('a');
+            navLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    if (window.innerWidth < 1024) { // lg breakpoint
+                        closeSidebar();
+                    }
+                });
+            });
+
+            // Handle window resize
+            window.addEventListener('resize', function() {
+                if (window.innerWidth >= 1024) { // lg breakpoint
+                    sidebar.classList.remove('-translate-x-full');
+                    mobileOverlay.classList.add('hidden');
+                    document.body.classList.remove('overflow-hidden');
+                }
+            });
+        });
+    </script>
     
 </body>
 </html>
