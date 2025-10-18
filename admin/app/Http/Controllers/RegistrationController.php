@@ -508,5 +508,33 @@ class RegistrationController extends Controller
             return redirect()->back()->with('error', 'Failed to undo void. Please try again.');
         }
     }
+
+    public function invoice(Registration $registration)
+    {
+        // Only admin and finance can generate invoices
+        $admin = Auth::guard('admin')->user();
+        if (!$admin || !in_array($admin->role, ['admin', 'finance'])) {
+            abort(403, 'Unauthorized access.');
+        }
+
+        // Check if registration is paid
+        if (!$registration->isPaid()) {
+            return redirect()->back()->with('error', 'Invoice can only be generated for paid registrations.');
+        }
+
+        try {
+            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('invoices.template', [
+                'registration' => $registration,
+                'user' => $registration->user
+            ]);
+
+            $filename = 'invoice_' . $registration->id . '_' . now()->format('Y-m-d') . '.pdf';
+            
+            return $pdf->download($filename);
+        } catch (\Exception $e) {
+            Log::error("Failed to generate invoice for registration #{$registration->id}: " . $e->getMessage());
+            return redirect()->back()->with('error', 'Failed to generate invoice. Please try again.');
+        }
+    }
 }
 

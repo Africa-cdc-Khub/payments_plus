@@ -6,6 +6,7 @@ use App\Models\Registration;
 use App\Models\Package;
 use App\Models\Payment;
 use App\Models\RegistrationParticipant;
+use App\Models\Invoice;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -64,6 +65,10 @@ class DashboardController extends Controller
                 }
             });
 
+        // Invoice revenue calculations
+        $paidInvoicesRevenue = Invoice::where('status', 'paid')->sum('amount');
+        $pendingInvoicesRevenue = Invoice::where('status', 'pending')->sum('amount');
+
         // Delegates count (all statuses)
         $delegatesStats = [
             'total' => $activeRegistrations->clone()
@@ -89,7 +94,9 @@ class DashboardController extends Controller
             'pending_payments' => $pendingPaymentsCount,
             'total_revenue' => $activeRegistrations->clone()
                 ->where('payment_status', 'completed')
-                ->sum('payment_amount'),
+                ->sum('payment_amount') + $paidInvoicesRevenue,
+            'pending_invoices_revenue' => $pendingInvoicesRevenue,
+            'paid_invoices_revenue' => $paidInvoicesRevenue,
             'delegates' => $delegatesStats,
         ];
 

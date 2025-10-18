@@ -49,8 +49,11 @@ class PaymentController extends Controller
             ->pluck('country');
 
         $payments = $query->latest('payment_completed_at')->paginate(20);
+        
+        // Calculate total payment amount
+        $totalPaymentAmount = $query->clone()->sum('payment_amount');
 
-        return view('payments.index', compact('payments', 'packages', 'countries'));
+        return view('payments.index', compact('payments', 'packages', 'countries', 'totalPaymentAmount'));
     }
 
     public function export(Request $request)
