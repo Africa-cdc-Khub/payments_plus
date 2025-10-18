@@ -114,6 +114,7 @@
         <table class="w-full">
             <thead class="bg-gray-50">
                 <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">#</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Invoice #</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Biller</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Item</th>
@@ -124,8 +125,11 @@
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-200">
-                @forelse($invoices as $invoice)
+                @forelse($invoices as $index => $invoice)
                 <tr>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {{ $invoices->firstItem() + $index }}
+                    </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {{ $invoice->invoice_number }}
                     </td>

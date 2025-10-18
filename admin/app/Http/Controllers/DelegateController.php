@@ -294,7 +294,7 @@ class DelegateController extends Controller
             
             // CSV Headers
             $headers = [
-                'ID',
+                'REG ID',
                 'Title',
                 'First Name',
                 'Last Name',

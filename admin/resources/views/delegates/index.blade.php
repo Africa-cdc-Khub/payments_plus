@@ -168,7 +168,8 @@
             <table class="w-full">
                 <thead class="bg-gray-50">
                     <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">#</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">REG ID</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Category</th>
@@ -178,8 +179,11 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-200">
-                        @forelse($delegates as $delegate)
+                        @forelse($delegates as $index => $delegate)
                         <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {{ $delegates->firstItem() + $index }}
+                            </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                 {{ $delegate->id }}
                             </td>

@@ -91,6 +91,7 @@
                 <table class="w-full">
                     <thead class="bg-gray-50">
                         <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">#</th>
                             @if(auth('admin')->user()->role === 'admin')
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                 <input type="checkbox" id="selectAll" onclick="toggleSelectAll()" class="rounded">
@@ -110,12 +111,15 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-200">
-                        @forelse($registrations as $registration)
+                        @forelse($registrations as $index => $registration)
                         @php
                             $isDelegate = $registration->package_id == config('app.delegate_package_id');
                             $canReceiveInvitation = $registration->isPaid() || ($isDelegate && $registration->status === 'approved');
                         @endphp
                         <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {{ $registrations->firstItem() + $index }}
+                            </td>
                             @if(auth('admin')->user()->role === 'admin')
                             <td class="px-6 py-4 whitespace-nowrap">
                                 @php
