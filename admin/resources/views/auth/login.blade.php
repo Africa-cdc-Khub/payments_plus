@@ -42,6 +42,14 @@
         .accent-green {
             background-color: #059669;
         }
+        /* Debug styles for button visibility */
+        button[type="submit"] {
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            position: relative !important;
+            z-index: 10 !important;
+        }
     </style>
 </head>
 <body class="gradient-bg min-h-screen flex items-center justify-center p-4">
@@ -151,12 +159,15 @@
                 </div>
 
                 <!-- Submit button -->
-                <button 
-                    type="submit" 
-                    class="w-full bg-gradient-to-r from-blue-600 via-teal-600 to-emerald-600 text-white py-3 px-6 rounded-xl font-semibold hover:from-blue-700 hover:via-teal-700 hover:to-emerald-700 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl"
-                >
-                    <i class="fas fa-sign-in-alt mr-2"></i>Sign In
-                </button>
+                <div class="w-full">
+                    <button 
+                        type="submit" 
+                        class="w-full bg-blue-600 text-white py-3 px-6 rounded-xl font-semibold hover:bg-blue-700 transition-all duration-200 flex items-center justify-center"
+                        style="min-height: 48px; background: linear-gradient(135deg, #1e40af, #059669);"
+                    >
+                        <i class="fas fa-sign-in-alt mr-2"></i>Sign In
+                    </button>
+                </div>
             </form>
 
             <!-- Footer -->
@@ -188,6 +199,19 @@
     </div>
 
     <script>
+        // Debug: Check if button exists
+        document.addEventListener('DOMContentLoaded', function() {
+            const submitButton = document.querySelector('button[type="submit"]');
+            console.log('Submit button found:', submitButton);
+            if (submitButton) {
+                console.log('Button styles:', window.getComputedStyle(submitButton));
+                console.log('Button display:', submitButton.style.display);
+                console.log('Button visibility:', submitButton.style.visibility);
+            } else {
+                console.error('Submit button not found!');
+            }
+        });
+
         // Add loading state to form submission
         document.querySelector('form').addEventListener('submit', function() {
             document.getElementById('loadingOverlay').classList.remove('hidden');
