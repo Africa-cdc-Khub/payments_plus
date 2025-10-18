@@ -91,12 +91,38 @@ class ParticipantsController extends Controller
             ->sort()
             ->values();
 
+        // Handle sorting
+        $sortField = $request->get('sort', 'created_at');
+        $sortDirection = $request->get('direction', 'desc');
+        
+        switch ($sortField) {
+            case 'name':
+                $query->join('users', 'registrations.user_id', '=', 'users.id')
+                      ->orderBy('users.first_name', $sortDirection)
+                      ->orderBy('users.last_name', $sortDirection);
+                break;
+            case 'email':
+                $query->join('users', 'registrations.user_id', '=', 'users.id')
+                      ->orderBy('users.email', $sortDirection);
+                break;
+            case 'package':
+                $query->join('packages', 'registrations.package_id', '=', 'packages.id')
+                      ->orderBy('packages.name', $sortDirection);
+                break;
+            case 'status':
+                $query->orderBy('status', $sortDirection);
+                break;
+            case 'created_at':
+            default:
+                $query->orderBy('created_at', $sortDirection);
+                break;
+        }
+
         // Handle per page parameter
         $perPage = $request->get('per_page', 50);
         $perPage = min(max($perPage, 10), 200); // Min 10, Max 200
         
-        // Order by created date (newest first)
-        $registrations = $query->orderBy('created_at', 'desc')->paginate($perPage);
+        $registrations = $query->paginate($perPage);
 
         // Calculate total participant count (registrants + group members)
         $totalParticipants = $registrations->sum(function($registration) {

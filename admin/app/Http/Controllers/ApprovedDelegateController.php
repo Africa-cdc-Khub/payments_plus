@@ -94,6 +94,9 @@ class ApprovedDelegateController extends Controller
             case 'created_at':
                 $query->orderBy('registrations.created_at', $sortDirection);
                 break;
+            case 'travel_status':
+                $query->orderBy('travel_processed', $sortDirection);
+                break;
             case 'travel_processed':
             default:
                 $query->orderBy('travel_processed', $sortDirection)

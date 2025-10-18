@@ -174,12 +174,12 @@
 
     <div class="table-container">
         <div class="overflow-x-auto">
-            <table class="w-full min-w-full">
+            <table class="w-full min-w-full table-fixed">
             <thead class="bg-gray-50">
                 <tr>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">#</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    <th class="w-12 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">#</th>
+                    <th class="w-16 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
+                    <th class="w-1/6 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                         <a href="{{ request()->fullUrlWithQuery(['sort' => 'name', 'direction' => request('sort') == 'name' && request('direction') == 'asc' ? 'desc' : 'asc']) }}" class="flex items-center space-x-1 hover:text-gray-700">
                             <span>Name</span>
                             @if(request('sort') == 'name')
@@ -189,7 +189,7 @@
                             @endif
                         </a>
                     </th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    <th class="w-1/5 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                         <a href="{{ request()->fullUrlWithQuery(['sort' => 'email', 'direction' => request('sort') == 'email' && request('direction') == 'asc' ? 'desc' : 'asc']) }}" class="flex items-center space-x-1 hover:text-gray-700">
                             <span>Email</span>
                             @if(request('sort') == 'email')
@@ -199,8 +199,8 @@
                             @endif
                         </a>
                     </th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Organization</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    <th class="w-1/6 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Organization</th>
+                    <th class="w-20 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                         <a href="{{ request()->fullUrlWithQuery(['sort' => 'country', 'direction' => request('sort') == 'country' && request('direction') == 'asc' ? 'desc' : 'asc']) }}" class="flex items-center space-x-1 hover:text-gray-700">
                             <span>Country</span>
                             @if(request('sort') == 'country')
@@ -210,7 +210,7 @@
                             @endif
                         </a>
                     </th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    <th class="w-20 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                         <a href="{{ request()->fullUrlWithQuery(['sort' => 'delegate_category', 'direction' => request('sort') == 'delegate_category' && request('direction') == 'asc' ? 'desc' : 'asc']) }}" class="flex items-center space-x-1 hover:text-gray-700">
                             <span>Category</span>
                             @if(request('sort') == 'delegate_category')
@@ -220,12 +220,21 @@
                             @endif
                         </a>
                     </th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Passport No.</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Airport of Origin</th>
+                    <th class="w-24 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Passport No.</th>
+                    <th class="w-28 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Airport of Origin</th>
                     @if(auth('admin')->user()->role === 'travels')
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Travel Status</th>
+                    <th class="w-24 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                        <a href="{{ request()->fullUrlWithQuery(['sort' => 'travel_status', 'direction' => request('sort') == 'travel_status' && request('direction') == 'asc' ? 'desc' : 'asc']) }}" class="flex items-center space-x-1 hover:text-gray-700">
+                            <span>Travel Status</span>
+                            @if(request('sort') == 'travel_status')
+                                <i class="fas fa-sort-{{ request('direction') == 'asc' ? 'up' : 'down' }} text-xs"></i>
+                            @else
+                                <i class="fas fa-sort text-xs opacity-50"></i>
+                            @endif
+                        </a>
+                    </th>
                     @endif
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    <th class="w-28 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                         <a href="{{ request()->fullUrlWithQuery(['sort' => 'created_at', 'direction' => request('sort') == 'created_at' && request('direction') == 'asc' ? 'desc' : 'asc']) }}" class="flex items-center space-x-1 hover:text-gray-700">
                             <span>Approved Date</span>
                             @if(request('sort') == 'created_at')
@@ -235,7 +244,7 @@
                             @endif
                         </a>
                     </th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                    <th class="w-20 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-200">
@@ -247,22 +256,22 @@
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {{ $delegate->id }}
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="text-sm font-medium text-gray-900">{{ $delegate->user->full_name }}</div>
+                    <td class="px-6 py-4 text-sm">
+                        <div class="text-sm font-medium text-gray-900 break-words">{{ $delegate->user->full_name }}</div>
                         @if($delegate->user->title)
-                            <div class="text-xs text-gray-500">{{ $delegate->user->title }}</div>
+                            <div class="text-xs text-gray-500 break-words">{{ $delegate->user->title }}</div>
                         @endif
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td class="px-6 py-4 text-sm text-gray-500 break-words">
                         {{ $delegate->user->email }}
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="text-sm text-gray-900">{{ $delegate->user->organization ?? '-' }}</div>
+                    <td class="px-6 py-4 text-sm">
+                        <div class="text-sm text-gray-900 break-words">{{ $delegate->user->organization ?? '-' }}</div>
                         @if($delegate->user->position)
-                            <div class="text-xs text-gray-500">{{ $delegate->user->position }}</div>
+                            <div class="text-xs text-gray-500 break-words">{{ $delegate->user->position }}</div>
                         @endif
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td class="px-6 py-4 text-sm text-gray-900 break-words">
                         {{ $delegate->user->country ?? '-' }}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
@@ -274,20 +283,19 @@
                             <span class="text-gray-400">-</span>
                         @endif
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td class="px-6 py-4 text-sm text-gray-900">
                         @if(in_array(auth('admin')->user()->role, ['admin', 'travels']))
-                            <div class="flex items-center space-x-2">
-                             
-                                <span class="text-gray-600">
+                            <div class="flex flex-col space-y-1">
+                                <span class="text-gray-600 break-words">
                                     {{ $delegate->user->passport_number ?? '-' }}
                                 </span>
                                 
                                 @if($delegate->user->passport_file)
                                     <button 
                                         onclick="openPassportPreview('{{ env('PARENT_APP_URL') }}/uploads/passports/{{ $delegate->user->passport_file }}')" 
-                                        class="inline-flex items-center px-3 py-1 px-2 text-xs font-medium rounded-md text-blue-700 bg-blue-50 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                                        class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-md text-blue-700 bg-blue-50 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                                     >
-                                        <small class="text-xs text-gray-500">View Attachment</small>
+                                        <small class="text-xs text-gray-500">View</small>
                                     </button>
                                 @endif
                                 {{-- <button 
@@ -301,7 +309,7 @@
                             <span class="text-gray-400">••••••••</span>
                         @endif
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td class="px-6 py-4 text-sm text-gray-900 break-words">
                         @if(in_array(auth('admin')->user()->role, ['admin', 'travels']))
                             {{ $delegate->user->airport_of_origin ?? '-' }}
                         @else

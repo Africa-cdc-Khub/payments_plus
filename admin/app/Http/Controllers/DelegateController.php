@@ -79,6 +79,9 @@ class DelegateController extends Controller
             case 'created_at':
                 $query->orderBy('registrations.created_at', $sortDirection);
                 break;
+            case 'status':
+                $query->orderBy('status', $sortDirection);
+                break;
             case 'status_priority':
             default:
                 $query->orderByRaw("CASE 

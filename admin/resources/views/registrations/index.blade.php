@@ -9,18 +9,18 @@
         <!-- Page Title Row -->
         <div class="flex justify-between items-center mb-6">
             <h3 class="text-lg font-semibold text-gray-800">All Registrations</h3>
-            @if(auth('admin')->user()->role === 'admin')
-            <button 
-                type="button" 
-                id="bulkVoidBtn"
-                onclick="voidSelected()"
-                class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 hidden"
-            >
-                <i class="fas fa-ban"></i> Void Selected (<span id="selectedCount">0</span>)
-            </button>
-            @endif
-        </div>
-
+                @if(auth('admin')->user()->role === 'admin')
+                <button 
+                    type="button" 
+                    id="bulkVoidBtn"
+                    onclick="voidSelected()"
+                    class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 hidden"
+                >
+                    <i class="fas fa-ban"></i> Void Selected (<span id="selectedCount">0</span>)
+                </button>
+                @endif
+            </div>
+            
         <!-- Filter Form -->
         <form method="GET" class="bg-gray-50 p-4 rounded-lg">
             <!-- Filter Fields in One Row -->
@@ -77,12 +77,12 @@
             <div class="flex flex-col sm:flex-row gap-3 sm:gap-2">
                 <button type="submit" class="flex-1 sm:flex-none px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 text-sm font-medium">
                     <i class="fas fa-search mr-2"></i>Apply Filters
-                </button>
-                @if(request()->hasAny(['registration_id', 'search', 'status']))
+                    </button>
+                    @if(request()->hasAny(['registration_id', 'search', 'status']))
                 <a href="{{ route('registrations.index') }}" class="flex-1 sm:flex-none px-4 py-2 bg-gray-400 text-white rounded-lg hover:bg-gray-500 transition-colors duration-200 text-sm font-medium text-center">
                     <i class="fas fa-times mr-2"></i>Clear Filters
-                </a>
-                @endif
+                    </a>
+                    @endif
                 <a href="{{ route('registrations.export', request()->query()) }}" class="flex-1 sm:flex-none px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 text-sm font-medium text-center">
                     <i class="fas fa-download mr-2"></i>Export CSV
                 </a>
@@ -93,37 +93,37 @@
     <div class="p-6">
     <!-- Showing records info and per-page selector -->
     <div class="mb-4 mt-2 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-        <p class="text-sm text-gray-700 leading-5">
-            Showing
-            @if ($registrations->firstItem())
-                <span class="font-medium">{{ $registrations->firstItem() }}</span>
-                to
-                <span class="font-medium">{{ $registrations->lastItem() }}</span>
-            @else
-                {{ $registrations->count() }}
-            @endif
-            of
-            <span class="font-medium">{{ $registrations->total() }}</span>
-            registrations
-        </p>
+            <p class="text-sm text-gray-700 leading-5">
+                Showing
+                @if ($registrations->firstItem())
+                    <span class="font-medium">{{ $registrations->firstItem() }}</span>
+                    to
+                    <span class="font-medium">{{ $registrations->lastItem() }}</span>
+                @else
+                    {{ $registrations->count() }}
+                @endif
+                of
+                <span class="font-medium">{{ $registrations->total() }}</span>
+                registrations
+            </p>
         
         <!-- Per-page selector -->
         <x-per-page-selector :paginator="$registrations" :current-per-page="request('per_page', 50)" />
-    </div>
+            </div>
 
             <div class="table-container">
-                <div class="overflow-x-auto">
-                    <table class="w-full min-w-full">
+            <div class="overflow-x-auto">
+                    <table class="w-full min-w-full table-fixed">
                     <thead class="bg-gray-50">
                         <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">#</th>
+                            <th class="w-12 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">#</th>
                             @if(auth('admin')->user()->role === 'admin')
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                            <th class="w-12 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                 <input type="checkbox" id="selectAll" onclick="toggleSelectAll()" class="rounded">
                             </th>
                             @endif
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                            <th class="w-20 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
+                            <th class="w-1/5 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                 <a href="{{ request()->fullUrlWithQuery(['sort' => 'name', 'direction' => request('sort') == 'name' && request('direction') == 'asc' ? 'desc' : 'asc']) }}" class="flex items-center space-x-1 hover:text-gray-700">
                                     <span>Name</span>
                                     @if(request('sort') == 'name')
@@ -133,7 +133,7 @@
                                     @endif
                                 </a>
                             </th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                            <th class="w-1/4 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                 <a href="{{ request()->fullUrlWithQuery(['sort' => 'email', 'direction' => request('sort') == 'email' && request('direction') == 'asc' ? 'desc' : 'asc']) }}" class="flex items-center space-x-1 hover:text-gray-700">
                                     <span>Email</span>
                                     @if(request('sort') == 'email')
@@ -143,7 +143,7 @@
                                     @endif
                                 </a>
                             </th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                            <th class="w-1/6 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                 <a href="{{ request()->fullUrlWithQuery(['sort' => 'package', 'direction' => request('sort') == 'package' && request('direction') == 'asc' ? 'desc' : 'asc']) }}" class="flex items-center space-x-1 hover:text-gray-700">
                                     <span>Package</span>
                                     @if(request('sort') == 'package')
@@ -153,7 +153,7 @@
                                     @endif
                                 </a>
                             </th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                            <th class="w-24 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                 <a href="{{ request()->fullUrlWithQuery(['sort' => 'amount', 'direction' => request('sort') == 'amount' && request('direction') == 'asc' ? 'desc' : 'asc']) }}" class="flex items-center space-x-1 hover:text-gray-700">
                                     <span>Amount</span>
                                     @if(request('sort') == 'amount')
@@ -164,11 +164,20 @@
                                 </a>
                             </th>
                             @if(!in_array(auth('admin')->user()->role, ['executive']))
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Marked By</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Invitation Sent</th>
+                            <th class="w-24 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                <a href="{{ request()->fullUrlWithQuery(['sort' => 'status', 'direction' => request('sort') == 'status' && request('direction') == 'asc' ? 'desc' : 'asc']) }}" class="flex items-center space-x-1 hover:text-gray-700">
+                                    <span>Status</span>
+                                    @if(request('sort') == 'status')
+                                        <i class="fas fa-sort-{{ request('direction') == 'asc' ? 'up' : 'down' }} text-xs"></i>
+                                    @else
+                                        <i class="fas fa-sort text-xs opacity-50"></i>
+                                    @endif
+                                </a>
+                            </th>
+                            <th class="w-28 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Marked By</th>
+                            <th class="w-32 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Invitation Sent</th>
                             @endif
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                            <th class="w-20 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-200">
@@ -202,10 +211,10 @@
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                 {{ $registration->id }}
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm font-medium text-gray-900">{{ $registration->user->full_name }}</div>
+                            <td class="px-6 py-4 text-sm">
+                                <div class="text-sm font-medium text-gray-900 break-words">{{ $registration->user->full_name }}</div>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <td class="px-6 py-4 text-sm text-gray-500 break-words">
                                 {{ $registration->user->email }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -390,7 +399,7 @@
                         </tr>
                         @endforelse
                     </tbody>
-                    </table>
+                </table>
                 </div>
             </div>
 

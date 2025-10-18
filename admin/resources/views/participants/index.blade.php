@@ -151,7 +151,16 @@
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Passport</th>
                         @endif
                         @if(!in_array(auth('admin')->user()->role, ['executive']))
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <a href="{{ request()->fullUrlWithQuery(['sort' => 'status', 'direction' => request('sort') == 'status' && request('direction') == 'asc' ? 'desc' : 'asc']) }}" class="flex items-center space-x-1 hover:text-gray-700">
+                                <span>Status</span>
+                                @if(request('sort') == 'status')
+                                    <i class="fas fa-sort-{{ request('direction') == 'asc' ? 'up' : 'down' }} text-xs"></i>
+                                @else
+                                    <i class="fas fa-sort text-xs opacity-50"></i>
+                                @endif
+                            </a>
+                        </th>
                         @endif
                         @if(!in_array(auth('admin')->user()->role, ['executive', 'hosts']))
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payment</th>

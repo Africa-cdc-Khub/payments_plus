@@ -98,6 +98,9 @@ class RegistrationController extends Controller
             case 'created_at':
                 $query->orderBy('registrations.created_at', $sortDirection);
                 break;
+            case 'status':
+                $query->orderBy('status', $sortDirection);
+                break;
             case 'payment_status':
             default:
                 $query->orderByRaw("CASE WHEN payment_status = 'completed' THEN 0 ELSE 1 END")
