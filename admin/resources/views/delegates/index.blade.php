@@ -119,14 +119,14 @@
             </div>
 
             <!-- Action Buttons - Responsive Layout -->
-            <div class="flex flex-col sm:flex-row gap-3 sm:gap-2">
-                <button type="submit" class="flex-1 sm:flex-none px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 text-sm font-medium">
+            <div class="flex flex-col sm:flex-row gap-3 sm:gap-2 sm:justify-start">
+                <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 text-sm font-medium">
                     <i class="fas fa-search mr-2"></i>Apply Filters
                 </button>
-                <a href="{{ route('delegates.index') }}" class="flex-1 sm:flex-none px-4 py-2 bg-gray-400 text-white rounded-lg hover:bg-gray-500 transition-colors duration-200 text-sm font-medium text-center">
+                <a href="{{ route('delegates.index') }}" class="px-4 py-2 bg-gray-400 text-white rounded-lg hover:bg-gray-500 transition-colors duration-200 text-sm font-medium text-center">
                     <i class="fas fa-times mr-2"></i>Clear Filters
                 </a>
-                <a href="{{ route('delegates.export', request()->query()) }}" class="flex-1 sm:flex-none px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 text-sm font-medium text-center">
+                <a href="{{ route('delegates.export', request()->query()) }}" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 text-sm font-medium text-center">
                     <i class="fas fa-download mr-2"></i>Export CSV
                 </a>
             </div>
