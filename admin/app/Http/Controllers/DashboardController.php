@@ -15,8 +15,11 @@ class DashboardController extends Controller
     public function index()
     {
         // Redirect executive users to participants page
-        if (Auth::guard('admin')->check() && (Auth::guard('admin')->user()->role === 'executive' || Auth::guard('admin')->user()->role === 'travels' || Auth::guard('admin')->user()->role === 'host')) {
+        if (Auth::guard('admin')->check() && (Auth::guard('admin')->user()->role === 'executive' || Auth::guard('admin')->user()->role === 'host')) {
             return redirect()->route('participants.index');
+        }
+        else if (Auth::guard('admin')->user()->role === 'travels') {
+            return redirect()->route('approved-delegates.index');
         }
 
         $delegatePackageId = config('app.delegate_package_id');
