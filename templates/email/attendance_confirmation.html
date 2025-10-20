@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirm Your Attendance - CPHIA 2025</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .email-container {
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #1a5632 0%, #2d7a47 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 600;
+        }
+        .header p {
+            margin: 10px 0 0 0;
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        .content {
+            padding: 30px 20px;
+        }
+        .greeting {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: #1a5632;
+        }
+        .main-message {
+            font-size: 16px;
+            margin-bottom: 25px;
+            line-height: 1.7;
+        }
+        .highlight-box {
+            background-color: #f8f9fa;
+            border-left: 4px solid #28a745;
+            padding: 20px;
+            margin: 25px 0;
+            border-radius: 0 5px 5px 0;
+        }
+        .highlight-box h3 {
+            margin: 0 0 10px 0;
+            color: #1a5632;
+            font-size: 18px;
+        }
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            text-decoration: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 16px;
+            margin: 20px 0;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+            transition: all 0.3s ease;
+        }
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+        }
+        .registration-details {
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 25px 0;
+        }
+        .registration-details h4 {
+            margin: 0 0 15px 0;
+            color: #1a5632;
+            font-size: 16px;
+        }
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            padding: 5px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+        .detail-label {
+            font-weight: 600;
+            color: #495057;
+        }
+        .detail-value {
+            color: #1a5632;
+        }
+        .qr-info {
+            background-color: #e3f2fd;
+            border: 1px solid #2196f3;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 25px 0;
+            text-align: center;
+        }
+        .qr-info h4 {
+            margin: 0 0 10px 0;
+            color: #1976d2;
+        }
+        .qr-info p {
+            margin: 0;
+            color: #1976d2;
+            font-size: 14px;
+        }
+        .instructions {
+            margin: 25px 0;
+        }
+        .instructions h4 {
+            color: #1a5632;
+            margin-bottom: 15px;
+        }
+        .instructions ol {
+            margin: 0;
+            padding-left: 20px;
+        }
+        .instructions li {
+            margin-bottom: 8px;
+            line-height: 1.6;
+        }
+        .footer {
+            background-color: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            border-top: 1px solid #e9ecef;
+        }
+        .footer p {
+            margin: 5px 0;
+            font-size: 14px;
+            color: #6c757d;
+        }
+        .footer a {
+            color: #1a5632;
+            text-decoration: none;
+        }
+        .footer a:hover {
+            text-decoration: underline;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .status-paid {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .status-approved {
+            background-color: #cce5ff;
+            color: #004085;
+        }
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            .header h1 {
+                font-size: 24px;
+            }
+            .content {
+                padding: 20px 15px;
+            }
+            .cta-button {
+                display: block;
+                width: 100%;
+                box-sizing: border-box;
+            }
+            .detail-row {
+                flex-direction: column;
+            }
+            .detail-label {
+                margin-bottom: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- Header -->
+        <div class="header">
+            <h1>CPHIA 2025</h1>
+            <p>4th International Conference on Public Health in Africa</p>
+            <p>22-25 October 2025 • Durban, South Africa</p>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <div class="greeting">
+                Dear {{user_name}},
+            </div>
+
+            <div class="main-message">
+                We are excited to confirm your registration for CPHIA 2025! As an approved participant, you can now confirm your attendance for the conference.
+            </div>
+
+            <div class="highlight-box">
+                <h3>🎯 Action Required: Confirm Your Attendance</h3>
+                <p>Please confirm your attendance to help us with final preparations and ensure you receive all conference materials and updates.</p>
+                <p><strong>📜 Certificate of Attendance:</strong> Only verified attendees will receive a certificate of attendance after the conference.</p>
+            </div>
+
+            <!-- Registration Details -->
+            <div class="registration-details">
+                <h4>Your Registration Details</h4>
+                <div class="detail-row">
+                    <span class="detail-label">Registration ID:</span>
+                    <span class="detail-value">#{{registration_id}}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Package:</span>
+                    <span class="detail-value">{{package_name}}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Registration Type:</span>
+                    <span class="detail-value">{{registration_type}}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Amount:</span>
+                    <span class="detail-value">{{amount}}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Status:</span>
+                    <span class="detail-value">
+                        {% if payment_status == 'completed' %}
+                            <span class="status-badge status-paid">Paid</span>
+                        {% else %}
+                            <span class="status-badge status-approved">Approved Delegate</span>
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+
+            <!-- QR Code Information -->
+            <div class="qr-info">
+                <h4>📱 Quick Check-in with QR Code</h4>
+                <p>You can use the QR code from your registration confirmation email for instant attendance confirmation!</p>
+            </div>
+
+            <!-- Certificate Information -->
+            <div style="background-color: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 20px; margin: 25px 0; text-align: center;">
+                <h4 style="margin: 0 0 10px 0; color: #856404;">📜 Certificate of Attendance</h4>
+                <p style="margin: 0; color: #856404; font-weight: 600;">
+                    Only verified attendees will receive a certificate of attendance after the conference.
+                </p>
+                <p style="margin: 10px 0 0 0; color: #856404; font-size: 14px;">
+                    Make sure to confirm your attendance to be eligible for your certificate!
+                </p>
+            </div>
+
+            <!-- Instructions -->
+            <div class="instructions">
+                <h4>How to Confirm Your Attendance:</h4>
+                <ol>
+                    <li><strong>Click the button below</strong> to go to the attendance confirmation page</li>
+                    <li><strong>Enter your details</strong> or scan your QR code using your device camera</li>
+                    <li><strong>Click "Confirm My Attendance"</strong> to complete the process</li>
+                    <li><strong>You'll receive confirmation</strong> that your attendance has been recorded</li>
+                </ol>
+            </div>
+
+            <!-- Call to Action -->
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="{{confirmation_url}}" class="cta-button">
+                    🎯 Confirm My Attendance Now
+                </a>
+            </div>
+
+            <div class="main-message">
+                <strong>Important Notes:</strong>
+                <ul>
+                    <li>Attendance confirmation helps us prepare for your arrival</li>
+                    <li>You can confirm attendance anytime before the conference</li>
+                    <li><strong>Certificate of Attendance:</strong> Only verified attendees will receive a certificate of attendance after the conference</li>
+                    <li>If you have any issues, please contact our support team</li>
+                </ul>
+            </div>
+
+            <div class="main-message">
+                We look forward to seeing you at CPHIA 2025 in Durban, South Africa!
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p><strong>CPHIA 2025 Conference Team</strong></p>
+            <p>4th International Conference on Public Health in Africa</p>
+            <p>22-25 October 2025 • Durban, South Africa</p>
+            <p>
+                <a href="https://cphia2025.com">Conference Website</a> | 
+                <a href="mailto:{{support_email}}">Support Email</a>
+            </p>
+            <p style="margin-top: 20px; font-size: 12px; color: #999;">
+                This email was sent to {{user_email}} because you are registered for CPHIA 2025.
+            </p>
+        </div>
+    </div>
+</body>
+</html>
