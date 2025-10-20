@@ -42,13 +42,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['confirm_attendance'])
             // Check if registration exists and belongs to the email
             $stmt = $pdo->prepare("
                 SELECT r.id, r.status, r.payment_status, r.total_amount, r.registration_type,
-                       u.first_name, u.last_name, u.email, u.attendance_status, u.attendance_verified_at
+                       u.first_name, u.last_name, u.email, u.attendance_status, u.attendance_verified_at,
+                       u.id as user_id
                 FROM registrations r
                 JOIN users u ON r.user_id = u.id
                 WHERE r.id = ? AND u.email = ?
             ");
             $stmt->execute([$registrationId, $email]);
             $registration = $stmt->fetch();
+            
+            // Debug logging
+            error_log("Registration lookup - ID: {$registrationId}, Email: {$email}, Found: " . ($registration ? 'Yes' : 'No'));
+            if ($registration) {
+                error_log("Registration data - Status: {$registration['status']}, Payment: {$registration['payment_status']}, Amount: {$registration['total_amount']}, User ID: {$registration['user_id']}");
+            }
             
             if (!$registration) {
                 $message = "Registration not found or email does not match. Please check your details and try again.";
@@ -77,15 +84,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['confirm_attendance'])
                     WHERE r.id = ? AND u.email = ?
                 ");
                 
-                if ($stmt->execute([$registrationId, $email])) {
-                    $message = "✅ Your attendance has been successfully confirmed! Welcome to CPHIA 2025.";
-                    $messageType = "success";
-                    $attendanceConfirmed = true;
+                $result = $stmt->execute([$registrationId, $email]);
+                $rowsAffected = $stmt->rowCount();
+                
+                if ($result && $rowsAffected > 0) {
+                    // Verify the update was successful
+                    $verifyStmt = $pdo->prepare("
+                        SELECT u.attendance_status, u.attendance_verified_at, u.verified_by
+                        FROM users u
+                        JOIN registrations r ON u.id = r.user_id
+                        WHERE r.id = ? AND u.email = ?
+                    ");
+                    $verifyStmt->execute([$registrationId, $email]);
+                    $verifyResult = $verifyStmt->fetch();
                     
-                    // Log the confirmation
-                    logSecurityEvent('attendance_confirmed', "Self-confirmed attendance for registration #{$registrationId}, email: {$email}");
+                    if ($verifyResult && $verifyResult['attendance_status'] === 'present') {
+                        $message = "✅ Your attendance has been successfully confirmed! Welcome to CPHIA 2025.";
+                        $messageType = "success";
+                        $attendanceConfirmed = true;
+                        
+                        // Log the confirmation
+                        logSecurityEvent('attendance_confirmed', "Self-confirmed attendance for registration #{$registrationId}, email: {$email}");
+                    } else {
+                        $message = "Attendance confirmation was processed but verification failed. Please contact support.";
+                        $messageType = "error";
+                        error_log("Attendance verification failed after update - Registration ID: {$registrationId}, Email: {$email}");
+                    }
                 } else {
-                    $message = "Failed to confirm attendance. Please try again or contact support.";
+                    // Log the failure for debugging
+                    error_log("Attendance confirmation failed - Rows affected: {$rowsAffected}, Registration ID: {$registrationId}, Email: {$email}");
+                    $message = "Failed to confirm attendance. Please verify your registration details and try again.";
                     $messageType = "error";
                 }
             }
