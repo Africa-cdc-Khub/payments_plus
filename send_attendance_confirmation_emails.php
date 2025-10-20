@@ -61,7 +61,7 @@ try {
             (r.payment_status = 'completed' AND r.total_amount > 0) OR
             (r.total_amount = 0 AND r.status = 'approved')
         )
-        AND u.attendance_status IS NULL
+        AND (u.attendance_status IS NULL OR u.attendance_status = 'pending')
         ORDER BY r.created_at ASC
     ";
     
