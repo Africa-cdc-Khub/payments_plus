@@ -57,12 +57,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['confirm_attendance'])
                 $message = "Your attendance has already been confirmed for this registration.";
                 $messageType = "info";
                 $attendanceConfirmed = true;
-            } elseif ($registration['payment_status'] !== 'completed' && $registration['total_amount'] > 0) {
-                $message = "Please complete your payment before confirming attendance. You can pay through the registration lookup page.";
-                $messageType = "warning";
             } elseif ($registration['status'] === 'rejected') {
                 $message = "This registration has been rejected and cannot be used for attendance confirmation.";
                 $messageType = "error";
+            } elseif ($registration['total_amount'] > 0 && $registration['payment_status'] !== 'completed') {
+                $message = "Please complete your payment before confirming attendance. You can pay through the registration lookup page.";
+                $messageType = "warning";
+            } elseif ($registration['total_amount'] == 0 && $registration['status'] !== 'approved') {
+                $message = "Your delegate registration is still pending approval. Only approved delegates can confirm attendance.";
+                $messageType = "warning";
             } else {
                 // Update attendance status
                 $stmt = $pdo->prepare("
@@ -194,7 +197,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['confirm_attendance'])
                     <p class="lead">Confirm your attendance for <?php echo CONFERENCE_DATES; ?></p>
                     <div class="alert alert-info d-inline-block">
                         <i class="fas fa-info-circle me-2"></i>
-                        <strong>Quick Confirmation:</strong> Enter your email and registration ID to confirm your attendance.
+                        <strong>Eligibility:</strong> Only paid participants and approved delegates can confirm attendance.
                     </div>
                 </div>
 
@@ -327,14 +330,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['confirm_attendance'])
                     <div class="card-body">
                         <div class="row">
                             <div class="col-md-6">
-                                <h6><i class="fas fa-envelope me-2"></i>Can't find your Registration ID?</h6>
-                                <p class="small text-muted">Check your registration confirmation email or use the "View My Registrations" link to find your registration details.</p>
+                                <h6><i class="fas fa-check-circle me-2"></i>Who Can Confirm Attendance?</h6>
+                                <p class="small text-muted">
+                                    • <strong>Paid Participants:</strong> Those who have completed payment<br>
+                                    • <strong>Approved Delegates:</strong> Delegates with approved status (no payment required)
+                                </p>
                             </div>
                             <div class="col-md-6">
-                                <h6><i class="fas fa-phone me-2"></i>Need Support?</h6>
+                                <h6><i class="fas fa-envelope me-2"></i>Need Help?</h6>
                                 <p class="small text-muted">
+                                    Can't find your Registration ID? Check your confirmation email or use the 
+                                    <a href="registration_lookup.php" class="text-decoration-none">"View My Registrations"</a> link.
+                                    <br><br>
                                     Contact us at <a href="mailto:<?php echo SUPPORT_EMAIL; ?>" class="text-decoration-none"><?php echo SUPPORT_EMAIL; ?></a> 
-                                    for assistance with attendance confirmation.
+                                    for assistance.
                                 </p>
                             </div>
                         </div>
