@@ -198,6 +198,10 @@ if (isset($_GET['view']) && is_numeric($_GET['view'])) {
                                             
                                             if ($paymentStatus === 'completed'): ?>
                                                 <span class="badge bg-success">Paid</span>
+                                            <?php elseif ($amount == 0 && $dbStatus === 'approved'): ?>
+                                                <span class="badge bg-success">Approved</span>
+                                            <?php elseif ($amount == 0 && $dbStatus === 'rejected'): ?>
+                                                <span class="badge bg-danger">Rejected</span>
                                             <?php elseif ($amount == 0): ?>
                                                 <span class="badge bg-info">Awaiting Approval</span>
                                             <?php elseif ($dbStatus === 'pending payment'): ?>
@@ -215,8 +219,13 @@ if (isset($_GET['view']) && is_numeric($_GET['view'])) {
                                                 <?php 
                                                 $amount = $registration['total_amount'] ?? 0;
                                                 $paymentStatus = $registration['payment_status'] ?? '';
+                                                $dbStatus = strtolower($registration['status'] ?? '');
                                                 
-                                                if ($amount == 0): ?>
+                                                if ($amount == 0 && $dbStatus === 'approved'): ?>
+                                                    <span class="badge bg-success">Approved</span>
+                                                <?php elseif ($amount == 0 && $dbStatus === 'rejected'): ?>
+                                                    <span class="badge bg-danger">Rejected</span>
+                                                <?php elseif ($amount == 0): ?>
                                                     <span class="badge bg-info">Awaiting Approval</span>
                                                 <?php elseif ($paymentStatus === 'voided'): ?>
                                                     <span class="badge bg-danger">Cancelled</span>
@@ -413,6 +422,10 @@ if (isset($_GET['view']) && is_numeric($_GET['view'])) {
                                                 
                                                 if ($paymentStatus === 'completed'): ?>
                                                     <span class="badge bg-success fs-6">Paid</span>
+                                                <?php elseif ($amount == 0 && $dbStatus === 'approved'): ?>
+                                                    <span class="badge bg-success fs-6">Approved</span>
+                                                <?php elseif ($amount == 0 && $dbStatus === 'rejected'): ?>
+                                                    <span class="badge bg-danger fs-6">Rejected</span>
                                                 <?php elseif ($amount == 0): ?>
                                                     <span class="badge bg-info fs-6">Awaiting Approval</span>
                                                 <?php elseif ($dbStatus === 'pending payment'): ?>
@@ -439,8 +452,17 @@ if (isset($_GET['view']) && is_numeric($_GET['view'])) {
                             <?php 
                             $amount = $registrationDetails['total_amount'] ?? 0;
                             $paymentStatus = $registrationDetails['payment_status'] ?? '';
+                            $dbStatus = strtolower($registrationDetails['status'] ?? '');
                             
-                            if ($amount == 0): ?>
+                            if ($amount == 0 && $dbStatus === 'approved'): ?>
+                            <div class="mt-3">
+                                <span class="badge bg-success fs-6">Approved</span>
+                            </div>
+                            <?php elseif ($amount == 0 && $dbStatus === 'rejected'): ?>
+                            <div class="mt-3">
+                                <span class="badge bg-danger fs-6">Rejected</span>
+                            </div>
+                            <?php elseif ($amount == 0): ?>
                             <div class="mt-3">
                                 <span class="badge bg-info fs-6">Awaiting Approval</span>
                             </div>
