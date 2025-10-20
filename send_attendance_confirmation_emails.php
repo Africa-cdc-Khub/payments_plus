@@ -118,6 +118,8 @@ try {
             'registration_type' => ucfirst($participant['registration_type']),
             'amount' => formatCurrency($participant['total_amount'], $participant['currency']),
             'payment_status' => $participant['payment_status'],
+            'payment_status_completed' => ($participant['payment_status'] === 'completed'),
+            'payment_status_approved' => ($participant['payment_status'] !== 'completed'),
             'confirmation_url' => $confirmationUrl,
             'user_email' => $email,
             'support_email' => SUPPORT_EMAIL,
