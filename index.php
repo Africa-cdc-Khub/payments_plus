@@ -529,6 +529,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
             left: 100%;
         }
         
+        /* Confirm Attendance Button Styles */
+        .confirm-attendance-btn {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%) !important;
+            border: none !important;
+            font-weight: 600 !important;
+            padding: 12px 24px !important;
+            border-radius: 8px !important;
+            transition: all 0.3s ease !important;
+            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3) !important;
+            position: relative !important;
+            overflow: hidden !important;
+            color: white !important;
+        }
+        
+        .confirm-attendance-btn:hover {
+            transform: translateY(-2px) !important;
+            box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4) !important;
+            background: linear-gradient(135deg, #20c997 0%, #17a2b8 100%) !important;
+            color: white !important;
+        }
+        
+        .confirm-attendance-btn:active {
+            transform: translateY(0) !important;
+        }
+        
+        .confirm-attendance-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        .confirm-attendance-btn:hover::before {
+            left: 100%;
+        }
+        
         /* Make only asterisks red and bold */
         .form-label span.asterisk,
         .form-label .required-asterisk,
@@ -776,9 +816,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                     <p class="mb-0">Selecting the wrong package may result in disqualification or additional fees. If you are unsure about which package to choose, please contact our support team at <a href="mailto:<?php echo SUPPORT_EMAIL; ?>" class="text-decoration-none"><strong><?php echo SUPPORT_EMAIL; ?></strong></a> before proceeding.</p>
                 </div>
                 
-                <a href="registration_lookup.php" class="btn btn-primary btn-lg view-registrations-btn">
-                    <i class="fas fa-list-alt me-2"></i>View My Registrations
-                </a>
+                <div class="d-flex gap-3 justify-content-center flex-wrap">
+                    <a href="registration_lookup.php" class="btn btn-primary btn-lg view-registrations-btn">
+                        <i class="fas fa-list-alt me-2"></i>View My Registrations
+                    </a>
+                    <a href="confirm_attendance.php" class="btn btn-success btn-lg confirm-attendance-btn">
+                        <i class="fas fa-check-circle me-2"></i>Confirm Attendance
+                    </a>
+                </div>
             </div>
             
             <!-- Registration History Check -->
