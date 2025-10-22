@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Jobs\SendInvitationJob;
 use App\Models\Payment;
 use App\Models\Registration;
+use App\Services\ReceiptEmailService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -355,9 +356,26 @@ class RegistrationController extends Controller
                 SendInvitationJob::dispatch($registration->id);
                 Log::info("Invitation email queued for registration #{$registration->id} after manual payment marking");
                 
+                // Send receipt email
+                try {
+                    $receiptService = new ReceiptEmailService();
+                    $receiptSent = $receiptService->sendReceiptEmail($registration, $request->payment_method);
+                    
+                    if ($receiptSent) {
+                        Log::info("Receipt email queued for registration #{$registration->id}");
+                        $message = "Registration for {$registration->user->full_name} has been marked as paid. Invitation and receipt emails have been queued.";
+                    } else {
+                        Log::warning("Failed to queue receipt email for registration #{$registration->id}");
+                        $message = "Registration for {$registration->user->full_name} has been marked as paid and invitation email has been queued, but receipt email failed.";
+                    }
+                } catch (\Exception $receiptException) {
+                    Log::error("Failed to send receipt email for registration #{$registration->id}: " . $receiptException->getMessage());
+                    $message = "Registration for {$registration->user->full_name} has been marked as paid and invitation email has been queued, but receipt email failed.";
+                }
+                
                 return redirect()
                     ->back()
-                    ->with('success', "Registration for {$registration->user->full_name} has been marked as paid and invitation email has been queued.");
+                    ->with('success', $message);
                     
             } catch (\Exception $emailException) {
                 Log::error("Failed to queue invitation email for registration #{$registration->id}: " . $emailException->getMessage());
@@ -579,6 +597,39 @@ class RegistrationController extends Controller
         } catch (\Exception $e) {
             Log::error("Failed to generate invoice for registration #{$registration->id}: " . $e->getMessage());
             return redirect()->back()->with('error', 'Failed to generate invoice. Please try again.');
+        }
+    }
+
+    /**
+     * Send receipt email manually
+     */
+    public function sendReceipt(Request $request, Registration $registration)
+    {
+        // Authorization check - only admin and finance can send receipts
+        $admin = Auth::guard('admin')->user();
+        if (!$admin || !in_array($admin->role, ['admin', 'finance'])) {
+            abort(403, 'Unauthorized access.');
+        }
+
+        // Check if registration is paid
+        if ($registration->payment_status !== 'completed') {
+            return redirect()->back()->with('error', 'This registration is not marked as paid. Receipt can only be sent for paid registrations.');
+        }
+
+        try {
+            $receiptService = new ReceiptEmailService();
+            $receiptSent = $receiptService->sendReceiptEmail($registration);
+
+            if ($receiptSent) {
+                Log::info("Manual receipt email sent for registration #{$registration->id} by admin #{$admin->id}");
+                return redirect()->back()->with('success', "Receipt email has been queued for {$registration->user->full_name}.");
+            } else {
+                Log::error("Failed to send manual receipt email for registration #{$registration->id}");
+                return redirect()->back()->with('error', 'Failed to send receipt email. Please try again.');
+            }
+        } catch (\Exception $e) {
+            Log::error("Failed to send manual receipt email for registration #{$registration->id}: " . $e->getMessage());
+            return redirect()->back()->with('error', 'Failed to send receipt email. Please try again.');
         }
     }
 }

@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Group Registration Receipts - {{conference_short_name}}</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .receipt-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #1a5632 0%, #2d7d32 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .logo-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 15px;
+            width: 100%;
+            justify-content: center;
+            align-items: center;
+        }
+        .logo {
+            max-width: 150px;
+            height: auto;
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            display: block;
+            margin: 0 auto;
+        }
+        .africa-cdc-logo {
+            max-width: 120px;
+        }
+        .cphia-logo {
+            max-width: 180px;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 700;
+            color: white;
+        }
+        .header p {
+            margin: 10px 0 0 0;
+            font-size: 16px;
+            opacity: 0.9;
+            color: white;
+        }
+        .receipt-content {
+            padding: 30px;
+        }
+        .receipt-title {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .receipt-title h2 {
+            color: #1a5632;
+            font-size: 24px;
+            margin: 0 0 10px 0;
+        }
+        .receipt-title p {
+            color: #666;
+            font-size: 16px;
+            margin: 0;
+        }
+        .group-info {
+            background: #e8f5e8;
+            border: 2px solid #1a5632;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        .group-info h3 {
+            color: #1a5632;
+            margin: 0 0 15px 0;
+            font-size: 20px;
+        }
+        .group-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        .group-detail {
+            display: flex;
+            align-items: center;
+        }
+        .group-detail i {
+            width: 20px;
+            color: #1a5632;
+            margin-right: 10px;
+        }
+        .participant-card {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+        .participant-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+        .participant-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1a5632;
+            margin: 0;
+        }
+        .participant-number {
+            background: #1a5632;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .participant-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .detail-item {
+            display: flex;
+            align-items: center;
+        }
+        .detail-item i {
+            width: 16px;
+            color: #666;
+            margin-right: 8px;
+            font-size: 12px;
+        }
+        .detail-label {
+            font-weight: 600;
+            color: #495057;
+            margin-right: 5px;
+        }
+        .detail-value {
+            color: #212529;
+        }
+        .qr-section {
+            text-align: center;
+            margin-top: 15px;
+            padding: 15px;
+            background: white;
+            border-radius: 6px;
+            border: 2px solid #1a5632;
+        }
+        .qr-codes-container {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        .qr-code-main, .qr-code-verification, .qr-code-navigation {
+            text-align: center;
+        }
+        .qr-code {
+            max-width: 150px;
+            height: auto;
+            margin: 10px 0;
+        }
+        .qr-code-small {
+            max-width: 100px;
+            height: auto;
+            margin: 8px 0;
+        }
+        .qr-code-navigation {
+            max-width: 80px;
+            height: auto;
+            margin: 6px 0;
+            border: 2px solid #ff8c00;
+            border-radius: 4px;
+        }
+        .qr-info {
+            color: #666;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+        .qr-info-small {
+            color: #666;
+            font-size: 10px;
+            margin-top: 8px;
+        }
+        .qr-info-navigation {
+            color: #ff8c00;
+            font-size: 9px;
+            margin-top: 6px;
+            font-weight: 600;
+        }
+        .amount-section {
+            background: linear-gradient(135deg, #1a5632 0%, #2d7d32 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 8px;
+            text-align: center;
+            margin: 25px 0;
+        }
+        .amount-label {
+            font-size: 16px;
+            margin-bottom: 10px;
+            opacity: 0.9;
+        }
+        .amount-value {
+            font-size: 32px;
+            font-weight: 700;
+            margin: 0;
+        }
+        .footer {
+            background: #f8f9fa;
+            padding: 25px;
+            text-align: center;
+            border-top: 1px solid #e9ecef;
+        }
+        .footer p {
+            margin: 5px 0;
+            color: #666;
+            font-size: 14px;
+        }
+        .contact-info {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
+        }
+        .contact-info h4 {
+            color: #1a5632;
+            margin-bottom: 15px;
+        }
+        .contact-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .contact-item i {
+            width: 20px;
+            color: #1a5632;
+            margin-right: 10px;
+        }
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            .receipt-content {
+                padding: 20px;
+            }
+            .group-details {
+                grid-template-columns: 1fr;
+            }
+            .participant-details {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="receipt-container">
+        <div class="header">
+            <div class="logo-container">
+                <img src="{{logo_url}}" alt="Africa CDC" class="logo africa-cdc-logo">
+            </div>
+            <h1>{{conference_short_name}}</h1>
+            <p>{{conference_dates}} • {{conference_location}}</p>
+        </div>
+        
+        <div class="receipt-content">
+            <div class="receipt-title">
+                <h2>Group Registration Receipts</h2>
+                <p>Payment Confirmation for All Participants</p>
+            </div>
+            
+            <div class="group-info">
+                <h3><i class="fas fa-users"></i> Group Registration Details</h3>
+                <div class="group-details">
+                    <div class="group-detail">
+                        <i class="fas fa-user"></i>
+                        <span><strong>Focal Person:</strong> {{focal_person_name}}</span>
+                    </div>
+                    <div class="group-detail">
+                        <i class="fas fa-envelope"></i>
+                        <span><strong>Email:</strong> {{focal_person_email}}</span>
+                    </div>
+                    <div class="group-detail">
+                        <i class="fas fa-ticket-alt"></i>
+                        <span><strong>Package:</strong> {{package_name}}</span>
+                    </div>
+                    <div class="group-detail">
+                        <i class="fas fa-hashtag"></i>
+                        <span><strong>Registration ID:</strong> #{{registration_id}}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <h3 style="color: #1a5632; margin-bottom: 20px;">Participant Receipts</h3>
+            
+            {{#participants}}
+            <div class="participant-card">
+                <div class="participant-header">
+                    <h4 class="participant-name">{{name}}</h4>
+                    <span class="participant-number">Participant {{@index}}</span>
+                </div>
+                
+                <div class="participant-details">
+                    <div class="detail-item">
+                        <i class="fas fa-envelope"></i>
+                        <span class="detail-label">Email:</span>
+                        <span class="detail-value">{{email}}</span>
+                    </div>
+                    <div class="detail-item">
+                        <i class="fas fa-phone"></i>
+                        <span class="detail-label">Phone:</span>
+                        <span class="detail-value">{{phone}}</span>
+                    </div>
+                    <div class="detail-item">
+                        <i class="fas fa-building"></i>
+                        <span class="detail-label">Organization:</span>
+                        <span class="detail-value">{{organization}}</span>
+                    </div>
+                    {{#institution}}
+                    <div class="detail-item">
+                        <i class="fas fa-graduation-cap"></i>
+                        <span class="detail-label">Institution:</span>
+                        <span class="detail-value">{{institution}}</span>
+                    </div>
+                    {{/institution}}
+                    <div class="detail-item">
+                        <i class="fas fa-flag"></i>
+                        <span class="detail-label">Nationality:</span>
+                        <span class="detail-value">{{nationality}}</span>
+                    </div>
+                    <div class="detail-item">
+                        <i class="fas fa-calendar"></i>
+                        <span class="detail-label">Payment Date:</span>
+                        <span class="detail-value">{{payment_date}}</span>
+                    </div>
+                </div>
+                
+                <div class="qr-section">
+                    <h5 style="color: #1a5632; margin-bottom: 10px;">Personal QR Codes for {{name}}</h5>
+                    <div class="qr-codes-container">
+                        <div class="qr-code-main">
+                            <img src="{{qr_codes.[@index]}}" alt="QR Code for {{name}}" class="qr-code">
+                            <p class="qr-info">
+                                <strong>Complete Receipt</strong><br>
+                                All details
+                            </p>
+                        </div>
+                        <div class="qr-code-verification">
+                            <img src="{{verification_qr_codes.[@index]}}" alt="Verification QR Code for {{name}}" class="qr-code-small">
+                            <p class="qr-info-small">
+                                <strong>Quick Check-in</strong><br>
+                                Fast scanning
+                            </p>
+                        </div>
+                        <div class="qr-code-navigation">
+                            <img src="{{navigation_qr_codes.[@index]}}" alt="Verification Link QR Code for {{name}}" class="qr-code-navigation">
+                            <p class="qr-info-navigation">
+                                <strong>Verify Online</strong><br>
+                                Scan to verify
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {{/participants}}
+            
+            <div class="amount-section">
+                <div class="amount-label">Total Amount Paid for Group</div>
+                <div class="amount-value">{{total_amount}}</div>
+            </div>
+            
+            <div class="contact-info">
+                <h4>Contact Information</h4>
+                <div class="contact-item">
+                    <i class="fas fa-envelope"></i>
+                    <span>{{mail_from_address}}</span>
+                </div>
+                <div class="contact-item">
+                    <i class="fas fa-globe"></i>
+                    <span>https://cphia2025.com</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p><strong>Thank you for registering your group for {{conference_name}}!</strong></p>
+            <p>This receipt serves as confirmation of your group registration and payment.</p>
+            <p>Each participant has a unique QR code for verification at the conference.</p>
+            <p>Please distribute individual QR codes to each participant.</p>
+        </div>
+    </div>
+</body>
+</html>

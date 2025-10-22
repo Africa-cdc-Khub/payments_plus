@@ -36,12 +36,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     //     $errors[] = "Invalid request. Please try again.";
     //     logSecurityEvent('csrf_token_mismatch', 'Invalid CSRF token provided');
     // } else {
-        // Check rate limiting
-        $clientIp = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
-        if (!checkRateLimit($clientIp, 'registration', 20, 3600)) {
-            $errors[] = "Too many registration attempts. Please try again later.";
-            logSecurityEvent('rate_limit_exceeded', 'Registration rate limit exceeded for IP: ' . $clientIp);
-        } else {
+        // Check rate limiting - DISABLED
+        // $clientIp = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+        // if (!checkRateLimit($clientIp, 'registration', 20, 3600)) {
+        //     $errors[] = "Too many registration attempts. Please try again later.";
+        //     logSecurityEvent('rate_limit_exceeded', 'Registration rate limit exceeded for IP: ' . $clientIp);
+        // } else {
     $errors = [];
     $success = false;
     
@@ -363,7 +363,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $errors[] = "Invalid package selected";
         }
     }
-        } // End rate limiting
+        // } // End rate limiting - DISABLED
 
 // Get all packages
 $packages = getAllPackages();

@@ -29,6 +29,7 @@ Route::middleware(['admin.auth'])->group(function () {
     Route::get('registrations/{registration}/invoice', [RegistrationController::class, 'invoice'])->name('registrations.invoice');
     Route::post('registrations/{registration}/mark-paid', [RegistrationController::class, 'markAsPaid'])->name('registrations.mark-paid');
     Route::post('registrations/{registration}/send-invitation', [RegistrationController::class, 'sendInvitation'])->name('registrations.send-invitation');
+    Route::post('registrations/{registration}/send-receipt', [RegistrationController::class, 'sendReceipt'])->name('registrations.send-receipt');
     Route::post('registrations/{registration}/void', [RegistrationController::class, 'voidRegistration'])->name('registrations.void');
     Route::post('registrations/void-bulk', [RegistrationController::class, 'voidRegistration'])->name('registrations.void-bulk');
     Route::post('registrations/{registration}/undo-void', [RegistrationController::class, 'undoVoid'])->name('registrations.undo-void');

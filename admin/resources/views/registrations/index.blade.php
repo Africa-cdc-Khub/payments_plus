@@ -374,6 +374,15 @@
                                         <i class="fas fa-envelope"></i> Send Invitation
                                     </button>
                                     @endif
+                                    
+                                    @if($registration->isPaid() && in_array(auth('admin')->user()->role, ['admin', 'finance']))
+                                    <button type="button" 
+                                            onclick="sendReceiptEmail({{ $registration->id }}, '{{ addslashes($registration->user->full_name) }}')" 
+                                            class="ml-3 text-green-600 hover:text-green-900"
+                                            title="Send Receipt Email">
+                                        <i class="fas fa-receipt"></i> Send Receipt
+                                    </button>
+                                    @endif
                                     @endcan
                                     
                                     @php
@@ -463,6 +472,26 @@ function sendInvitationEmail(registrationId, delegateName) {
         const form = document.createElement('form');
         form.method = 'POST';
         form.action = `{{  url('registrations') }}/${registrationId}/send-invitation`;
+        
+        // Add CSRF token
+        const csrfToken = document.createElement('input');
+        csrfToken.type = 'hidden';
+        csrfToken.name = '_token';
+        csrfToken.value = '{{ csrf_token() }}';
+        form.appendChild(csrfToken);
+        
+        // Add to body and submit
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+
+function sendReceiptEmail(registrationId, participantName) {
+    if (confirm(`Send receipt email to ${participantName}?\n\nThis will queue a receipt email with QR codes and payment confirmation.`)) {
+        // Create a form to submit the request
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `{{  url('registrations') }}/${registrationId}/send-receipt`;
         
         // Add CSRF token
         const csrfToken = document.createElement('input');
