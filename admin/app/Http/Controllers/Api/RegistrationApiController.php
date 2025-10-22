@@ -286,7 +286,7 @@ class RegistrationApiController extends Controller
                         'paid_at' => $registration->payment->paid_at ? $registration->payment->paid_at->toDateTimeString() : null,
                         'payment_reference' => $registration->payment->payment_reference ?? null,
                     ] : null,
-                    'amount' => $registration->amount,
+                    'amount' => $registration->total_amount,
                     'rejection_reason' => $registration->rejection_reason ?? null,
                     'created_at' => $registration->created_at ? $registration->created_at->toDateTimeString() : null,
                     'updated_at' => $registration->updated_at ? $registration->updated_at->toDateTimeString() : null,
@@ -463,7 +463,7 @@ class RegistrationApiController extends Controller
                         'created_at' => $registration->payment->created_at ? $registration->payment->created_at->toDateTimeString() : null,
                         'updated_at' => $registration->payment->updated_at ? $registration->payment->updated_at->toDateTimeString() : null,
                     ] : null,
-                    'amount' => $registration->amount,
+                    'amount' => $registration->total_amount,
                     'rejection_reason' => $registration->rejection_reason ?? null,
                     'created_at' => $registration->created_at ? $registration->created_at->toDateTimeString() : null,
                     'updated_at' => $registration->updated_at ? $registration->updated_at->toDateTimeString() : null,
@@ -589,8 +589,8 @@ class RegistrationApiController extends Controller
                         ->where('status', 'rejected')->count(),
                 ],
                 'revenue' => [
-                    'total' => Registration::where('payment_status', 'completed')->sum('amount'),
-                    'pending' => Registration::where('payment_status', 'pending')->sum('amount'),
+                    'total' => Registration::where('payment_status', 'completed')->sum('total_amount'),
+                    'pending' => Registration::where('payment_status', 'pending')->sum('total_amount'),
                 ],
             ];
 

@@ -94,7 +94,7 @@ class DashboardController extends Controller
             'pending_payments' => $pendingPaymentsCount,
             'total_revenue' => $activeRegistrations->clone()
                 ->where('payment_status', 'completed')
-                ->sum('payment_amount') + $paidInvoicesRevenue,
+                ->sum('total_amount') + $paidInvoicesRevenue,
             'pending_invoices_revenue' => $pendingInvoicesRevenue,
             'paid_invoices_revenue' => $paidInvoicesRevenue,
             'delegates' => $delegatesStats,
