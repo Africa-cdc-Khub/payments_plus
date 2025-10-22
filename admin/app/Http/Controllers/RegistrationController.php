@@ -291,7 +291,7 @@ class RegistrationController extends Controller
         // Validate the request
         $request->validate([
             'amount_paid' => 'required|numeric|min:0',
-            'payment_method' => 'required|in:bank,online',
+            'payment_method' => 'required|in:bank,online,cash',
             'remarks' => 'required|string|max:1000',
         ]);
 

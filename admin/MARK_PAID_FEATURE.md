@@ -136,14 +136,14 @@ Note: Secretariat can view but the UI restricts the mark paid button to only sho
 
 **Required Fields:**
 - `amount_paid` - Required, numeric, minimum 0
-- `payment_method` - Required, must be either 'bank' or 'online'
+- `payment_method` - Required, must be either 'bank', 'online', or 'cash'
 - `remarks` - Required, max 1000 characters
 
 **Validation Rules:**
 ```php
 $request->validate([
     'amount_paid' => 'required|numeric|min:0',
-    'payment_method' => 'required|in:bank,online',
+    'payment_method' => 'required|in:bank,online,cash',
     'remarks' => 'required|string|max:1000',
 ]);
 ```

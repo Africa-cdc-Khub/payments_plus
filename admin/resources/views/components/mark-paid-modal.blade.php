@@ -55,6 +55,7 @@
                             <option value="">Select Payment Method</option>
                             <option value="bank">Bank Transfer</option>
                             <option value="online">Online Payment</option>
+                            <option value="cash">Cash Payment</option>
                         </select>
                     </div>
                     
@@ -72,7 +73,7 @@
                         class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 resize-none"
                     ></textarea>
                     <p class="text-xs text-gray-500 mt-1">
-                        <i class="fas fa-info-circle"></i> Please provide details about how this payment was received (e.g., bank reference, transaction ID, etc.)
+                        <i class="fas fa-info-circle"></i> Please provide details about how this payment was received (e.g., bank reference, transaction ID, cash receipt number, etc.)
                     </p>
                 </div>
 
