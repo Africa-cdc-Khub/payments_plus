@@ -7,16 +7,17 @@ use App\Models\User;
 use App\Models\Package;
 use App\Models\Payment;
 use App\Models\RegistrationParticipant;
+use App\Services\ExchangeEmailService;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 class ReceiptEmailService
 {
-    private $emailQueue;
+    private $emailService;
 
     public function __construct()
     {
-        $this->emailQueue = new \Cphia2025\EmailQueue();
+        $this->emailService = new ExchangeEmailService();
     }
 
     /**
@@ -81,21 +82,22 @@ class ReceiptEmailService
                 'navigation_qr_code' => $qrCodes['navigation']
             ];
 
-            $result = $this->emailQueue->addToQueue(
+            // Generate email body using Blade template
+            $emailBody = view('admin.emails.individual_receipt', $templateData)->render();
+
+            // Send email using Exchange Email Service
+            $result = $this->emailService->sendEmail(
                 $user->email,
-                $user->first_name . ' ' . $user->last_name,
                 "Registration Receipt - {$package->name} - CPHIA 2025",
-                'individual_receipt',
-                $templateData,
-                'receipt',
-                2 // Priority 2 (high)
+                $emailBody,
+                true // isHtml
             );
 
             if ($result) {
-                Log::info("Individual receipt email queued for registration {$registration->id}");
+                Log::info("Individual receipt email sent for registration {$registration->id}");
                 return true;
             } else {
-                Log::error("Failed to queue individual receipt email for registration {$registration->id}");
+                Log::error("Failed to send individual receipt email for registration {$registration->id}");
                 return false;
             }
         } catch (\Exception $e) {
@@ -172,21 +174,22 @@ class ReceiptEmailService
                 'navigation_qr_codes' => $navigationQrCodes
             ];
 
-            $result = $this->emailQueue->addToQueue(
+            // Generate email body using Blade template
+            $emailBody = view('admin.emails.group_receipt', $templateData)->render();
+
+            // Send email using Exchange Email Service
+            $result = $this->emailService->sendEmail(
                 $user->email,
-                $user->first_name . ' ' . $user->last_name,
                 "Group Registration Receipt - {$package->name} - CPHIA 2025",
-                'group_receipt',
-                $templateData,
-                'receipt',
-                2 // Priority 2 (high)
+                $emailBody,
+                true // isHtml
             );
 
             if ($result) {
-                Log::info("Group receipt email queued for registration {$registration->id}");
+                Log::info("Group receipt email sent for registration {$registration->id}");
                 return true;
             } else {
-                Log::error("Failed to queue group receipt email for registration {$registration->id}");
+                Log::error("Failed to send group receipt email for registration {$registration->id}");
                 return false;
             }
         } catch (\Exception $e) {
