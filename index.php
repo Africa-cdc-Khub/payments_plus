@@ -84,6 +84,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = "Please select a valid nationality";
     }
     
+    // Phone number is now optional - only validate if provided
     if (!empty($_POST['phone']) && !validatePhoneNumber($_POST['phone'])) {
         $errors[] = "Please enter a valid phone number";
     }
@@ -110,12 +111,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (empty($_POST['delegate_category'])) {
                 $errors[] = "Delegate Category is required for delegate registration";
             }
-            if (empty($_POST['airport_of_origin'])) {
-                $errors[] = "Airport of Origin is required for delegate registration";
-            }
-            if (empty($_FILES['passport_file']['name'])) {
-                $errors[] = "Passport Copy (PDF) is required for delegate registration";
-            }
+            // Airport of origin is now optional for delegates
+            // if (empty($_POST['airport_of_origin'])) {
+            //     $errors[] = "Airport of Origin is required for delegate registration";
+            // }
+            // Passport file is now optional for delegates
+            // if (empty($_FILES['passport_file']['name'])) {
+            //     $errors[] = "Passport Copy (PDF) is required for delegate registration";
+            // }
         }
     }
     
@@ -1080,7 +1083,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                                 <input type="email" class="form-control" name="email" id="email" value="<?php echo htmlspecialchars($formData['email'] ?? ''); ?>" required>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label for="phone" class="form-label">Phone Number</label>
+                                <label for="phone" class="form-label">Phone Number <small class="text-muted">(Optional)</small></label>
                                 <input type="tel" class="form-control" name="phone" id="phone" value="<?php echo htmlspecialchars($formData['phone'] ?? ''); ?>">
                             </div>
                         </div>
@@ -1114,9 +1117,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                                 <div class="form-text">Optional - for international participants</div>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label for="passport_file" class="form-label">Passport Copy (PDF) <span class="asterisk">*</span></label>
+                                <label for="passport_file" class="form-label">Passport Copy (PDF) <small class="text-muted">(Optional)</small></label>
                                 <input type="file" class="form-control" name="passport_file" id="passport_file" accept=".pdf" value="<?php echo htmlspecialchars($formData['passport_file'] ?? ''); ?>">
-                                <div class="form-text">Required for delegate registration - upload a clear copy of your passport (PDF format, max 5MB)</div>
+                                <div class="form-text">Upload a clear copy of your passport (PDF format, max 5MB) - Optional for all registrations</div>
                             </div>
                         </div>
                         <div class="row">
@@ -1179,9 +1182,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                                 <!-- Empty left column for delegates -->
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label for="airport_of_origin" class="form-label">Airport of Origin <span class="asterisk">*</span></label>
+                                <label for="airport_of_origin" class="form-label">Airport of Origin <small class="text-muted">(Optional)</small></label>
                                 <input type="text" class="form-control" name="airport_of_origin" id="airport_of_origin" value="<?php echo htmlspecialchars($formData['airport_of_origin'] ?? ''); ?>" placeholder="Enter your departure airport">
-                                <div class="form-text">Required for delegate registration - for travel planning purposes</div>
+                                <div class="form-text">Optional - for travel planning purposes</div>
                             </div>
                         </div>
                         
@@ -1213,27 +1216,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($errors)) {
                 <!-- Billing Address Information -->
                 <div class="card mb-4">
                     <div class="card-header">
-                        <h5 class="mb-0">Billing Address Information (Card Address)</h5>
+                        <h5 class="mb-0">Billing Address Information (Optional)</h5>
                     </div>
                     <div class="card-body">
                         <div class="mb-3">
-                            <label for="address_line1" class="form-label">Address <span class="asterisk">*</span></label>
-                            <input type="text" class="form-control" name="address_line1" id="address_line1" value="<?php echo htmlspecialchars($formData['address_line1'] ?? ''); ?>" maxlength="60" required>
+                            <label for="address_line1" class="form-label">Address <small class="text-muted">(Optional)</small></label>
+                            <input type="text" class="form-control" name="address_line1" id="address_line1" value="<?php echo htmlspecialchars($formData['address_line1'] ?? ''); ?>" maxlength="60">
                         </div>
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label for="city" class="form-label">City <span class="asterisk">*</span></label>
-                                <input type="text" class="form-control" name="city" id="city" value="<?php echo htmlspecialchars($formData['city'] ?? ''); ?>" maxlength="50" required>
+                                <label for="city" class="form-label">City <small class="text-muted">(Optional)</small></label>
+                                <input type="text" class="form-control" name="city" id="city" value="<?php echo htmlspecialchars($formData['city'] ?? ''); ?>" maxlength="50">
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label for="state" class="form-label">State/Province <span class="asterisk">*</span></label>
-                                <input type="text" class="form-control" name="state" id="state" value="<?php echo htmlspecialchars($formData['state'] ?? ''); ?>" maxlength="50" required>
+                                <label for="state" class="form-label">State/Province <small class="text-muted">(Optional)</small></label>
+                                <input type="text" class="form-control" name="state" id="state" value="<?php echo htmlspecialchars($formData['state'] ?? ''); ?>" maxlength="50">
                             </div>
                         </div>
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label for="country" class="form-label">Country <span class="asterisk">*</span></label>
-                                <select class="form-control" name="country" id="country" required>
+                                <label for="country" class="form-label">Country <small class="text-muted">(Optional)</small></label>
+                                <select class="form-control" name="country" id="country">
                                     <option value="">Select Country</option>
                                     <?php
                                     // Load countries from database

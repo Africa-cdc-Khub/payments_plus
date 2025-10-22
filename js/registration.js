@@ -371,15 +371,16 @@ document.addEventListener('DOMContentLoaded', function() {
                         if (airportFields) {
                             airportFields.style.display = 'block';
                             const airportField = document.getElementById('airport_of_origin');
-                            if (airportField) {
-                                airportField.required = true;
-                            }
+                        // Airport of origin is now optional for delegates
+                        if (airportField) {
+                            airportField.required = false;
+                        }
                         }
                         
-                        // Make passport file required for delegates
+                        // Passport file is now optional for delegates
                         const passportFileField = document.getElementById('passport_file');
                         if (passportFileField) {
-                            passportFileField.required = true;
+                            passportFileField.required = false;
                         }
                         
                         // Update participant fields
@@ -1264,9 +1265,9 @@ document.addEventListener('DOMContentLoaded', function() {
             delegateCategoryField.required = packageName === 'delegates';
         }
         
-        // Set airport_of_origin requirement
+        // Airport of origin is now optional for all packages
         if (airportField) {
-            airportField.required = packageName === 'delegates';
+            airportField.required = false;
         }
         
         // Set institution requirement
@@ -2152,14 +2153,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 const airportField = field.querySelector('input[name*="[airport_of_origin]"]');
                 const airportLabel = field.querySelector('label');
                 const airportHelpText = field.querySelector('.form-text');
+                // Airport of origin is now optional for delegates
                 if (airportField) {
-                    airportField.required = true;
+                    airportField.required = false;
                 }
                 if (airportLabel) {
-                    airportLabel.innerHTML = 'Airport of Origin *';
+                    airportLabel.innerHTML = 'Airport of Origin (Optional)';
                 }
                 if (airportHelpText) {
-                    airportHelpText.textContent = 'Required for delegate participants - for travel planning purposes';
+                    airportHelpText.textContent = 'Optional - for travel planning purposes';
                 }
             });
             
@@ -2491,15 +2493,16 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (airportFields) {
                         airportFields.style.display = 'block';
                         const airportField = document.getElementById('airport_of_origin');
+                        // Airport of origin is now optional for delegates
                         if (airportField) {
-                            airportField.required = true;
+                            airportField.required = false;
                         }
                     }
                     
-                    // Make passport file required for delegates
+                    // Passport file is now optional for delegates
                     const passportFileField = document.getElementById('passport_file');
                     if (passportFileField) {
-                        passportFileField.required = true;
+                        passportFileField.required = false;
                     }
                     
                     // Update participant fields
@@ -3008,7 +3011,6 @@ document.addEventListener('DOMContentLoaded', function() {
             { id: 'first_name', name: 'First Name' },
             { id: 'last_name', name: 'Last Name' },
             { id: 'email', name: 'Email Address' },
-            { id: 'phone', name: 'Phone Number' },
             { id: 'organization', name: 'Organization' }
         ];
         
