@@ -27,11 +27,33 @@ Route::middleware(['admin.auth'])->group(function () {
     Route::resource('registrations', RegistrationController::class);
     Route::get('registrations/export/csv', [RegistrationController::class, 'export'])->name('registrations.export');
     Route::get('registrations/{registration}/invoice', [RegistrationController::class, 'invoice'])->name('registrations.invoice');
+    Route::get('registrations/{registration}/mark-paid', function($registrationId) {
+        return redirect()->route('registrations.index')->with('error', 'Please use the "Mark as Paid" button in the registrations list to mark a payment as paid.');
+    });
     Route::post('registrations/{registration}/mark-paid', [RegistrationController::class, 'markAsPaid'])->name('registrations.mark-paid');
+    Route::get('registrations/{registration}/send-invitation', function($registrationId) {
+        return redirect()->route('registrations.index')->with('error', 'Please use the "Send Invitation" button in the registrations list to send invitation emails.');
+    });
     Route::post('registrations/{registration}/send-invitation', [RegistrationController::class, 'sendInvitation'])->name('registrations.send-invitation');
+    
+    Route::get('registrations/{registration}/send-receipt', function($registrationId) {
+        return redirect()->route('registrations.index')->with('error', 'Please use the "Send Receipt" button in the registrations list to send receipt emails.');
+    });
     Route::post('registrations/{registration}/send-receipt', [RegistrationController::class, 'sendReceipt'])->name('registrations.send-receipt');
+    
+    Route::get('registrations/{registration}/void', function($registrationId) {
+        return redirect()->route('registrations.index')->with('error', 'Please use the "Void Registration" button in the registrations list to void registrations.');
+    });
     Route::post('registrations/{registration}/void', [RegistrationController::class, 'voidRegistration'])->name('registrations.void');
+    
+    Route::get('registrations/void-bulk', function() {
+        return redirect()->route('registrations.index')->with('error', 'Please use the "Bulk Void" button in the registrations list to void multiple registrations.');
+    });
     Route::post('registrations/void-bulk', [RegistrationController::class, 'voidRegistration'])->name('registrations.void-bulk');
+    
+    Route::get('registrations/{registration}/undo-void', function($registrationId) {
+        return redirect()->route('registrations.index')->with('error', 'Please use the "Undo Void" button in the registrations list to undo voided registrations.');
+    });
     Route::post('registrations/{registration}/undo-void', [RegistrationController::class, 'undoVoid'])->name('registrations.undo-void');
     
     // Registration Participants
