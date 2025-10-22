@@ -38,7 +38,8 @@ class ParticipantsController extends Controller
             $search = $request->search;
             $query->where(function($q) use ($search) {
                 $q->whereHas('user', function ($subQ) use ($search) {
-                    $subQ->where('full_name', 'like', "%{$search}%")
+                    $subQ->where('first_name', 'like', "%{$search}%")
+                         ->orWhere('last_name', 'like', "%{$search}%")
                          ->orWhere('email', 'like', "%{$search}%");
                 })
                 ->orWhereHas('participants', function($subQ) use ($search) {
@@ -159,7 +160,8 @@ class ParticipantsController extends Controller
             $search = $request->search;
             $query->where(function($q) use ($search) {
                 $q->whereHas('user', function ($subQ) use ($search) {
-                    $subQ->where('full_name', 'like', "%{$search}%")
+                    $subQ->where('first_name', 'like', "%{$search}%")
+                         ->orWhere('last_name', 'like', "%{$search}%")
                          ->orWhere('email', 'like', "%{$search}%");
                 })
                 ->orWhereHas('participants', function($subQ) use ($search) {
