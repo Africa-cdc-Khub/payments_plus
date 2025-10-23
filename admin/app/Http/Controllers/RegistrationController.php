@@ -6,6 +6,7 @@ use App\Jobs\SendInvitationJob;
 use App\Models\Payment;
 use App\Models\Registration;
 use App\Services\ReceiptEmailService;
+use App\Jobs\SendReceiptJob;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -358,18 +359,11 @@ class RegistrationController extends Controller
                 
                 // Send receipt email
                 try {
-                    $receiptService = new ReceiptEmailService();
-                    $receiptSent = $receiptService->sendReceiptEmail($registration, $request->payment_method);
-                    
-                    if ($receiptSent) {
-                        Log::info("Receipt email queued for registration #{$registration->id}");
-                        $message = "Registration for {$registration->user->full_name} has been marked as paid. Invitation and receipt emails have been queued.";
-                    } else {
-                        Log::warning("Failed to queue receipt email for registration #{$registration->id}");
-                        $message = "Registration for {$registration->user->full_name} has been marked as paid and invitation email has been queued, but receipt email failed.";
-                    }
+                    SendReceiptJob::dispatch($registration->id, $request->payment_method);
+                    Log::info("Receipt email queued for registration #{$registration->id}");
+                    $message = "Registration for {$registration->user->full_name} has been marked as paid. Invitation and receipt emails have been queued.";
                 } catch (\Exception $receiptException) {
-                    Log::error("Failed to send receipt email for registration #{$registration->id}: " . $receiptException->getMessage());
+                    Log::error("Failed to queue receipt email for registration #{$registration->id}: " . $receiptException->getMessage());
                     $message = "Registration for {$registration->user->full_name} has been marked as paid and invitation email has been queued, but receipt email failed.";
                 }
                 
@@ -617,19 +611,19 @@ class RegistrationController extends Controller
         }
 
         try {
-            $receiptService = new ReceiptEmailService();
-            $receiptSent = $receiptService->sendReceiptEmail($registration);
+            // Dispatch receipt job (same approach as invitation)
+            SendReceiptJob::dispatch($registration->id, $request->payment_method);
 
-            if ($receiptSent) {
-                Log::info("Manual receipt email sent for registration #{$registration->id} by admin #{$admin->id}");
-                return redirect()->back()->with('success', "Receipt email has been queued for {$registration->user->full_name}.");
-            } else {
-                Log::error("Failed to send manual receipt email for registration #{$registration->id}");
-                return redirect()->back()->with('error', 'Failed to send receipt email. Please try again.');
-            }
+            Log::info("Receipt email manually queued for registration #{$registration->id} by admin #" . $admin->id, [
+                'admin' => $admin->username,
+            ]);
+
+            $message = 'Receipt email has been queued for ' . $registration->user->full_name . '.';
+            
+            return redirect()->back()->with('success', $message);
         } catch (\Exception $e) {
-            Log::error("Failed to send manual receipt email for registration #{$registration->id}: " . $e->getMessage());
-            return redirect()->back()->with('error', 'Failed to send receipt email. Please try again.');
+            Log::error("Failed to queue receipt email for registration #{$registration->id}: " . $e->getMessage());
+            return redirect()->back()->with('error', 'Failed to queue receipt email: ' . $e->getMessage());
         }
     }
 
@@ -654,24 +648,19 @@ class RegistrationController extends Controller
                 return redirect()->back()->with('warning', 'No registrations with completed payments found.');
             }
 
-            $receiptService = new ReceiptEmailService();
             $successCount = 0;
             $errorCount = 0;
             $errors = [];
 
             foreach ($completedRegistrations as $registration) {
                 try {
-                    $receiptSent = $receiptService->sendReceiptEmail($registration);
-                    if ($receiptSent) {
-                        $successCount++;
-                        Log::info("Bulk receipt email sent for registration #{$registration->id}");
-                    } else {
-                        $errorCount++;
-                        $errors[] = "Failed to queue receipt for registration #{$registration->id}";
-                    }
+                    // Dispatch receipt job for each registration
+                    SendReceiptJob::dispatch($registration->id);
+                    $successCount++;
+                    Log::info("Bulk receipt email queued for registration #{$registration->id}");
                 } catch (\Exception $e) {
                     $errorCount++;
-                    $errors[] = "Error sending receipt for registration #{$registration->id}: " . $e->getMessage();
+                    $errors[] = "Error queuing receipt for registration #{$registration->id}: " . $e->getMessage();
                     Log::error("Bulk receipt email failed for registration #{$registration->id}: " . $e->getMessage());
                 }
             }
