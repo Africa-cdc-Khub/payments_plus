@@ -3,21 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Group Registration Receipt - CPHIA 2025</title>
+    <title>Group Registration Receipt - {{ $conference_short_name ?? 'CPHIA 2025' }}</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             line-height: 1.6;
             color: #333;
-            max-width: 800px;
+            max-width: 600px;
             margin: 0 auto;
             padding: 20px;
             background-color: #f8f9fa;
         }
-        .container {
-            background-color: white;
+        .receipt-container {
+            background: white;
             border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             overflow: hidden;
         }
         .header {
@@ -26,52 +26,85 @@
             padding: 30px;
             text-align: center;
         }
+        .logo-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 15px;
+            width: 100%;
+            justify-content: center;
+            align-items: center;
+        }
+        .logo {
+            max-width: 150px;
+            height: auto;
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            display: block;
+            margin: 0 auto;
+        }
+        .africa-cdc-logo {
+            max-width: 120px;
+        }
+        .cphia-logo {
+            max-width: 180px;
+        }
         .header h1 {
             margin: 0;
             font-size: 28px;
-            font-weight: 600;
+            font-weight: 700;
+            color: white;
         }
-        .header h2 {
+        .header p {
             margin: 10px 0 0 0;
-            font-size: 20px;
-            font-weight: 400;
+            font-size: 16px;
             opacity: 0.9;
+            color: white;
         }
-        .content {
+        .receipt-content {
             padding: 30px;
         }
         .receipt-title {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .receipt-title h2 {
             color: #1a5632;
             font-size: 24px;
-            font-weight: 600;
-            margin-bottom: 20px;
-            text-align: center;
+            margin: 0 0 10px 0;
+        }
+        .receipt-title p {
+            color: #666;
+            font-size: 16px;
+            margin: 0;
         }
         .receipt-details {
-            background-color: #f8f9fa;
+            background: #f8f9fa;
             border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 30px;
+            padding: 25px;
+            margin-bottom: 25px;
         }
         .detail-row {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 10px;
-            padding: 8px 0;
+            align-items: center;
+            padding: 12px 0;
             border-bottom: 1px solid #e9ecef;
         }
         .detail-row:last-child {
             border-bottom: none;
-            font-weight: 600;
-            font-size: 18px;
-            color: #1a5632;
         }
         .detail-label {
-            font-weight: 500;
-            color: #6c757d;
+            font-weight: 600;
+            color: #495057;
+            min-width: 120px;
         }
         .detail-value {
-            color: #333;
+            color: #212529;
+            text-align: right;
+            flex: 1;
         }
         .participants-section {
             margin: 30px 0;
@@ -101,87 +134,136 @@
             font-size: 14px;
         }
         .participant-detail {
-            color: #6c757d;
+            display: flex;
+            flex-direction: column;
         }
-        .participant-detail strong {
+        .participant-detail-label {
+            font-weight: 500;
+            color: #6c757d;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .participant-detail-value {
             color: #333;
+            margin-top: 2px;
         }
         .qr-section {
             text-align: center;
             margin: 30px 0;
-            padding: 20px;
-            background-color: #f8f9fa;
+            padding: 25px;
+            background: #f8f9fa;
             border-radius: 8px;
         }
-        .qr-codes {
+        .qr-codes-container {
             display: flex;
-            justify-content: space-around;
-            flex-wrap: wrap;
+            justify-content: center;
+            align-items: flex-start;
             gap: 20px;
-            margin-top: 20px;
+            flex-wrap: wrap;
         }
-        .qr-item {
+        .qr-code-main, .qr-code-verification, .qr-code-navigation {
             text-align: center;
         }
-        .qr-item img {
-            max-width: 150px;
+        .qr-code {
+            max-width: 200px;
             height: auto;
-            border: 2px solid #e9ecef;
+            margin: 15px 0;
+            border: 3px solid #1a5632;
             border-radius: 8px;
         }
-        .qr-label {
+        .qr-code-small {
+            max-width: 120px;
+            height: auto;
+            margin: 10px 0;
+            border: 2px solid #1a5632;
+            border-radius: 6px;
+        }
+        .qr-code-navigation {
+            max-width: 100px;
+            height: auto;
+            margin: 8px 0;
+            border: 2px solid #ff8c00;
+            border-radius: 6px;
+        }
+        .qr-info {
+            color: #666;
+            font-size: 14px;
+            margin-top: 15px;
+        }
+        .qr-info-small {
+            color: #666;
             font-size: 12px;
-            color: #6c757d;
+            margin-top: 10px;
+        }
+        .qr-info-navigation {
+            color: #ff8c00;
+            font-size: 11px;
             margin-top: 8px;
+            font-weight: 600;
+        }
+        .amount-section {
+            background: linear-gradient(135deg, #1a5632 0%, #2d7d32 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 8px;
+            text-align: center;
+            margin: 25px 0;
+        }
+        .amount-label {
+            font-size: 16px;
+            margin-bottom: 10px;
+            opacity: 0.9;
+        }
+        .amount-value {
+            font-size: 32px;
+            font-weight: 700;
+            margin: 0;
         }
         .footer {
-            background-color: #f8f9fa;
-            padding: 20px;
+            background: #f8f9fa;
+            padding: 25px;
             text-align: center;
             border-top: 1px solid #e9ecef;
         }
         .footer p {
             margin: 5px 0;
-            color: #6c757d;
+            color: #666;
             font-size: 14px;
         }
-        .footer a {
-            color: #3b82f6;
-            text-decoration: none;
+        .contact-info {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
         }
-        .footer a:hover {
-            text-decoration: underline;
+        .contact-info h4 {
+            color: #1a5632;
+            margin-bottom: 15px;
         }
-        .logo-container {
+        .contact-item {
             display: flex;
-            justify-content: center;
             align-items: center;
-            margin-bottom: 20px;
-            width: 100%;
-            gap: 20px;
+            margin-bottom: 8px;
         }
-        .logo {
-            max-width: 150px;
-            height: auto;
-            background: white;
-            padding: 10px;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        .africa-cdc-logo {
-            max-width: 120px;
-        }
-        .cphia-logo {
-            max-width: 180px;
+        .contact-item i {
+            width: 20px;
+            color: #1a5632;
+            margin-right: 10px;
         }
         @media (max-width: 600px) {
-            .qr-codes {
-                flex-direction: column;
-                align-items: center;
+            body {
+                padding: 10px;
+            }
+            .receipt-content {
+                padding: 20px;
             }
             .detail-row {
                 flex-direction: column;
-                gap: 5px;
+                align-items: flex-start;
+            }
+            .detail-value {
+                text-align: left;
+                margin-top: 5px;
             }
             .participant-details {
                 grid-template-columns: 1fr;
@@ -190,87 +272,75 @@
     </style>
 </head>
 <body>
-    <div class="container">
-        <!-- Header -->
+    <div class="receipt-container">
         <div class="header">
             <div class="logo-container">
                 <img src="https://africacdc.org/wp-content/uploads/2020/02/AfricaCDC_Logo.png" alt="Africa CDC" class="logo africa-cdc-logo">
                 <img src="https://cphia2025.com/wp-content/uploads/2025/09/CPHIA-2025-logo_reverse.png" alt="CPHIA 2025" class="logo cphia-logo">
             </div>
             <h1>{{ $conference_short_name ?? 'CPHIA 2025' }}</h1>
-            <h2>{{ $conference_name ?? '4th International Conference on Public Health in Africa' }}</h2>
-            <p>{{ $conference_dates ?? '22-25 October 2025' }} | {{ $conference_location ?? 'Durban, South Africa' }}</p>
+            <p>{{ $conference_dates ?? '22-25 October 2025' }} • {{ $conference_location ?? 'Durban, South Africa' }}</p>
         </div>
-
-        <!-- Content -->
-        <div class="content">
-            <h2 class="receipt-title">Group Registration Receipt</h2>
+        
+        <div class="receipt-content">
+            <div class="receipt-title">
+                <h2>Group Registration Receipt</h2>
+                <p>Payment Confirmation</p>
+            </div>
             
-            <p>Dear {{ $focal_person_name ?? 'Group Coordinator' }},</p>
-            
-            <p>Thank you for your group registration for CPHIA 2025. This is your official receipt confirming your payment and registration details for all group members.</p>
-
-            <!-- Receipt Details -->
             <div class="receipt-details">
                 <div class="detail-row">
                     <span class="detail-label">Registration ID:</span>
                     <span class="detail-value">#{{ $registration_id ?? 'N/A' }}</span>
                 </div>
                 <div class="detail-row">
-                    <span class="detail-label">Group Coordinator:</span>
-                    <span class="detail-value">{{ $focal_person_name ?? 'N/A' }}</span>
+                    <span class="detail-label">Group Organizer:</span>
+                    <span class="detail-value">{{ $participant_name ?? 'N/A' }}</span>
                 </div>
                 <div class="detail-row">
-                    <span class="detail-label">Coordinator Email:</span>
-                    <span class="detail-value">{{ $focal_person_email ?? 'N/A' }}</span>
+                    <span class="detail-label">Email:</span>
+                    <span class="detail-value">{{ $participant_email ?? 'N/A' }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Phone:</span>
+                    <span class="detail-value">{{ $phone ?? 'N/A' }}</span>
                 </div>
                 <div class="detail-row">
                     <span class="detail-label">Package:</span>
                     <span class="detail-value">{{ $package_name ?? 'N/A' }}</span>
                 </div>
                 <div class="detail-row">
-                    <span class="detail-label">Number of Participants:</span>
-                    <span class="detail-value">{{ $participants_count ?? 0 }}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Payment Method:</span>
-                    <span class="detail-value">{{ $payment_method ?? 'Online Payment' }}</span>
+                    <span class="detail-label">Organization:</span>
+                    <span class="detail-value">{{ $organization ?? 'N/A' }}</span>
                 </div>
                 <div class="detail-row">
                     <span class="detail-label">Payment Date:</span>
                     <span class="detail-value">{{ $payment_date ?? 'N/A' }}</span>
                 </div>
-                <div class="detail-row">
-                    <span class="detail-label">Total Amount:</span>
-                    <span class="detail-value">{{ $total_amount ?? '$0.00' }}</span>
-                </div>
             </div>
-
-            <!-- Participants Section -->
+            
             <div class="participants-section">
                 <h3 class="participants-title">Group Participants</h3>
-                
-                @if(isset($participants) && is_array($participants))
+                @if(isset($participants) && is_array($participants) && count($participants) > 0)
                     @foreach($participants as $index => $participant)
                     <div class="participant-card">
-                        <div class="participant-name">{{ $participant['name'] ?? 'Participant ' . ($index + 1) }}</div>
+                        <div class="participant-name">{{ $participant['first_name'] ?? '' }} {{ $participant['last_name'] ?? '' }}</div>
                         <div class="participant-details">
                             <div class="participant-detail">
-                                <strong>Email:</strong> {{ $participant['email'] ?? 'N/A' }}
+                                <div class="participant-detail-label">Email</div>
+                                <div class="participant-detail-value">{{ $participant['email'] ?? 'N/A' }}</div>
                             </div>
                             <div class="participant-detail">
-                                <strong>Phone:</strong> {{ $participant['phone'] ?? 'N/A' }}
+                                <div class="participant-detail-label">Phone</div>
+                                <div class="participant-detail-value">{{ $participant['phone'] ?? 'N/A' }}</div>
                             </div>
                             <div class="participant-detail">
-                                <strong>Organization:</strong> {{ $participant['organization'] ?? 'N/A' }}
+                                <div class="participant-detail-label">Organization</div>
+                                <div class="participant-detail-value">{{ $participant['organization'] ?? 'N/A' }}</div>
                             </div>
-                            @if(isset($participant['institution']) && $participant['institution'])
                             <div class="participant-detail">
-                                <strong>Institution:</strong> {{ $participant['institution'] }}
-                            </div>
-                            @endif
-                            <div class="participant-detail">
-                                <strong>Nationality:</strong> {{ $participant['nationality'] ?? 'N/A' }}
+                                <div class="participant-detail-label">Nationality</div>
+                                <div class="participant-detail-value">{{ $participant['nationality'] ?? 'N/A' }}</div>
                             </div>
                         </div>
                     </div>
@@ -280,48 +350,55 @@
                 @endif
             </div>
 
-            <!-- QR Codes Section -->
             <div class="qr-section">
-                <h3 style="color: #1a5632; margin-bottom: 20px;">Registration QR Codes</h3>
-                <p style="color: #6c757d; margin-bottom: 20px;">Please save these QR codes for easy access to your group registration and conference information.</p>
-                
-                <div class="qr-codes">
-                    @if(isset($qr_codes) && is_array($qr_codes) && count($qr_codes) > 0)
-                        @foreach($qr_codes as $index => $qrCode)
-                        <div class="qr-item">
-                            <img src="{{ $qrCode }}" alt="Registration QR Code {{ $index + 1 }}">
-                            <div class="qr-label">Participant {{ $index + 1 }}</div>
-                        </div>
-                        @endforeach
-                    @else
-                        <div class="qr-item">
-                            <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgZmlsbD0iI2Y4ZjlmYSIgc3Ryb2tlPSIjY2NjIiBzdHJva2Utd2lkdGg9IjIiLz48dGV4dCB4PSI3NSIgeT0iNzUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiM2NjYiIGZvbnQtc2l6ZT0iMTIiPlFSIENvZGU8L3RleHQ+PC9zdmc+" alt="QR Code Placeholder">
-                            <div class="qr-label">Group Registration</div>
-                        </div>
-                    @endif
+                <h4 style="color: #1a5632; margin-bottom: 15px;">Registration QR Codes</h4>
+                <div class="qr-codes-container">
+                    <div class="qr-code-main">
+                        <img src="{{ $qr_code ?? '' }}" alt="Full Registration QR Code" class="qr-code">
+                        <p class="qr-info">
+                            <strong>Complete Receipt</strong><br>
+                            All registration details
+                        </p>
+                    </div>
+                    <div class="qr-code-verification">
+                        <img src="{{ $verification_qr_code ?? '' }}" alt="Verification QR Code" class="qr-code-small">
+                        <p class="qr-info-small">
+                            <strong>Quick Check-in</strong><br>
+                            Fast attendance scanning
+                        </p>
+                    </div>
+                    <div class="qr-code-navigation">
+                        <img src="{{ $navigation_qr_code ?? '' }}" alt="Verification Link QR Code" class="qr-code-navigation">
+                        <p class="qr-info-navigation">
+                            <strong>Verify Online</strong><br>
+                            Scan to verify attendance
+                        </p>
+                    </div>
                 </div>
             </div>
-
-            <p><strong>Important Notes:</strong></p>
-            <ul>
-                <li>Please keep this receipt for your records</li>
-                <li>Each participant should present their QR code at the conference for quick check-in</li>
-                <li>As the group coordinator, you are responsible for ensuring all participants are aware of conference details</li>
-                <li>If you have any questions, please contact our support team</li>
-                <li>This receipt serves as proof of payment for your group registration</li>
-            </ul>
-
-            <p>We look forward to seeing your group at CPHIA 2025!</p>
+            
+            <div class="amount-section">
+                <div class="amount-label">Total Amount Paid</div>
+                <div class="amount-value">{{ $total_amount ?? '$0.00' }}</div>
+            </div>
+            
+            <div class="contact-info">
+                <h4>Contact Information</h4>
+                <div class="contact-item">
+                    <i class="fas fa-envelope"></i>
+                    <span>{{ $mail_from_address ?? 'noreply@cphia2025.com' }}</span>
+                </div>
+                <div class="contact-item">
+                    <i class="fas fa-globe"></i>
+                    <span>https://cphia2025.com</span>
+                </div>
+            </div>
         </div>
-
-        <!-- Footer -->
+        
         <div class="footer">
-            <p><strong>CPHIA 2025 Conference Team</strong></p>
-            <p>For support, contact: <a href="mailto:{{ $support_email ?? 'support@cphia2025.com' }}">{{ $support_email ?? 'support@cphia2025.com' }}</a></p>
-            <p>Visit our website: <a href="https://cphia2025.com">https://cphia2025.com</a></p>
-            <p style="font-size: 12px; color: #adb5bd; margin-top: 15px;">
-                This is an automated receipt. Please do not reply to this email.
-            </p>
+            <p><strong>Thank you for registering for {{ $conference_name ?? 'CPHIA 2025' }}!</strong></p>
+            <p>This receipt serves as confirmation of your group registration and payment.</p>
+            <p>Please keep this receipt for your records and bring it to the conference.</p>
         </div>
     </div>
 </body>

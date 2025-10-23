@@ -10,6 +10,7 @@ use App\Models\RegistrationParticipant;
 use App\Services\ExchangeEmailService;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class ReceiptEmailService
 {
@@ -204,9 +205,6 @@ class ReceiptEmailService
     private function generateQRCodes(Registration $registration, $user, $participantIndex = 0)
     {
         try {
-            // For now, return placeholder QR codes since the QR library is not available in admin
-            // In production, you would integrate with a QR code service or library
-            
             $mainQrData = json_encode([
                 'type' => 'registration',
                 'registration_id' => $registration->id,
@@ -226,10 +224,27 @@ class ReceiptEmailService
 
             $verificationUrl = url("verify_attendance.php?email=" . urlencode($user->email) . "&reg_id=" . $registration->id);
 
-            // Generate QR codes using a simple online service or placeholder
-            $mainQrBase64 = $this->generateQRCodePlaceholder($mainQrData, 200);
-            $verificationQrBase64 = $this->generateQRCodePlaceholder($verificationQrData, 120);
-            $navigationQrBase64 = $this->generateQRCodePlaceholder($verificationUrl, 100);
+            // Generate QR codes using SimpleSoftwareIO QR Code library
+            $mainQrBase64 = 'data:image/png;base64,' . base64_encode(
+                QrCode::format('png')
+                    ->size(200)
+                    ->margin(1)
+                    ->generate($mainQrData)
+            );
+
+            $verificationQrBase64 = 'data:image/png;base64,' . base64_encode(
+                QrCode::format('png')
+                    ->size(120)
+                    ->margin(1)
+                    ->generate($verificationQrData)
+            );
+
+            $navigationQrBase64 = 'data:image/png;base64,' . base64_encode(
+                QrCode::format('png')
+                    ->size(100)
+                    ->margin(1)
+                    ->generate($verificationUrl)
+            );
 
             return [
                 'main' => $mainQrBase64,
@@ -248,27 +263,6 @@ class ReceiptEmailService
         }
     }
 
-    /**
-     * Generate QR code placeholder (replace with actual QR generation in production)
-     */
-    private function generateQRCodePlaceholder($data, $size)
-    {
-        // For now, return a placeholder SVG
-        // In production, integrate with a QR code service like:
-        // - Google Charts API: https://chart.googleapis.com/chart?chs={$size}x{$size}&cht=qr&chl={$data}
-        // - QR Server API: https://api.qrserver.com/v1/create-qr-code/?size={$size}x{$size}&data={$data}
-        
-        $encodedData = urlencode($data);
-        $qrUrl = "https://chart.googleapis.com/chart?chs={$size}x{$size}&cht=qr&chl={$encodedData}";
-        
-        // For now, return a placeholder
-        return 'data:image/svg+xml;base64,' . base64_encode(
-            '<svg width="' . $size . '" height="' . $size . '" xmlns="http://www.w3.org/2000/svg">' .
-            '<rect width="' . $size . '" height="' . $size . '" fill="#f0f0f0" stroke="#ccc" stroke-width="2"/>' .
-            '<text x="' . ($size/2) . '" y="' . ($size/2) . '" text-anchor="middle" fill="#666" font-size="12">QR Code</text>' .
-            '</svg>'
-        );
-    }
 
     /**
      * Send receipt email manually (for admin trigger)
