@@ -21,9 +21,9 @@
             overflow: hidden;
         }
         .header {
-            background: linear-gradient(135deg, #1a5632 0%, #2d7d32 100%);
+            background: #063218;
             color: white;
-            padding: 30px;
+            padding: 30px;  
             text-align: center;
         }
         .logo-container {
@@ -193,7 +193,7 @@
             margin-top: 15px;
         }
         .amount-section {
-            background: linear-gradient(135deg, #1a5632 0%, #2d7d32 100%);
+            background:  #1a5632;
             color: white;
             padding: 25px;
             border-radius: 8px;
