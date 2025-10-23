@@ -575,7 +575,9 @@ class RegistrationApiController extends Controller
                     'rejected' => Registration::where('status', 'rejected')->count(),
                 ],
                 'by_payment_status' => [
-                    'pending' => Registration::where('payment_status', 'pending')->count(),
+                    'pending' => Registration::where('payment_status', 'pending')
+                        ->where('package_id', '!=', $delegatePackageId)
+                        ->count(),
                     'completed' => Registration::where('payment_status', 'completed')->count(),
                     'failed' => Registration::where('payment_status', 'failed')->count(),
                 ],
@@ -590,7 +592,9 @@ class RegistrationApiController extends Controller
                 ],
                 'revenue' => [
                     'total' => Registration::where('payment_status', 'completed')->sum('total_amount'),
-                    'pending' => Registration::where('payment_status', 'pending')->sum('total_amount'),
+                    'pending' => Registration::where('payment_status', 'pending')
+                        ->where('package_id', '!=', $delegatePackageId)
+                        ->sum('total_amount'),
                 ],
             ];
 

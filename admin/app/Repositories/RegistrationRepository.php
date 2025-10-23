@@ -41,8 +41,12 @@ class RegistrationRepository implements RegistrationRepositoryInterface
 
     public function getPendingRegistrations(): Collection
     {
+        $delegatePackageId = config('app.delegate_package_id');
+        
         return Registration::with(['user', 'package'])
             ->where('payment_status', 'pending')
+            ->where('package_id', '!=', $delegatePackageId)
+            ->whereNull('voided_at')
             ->latest('created_at')
             ->get();
     }

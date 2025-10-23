@@ -21,7 +21,7 @@
             overflow: hidden;
         }
         .header {
-            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            background: linear-gradient(135deg, #1a5632 0%, #2d7d32 100%);
             color: white;
             padding: 30px;
             text-align: center;
@@ -41,7 +41,7 @@
             padding: 30px;
         }
         .receipt-title {
-            color: #1e3a8a;
+            color: #1a5632;
             font-size: 24px;
             font-weight: 600;
             margin-bottom: 20px;
@@ -64,7 +64,7 @@
             border-bottom: none;
             font-weight: 600;
             font-size: 18px;
-            color: #1e3a8a;
+            color: #1a5632;
         }
         .detail-label {
             font-weight: 500;
@@ -77,7 +77,7 @@
             margin: 30px 0;
         }
         .participants-title {
-            color: #1e3a8a;
+            color: #1a5632;
             font-size: 20px;
             font-weight: 600;
             margin-bottom: 15px;
@@ -87,11 +87,11 @@
             border-radius: 8px;
             padding: 15px;
             margin-bottom: 15px;
-            border-left: 4px solid #3b82f6;
+            border-left: 4px solid #1a5632;
         }
         .participant-name {
             font-weight: 600;
-            color: #1e3a8a;
+            color: #1a5632;
             margin-bottom: 8px;
         }
         .participant-details {
@@ -152,10 +152,27 @@
         .footer a:hover {
             text-decoration: underline;
         }
-        .logo {
-            max-width: 200px;
-            height: auto;
+        .logo-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
             margin-bottom: 20px;
+            width: 100%;
+            gap: 20px;
+        }
+        .logo {
+            max-width: 150px;
+            height: auto;
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .africa-cdc-logo {
+            max-width: 120px;
+        }
+        .cphia-logo {
+            max-width: 180px;
         }
         @media (max-width: 600px) {
             .qr-codes {
@@ -176,9 +193,10 @@
     <div class="container">
         <!-- Header -->
         <div class="header">
-            @if(isset($logo_url) && $logo_url)
-                <img src="{{ $logo_url }}" alt="CPHIA 2025 Logo" class="logo">
-            @endif
+            <div class="logo-container">
+                <img src="https://africacdc.org/wp-content/uploads/2020/02/AfricaCDC_Logo.png" alt="Africa CDC" class="logo africa-cdc-logo">
+                <img src="https://cphia2025.com/wp-content/uploads/2025/09/CPHIA-2025-logo_reverse.png" alt="CPHIA 2025" class="logo cphia-logo">
+            </div>
             <h1>{{ $conference_short_name ?? 'CPHIA 2025' }}</h1>
             <h2>{{ $conference_name ?? '4th International Conference on Public Health in Africa' }}</h2>
             <p>{{ $conference_dates ?? '22-25 October 2025' }} | {{ $conference_location ?? 'Durban, South Africa' }}</p>
@@ -264,7 +282,7 @@
 
             <!-- QR Codes Section -->
             <div class="qr-section">
-                <h3 style="color: #1e3a8a; margin-bottom: 20px;">Registration QR Codes</h3>
+                <h3 style="color: #1a5632; margin-bottom: 20px;">Registration QR Codes</h3>
                 <p style="color: #6c757d; margin-bottom: 20px;">Please save these QR codes for easy access to your group registration and conference information.</p>
                 
                 <div class="qr-codes">
