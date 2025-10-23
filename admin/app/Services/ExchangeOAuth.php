@@ -339,19 +339,23 @@ class ExchangeOAuth
     private function loadStoredTokens()
     {
         try {
-            $this->tokenModel = OAuthToken::where('provider', 'microsoft')
-                ->where('auth_method', $this->authMethod)
-                ->where('is_active', true)
-                ->latest()
-                ->first();
-            
-            if ($this->tokenModel) {
-                $this->accessToken = $this->tokenModel->access_token;
-                $this->refreshToken = $this->tokenModel->refresh_token;
-                $this->tokenExpiresAt = $this->tokenModel->expires_at;
+            // Check if OAuthToken model exists and table is available
+            if (class_exists('App\Models\OAuthToken')) {
+                $this->tokenModel = OAuthToken::where('provider', 'microsoft')
+                    ->where('auth_method', $this->authMethod)
+                    ->where('is_active', true)
+                    ->latest()
+                    ->first();
+                
+                if ($this->tokenModel) {
+                    $this->accessToken = $this->tokenModel->access_token;
+                    $this->refreshToken = $this->tokenModel->refresh_token;
+                    $this->tokenExpiresAt = $this->tokenModel->expires_at;
+                }
             }
         } catch (Exception $e) {
-            Log::error('Failed to load OAuth tokens: ' . $e->getMessage());
+            // Silently continue without database tokens
+            Log::info('OAuth tokens not available from database, will use direct authentication');
         }
     }
 
@@ -361,24 +365,29 @@ class ExchangeOAuth
     private function storeTokens()
     {
         try {
-            // Deactivate old tokens
-            OAuthToken::where('provider', 'microsoft')
-                ->where('auth_method', $this->authMethod)
-                ->update(['is_active' => false]);
+            // Only store tokens if OAuthToken model is available
+            if (class_exists('App\Models\OAuthToken')) {
+                // Deactivate old tokens
+                OAuthToken::where('provider', 'microsoft')
+                    ->where('auth_method', $this->authMethod)
+                    ->update(['is_active' => false]);
 
-            // Create new token record
-            $this->tokenModel = OAuthToken::create([
-                'provider' => 'microsoft',
-                'access_token' => $this->accessToken,
-                'refresh_token' => $this->refreshToken,
-                'expires_at' => $this->tokenExpiresAt,
-                'token_type' => 'Bearer',
-                'scope' => $this->scope,
-                'auth_method' => $this->authMethod,
-                'is_active' => true
-            ]);
+                // Create new token record
+                $this->tokenModel = OAuthToken::create([
+                    'provider' => 'microsoft',
+                    'access_token' => $this->accessToken,
+                    'refresh_token' => $this->refreshToken,
+                    'expires_at' => $this->tokenExpiresAt,
+                    'token_type' => 'Bearer',
+                    'scope' => $this->scope,
+                    'auth_method' => $this->authMethod,
+                    'is_active' => true
+                ]);
 
-            Log::info('OAuth tokens stored successfully');
+                Log::info('OAuth tokens stored successfully');
+            } else {
+                Log::info('OAuth tokens not stored (database not available)');
+            }
         } catch (Exception $e) {
             Log::error('Failed to store OAuth tokens: ' . $e->getMessage());
         }
