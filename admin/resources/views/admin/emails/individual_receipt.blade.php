@@ -217,8 +217,7 @@
                 <img src="https://cphia2025.com/wp-content/uploads/2025/09/CPHIA-2025-logo_reverse.png" alt="CPHIA 2025" class="logo cphia-logo">
             </div>
             <h1>{{ $conference_short_name ?? 'CPHIA 2025' }}</h1>
-            <h2>{{ $conference_name ?? '4th International Conference on Public Health in Africa' }}</h2>
-            <p>{{ $conference_dates ?? '22-25 October 2025' }} | {{ $conference_location ?? 'Durban, South Africa' }}</p>
+            <p>{{ $conference_dates ?? '22-25 October 2025' }} • {{ $conference_location ?? 'Durban, South Africa' }}</p>
         </div>
         
         <div class="receipt-content">
