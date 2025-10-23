@@ -70,6 +70,7 @@ class ReceiptEmailService
                 'mail_from_address' => config('mail.from.address', 'noreply@cphia2025.com'),
                 'support_email' => config('app.support_email', 'support@cphia2025.com'),
                 'registration_id' => $registration->id,
+                'registration_type' => $registration->registration_type ?? 'individual',
                 'participant_name' => $user->first_name . ' ' . $user->last_name,
                 'participant_email' => $user->email,
                 'phone' => $user->phone ?? 'N/A',
@@ -79,7 +80,7 @@ class ReceiptEmailService
                 'nationality' => $user->nationality ?? 'N/A',
                 'payment_date' => $paymentDate->format('F j, Y \a\t g:i A'),
                 'total_amount' => '$' . number_format($registration->total_amount, 2),
-                'qr_code' => $qrCodes['main'],
+                'main_qr_code' => $qrCodes['main'],
                 'verification_qr_code' => $qrCodes['verification'],
                 'navigation_qr_code' => $qrCodes['navigation']
             ];
@@ -181,12 +182,21 @@ class ReceiptEmailService
                 'mail_from_address' => config('mail.from.address', 'noreply@cphia2025.com'),
                 'support_email' => config('app.support_email', 'support@cphia2025.com'),
                 'registration_id' => $registration->id,
+                'registration_type' => $registration->registration_type ?? 'group',
+                'participant_name' => $user->first_name . ' ' . $user->last_name,
+                'participant_email' => $user->email,
+                'phone' => $user->phone ?? 'N/A',
+                'organization' => $user->organization ?? 'N/A',
+                'institution' => $user->institution ?? '',
                 'focal_person_name' => $user->first_name . ' ' . $user->last_name,
                 'focal_person_email' => $user->email,
                 'package_name' => $package->name,
                 'total_amount' => '$' . number_format($registration->total_amount, 2),
                 'payment_date' => $paymentDate->format('F j, Y \a\t g:i A'),
                 'participants' => $participantsData,
+                'main_qr_code' => $qrCodes[0] ?? '', // First participant's QR code for main display
+                'verification_qr_code' => $verificationQrCodes[0] ?? '', // First participant's verification QR
+                'navigation_qr_code' => $navigationQrCodes[0] ?? '', // First participant's navigation QR
                 'qr_codes' => $qrCodes,
                 'verification_qr_codes' => $verificationQrCodes,
                 'navigation_qr_codes' => $navigationQrCodes

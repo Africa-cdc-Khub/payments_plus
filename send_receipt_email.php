@@ -66,6 +66,55 @@ try {
     // Generate receipt email using the existing email queue system
     $emailQueue = new \Cphia2025\EmailQueue();
     
+    // Generate QR codes for the email (same as frontend receipt)
+    function generateQRCodeImage($data, $size) {
+        // Try QR Server API first (more reliable)
+        $qrServerUrl = "https://api.qrserver.com/v1/create-qr-code/?size={$size}x{$size}&data=" . urlencode($data);
+        
+        // Test if QR Server is accessible
+        $headers = @get_headers($qrServerUrl);
+        if ($headers && strpos($headers[0], '200') !== false) {
+            return $qrServerUrl;
+        }
+        
+        // Fallback to Google Charts API
+        $googleUrl = "https://chart.googleapis.com/chart?chs={$size}x{$size}&cht=qr&chl=" . urlencode($data);
+        
+        // Test if Google Charts is accessible
+        $headers = @get_headers($googleUrl);
+        if ($headers && strpos($headers[0], '200') !== false) {
+            return $googleUrl;
+        }
+        
+        // Final fallback - return empty string (template will handle fallback)
+        return '';
+    }
+    
+    // Generate QR codes
+    $mainQrData = json_encode([
+        'type' => 'registration',
+        'registration_id' => $registration['id'],
+        'participant_name' => $registration['first_name'] . ' ' . $registration['last_name'],
+        'email' => $email,
+        'package' => $registration['package_name'],
+        'amount' => $registration['total_amount'],
+        'timestamp' => date('c')
+    ]);
+    
+    $verificationQrData = json_encode([
+        'type' => 'verification',
+        'registration_id' => $registration['id'],
+        'email' => $email
+    ]);
+    
+    $verificationUrl = rtrim(APP_URL, '/') . "/verify_attendance.php?email=" . urlencode($email) . "&reg_id=" . $registration['id'];
+    
+    $qrCodes = [
+        'main' => generateQRCodeImage($mainQrData, 300),
+        'verification' => generateQRCodeImage($verificationQrData, 300),
+        'navigation' => generateQRCodeImage($verificationUrl, 300)
+    ];
+    
     // Prepare email data
     $emailData = [
         'conference_name' => CONFERENCE_NAME,
@@ -74,7 +123,7 @@ try {
         'conference_location' => CONFERENCE_LOCATION,
         'registration_id' => $registration['id'],
         'participant_name' => $registration['first_name'] . ' ' . $registration['last_name'],
-        'participant_email' => $registration['user_email'],
+        'email' => $registration['user_email'],
         'phone' => $registration['phone'] ?? 'N/A',
         'package_name' => $registration['package_name'],
         'organization' => $registration['organization'],
@@ -84,7 +133,10 @@ try {
         'total_amount' => formatCurrency($registration['total_amount'], $registration['currency']),
         'payment_method' => 'Online Payment',
         'mail_from_address' => SUPPORT_EMAIL,
-        'support_email' => SUPPORT_EMAIL
+        'support_email' => SUPPORT_EMAIL,
+        'main_qr_code' => $qrCodes['main'],
+        'verification_qr_code' => $qrCodes['verification'],
+        'navigation_qr_code' => $qrCodes['navigation']
     ];
     
     // Add receipt URL for easy access
