@@ -119,7 +119,7 @@ try {
             WHERE to_email = ? 
             AND subject = ?
             AND template_name = ?
-            AND created_at > DATE_SUB(NOW(), INTERVAL 24 HOUR)
+            AND created_at > DATE_SUB(NOW(), INTERVAL 1 HOUR)
             AND status IN ('pending', 'sent', 'processing')
         ");
         $duplicateCheck->execute([$email, 'Registration Receipt - ' . CONFERENCE_SHORT_NAME, 'individual_receipt']);
@@ -128,7 +128,7 @@ try {
         if ($duplicateCount > 0) {
             echo json_encode([
                 'success' => false, 
-                'message' => 'A receipt email was already sent recently. Please check your email or try again later.'
+                'message' => 'A receipt email was sent within the last hour. Please wait a moment before requesting another receipt email.'
             ]);
         } else {
             echo json_encode([

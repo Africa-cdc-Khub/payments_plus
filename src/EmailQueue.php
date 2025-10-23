@@ -41,20 +41,23 @@ class EmailQueue
     {
         try {
             // Check for duplicate emails in the last 24 hours to prevent spam
+            // Allow receipt emails to be resent (shorter duplicate check window)
+            $duplicateWindow = ($emailType === 'receipt_email') ? '1 HOUR' : '24 HOUR';
+            
             $duplicateCheck = $this->pdo->prepare("
                 SELECT COUNT(*) as count
                 FROM email_queue
                 WHERE to_email = ? 
                 AND subject = ?
                 AND template_name = ?
-                AND created_at > DATE_SUB(NOW(), INTERVAL 24 HOUR)
+                AND created_at > DATE_SUB(NOW(), INTERVAL $duplicateWindow)
                 AND status IN ('pending', 'sent', 'processing')
             ");
             $duplicateCheck->execute([$toEmail, $subject, $templateName]);
             $duplicateCount = $duplicateCheck->fetch(\PDO::FETCH_ASSOC)['count'];
             
             if ($duplicateCount > 0) {
-                error_log("Duplicate email prevented - To: $toEmail, Subject: $subject, Template: $templateName");
+                error_log("Duplicate email prevented - To: $toEmail, Subject: $subject, Template: $templateName (Window: $duplicateWindow)");
                 return false;
             }
             
