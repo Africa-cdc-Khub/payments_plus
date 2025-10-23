@@ -9,7 +9,16 @@
         <!-- Page Title Row -->
         <div class="flex justify-between items-center mb-6">
             <h3 class="text-lg font-semibold text-gray-800">All Registrations</h3>
+            <div class="flex gap-3">
                 @if(auth('admin')->user()->role === 'admin')
+                <button 
+                    type="button" 
+                    onclick="sendBulkReceipts()"
+                    class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                    title="Send receipts to all participants with completed payments"
+                >
+                    <i class="fas fa-receipt"></i> Send Bulk Receipts
+                </button>
                 <button 
                     type="button" 
                     id="bulkVoidBtn"
@@ -20,6 +29,7 @@
                 </button>
                 @endif
             </div>
+        </div>
             
         <!-- Filter Form -->
         <form method="GET" class="bg-gray-50 p-4 rounded-lg">
@@ -492,6 +502,26 @@ function sendReceiptEmail(registrationId, participantName) {
         const form = document.createElement('form');
         form.method = 'POST';
         form.action = `{{  url('registrations') }}/${registrationId}/send-receipt`;
+        
+        // Add CSRF token
+        const csrfToken = document.createElement('input');
+        csrfToken.type = 'hidden';
+        csrfToken.name = '_token';
+        csrfToken.value = '{{ csrf_token() }}';
+        form.appendChild(csrfToken);
+        
+        // Add to body and submit
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+
+function sendBulkReceipts() {
+    if (confirm('Send receipts to ALL participants with completed payments?\n\nThis will queue receipt emails for all paid registrations. This action may take some time to complete.')) {
+        // Create a form to submit the request
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '{{ route("registrations.send-bulk-receipts") }}';
         
         // Add CSRF token
         const csrfToken = document.createElement('input');

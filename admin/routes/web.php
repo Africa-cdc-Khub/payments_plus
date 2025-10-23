@@ -41,6 +41,9 @@ Route::middleware(['admin.auth'])->group(function () {
     });
     Route::post('registrations/{registration}/send-receipt', [RegistrationController::class, 'sendReceipt'])->name('registrations.send-receipt');
     
+    // Bulk receipt sending
+    Route::post('registrations/send-bulk-receipts', [RegistrationController::class, 'sendBulkReceipts'])->name('registrations.send-bulk-receipts');
+    
     Route::get('registrations/{registration}/void', function($registrationId) {
         return redirect()->route('registrations.index')->with('error', 'Please use the "Void Registration" button in the registrations list to void registrations.');
     });

@@ -11,6 +11,7 @@ require_once 'functions.php';
 $registrationId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 $email = isset($_GET['email']) ? trim($_GET['email']) : '';
 $isPrint = isset($_GET['print']) && $_GET['print'] == '1';
+$isDownload = isset($_GET['download']) && $_GET['download'] == '1';
 
 if (!$registrationId) {
     http_response_code(404);
@@ -97,18 +98,61 @@ function generateReceiptQRCodes($registration, $userEmail) {
     // Navigation QR code (link to verification page)
     $verificationUrl = rtrim(APP_URL, '/') . "/verify_attendance.php?email=" . urlencode($userEmail) . "&reg_id=" . $registration['id'];
     
-    // Generate QR codes using Google Charts API
-    $qrCodes['main'] = "https://chart.googleapis.com/chart?chs=200x200&cht=qr&chl=" . urlencode($mainQrData);
-    $qrCodes['verification'] = "https://chart.googleapis.com/chart?chs=120x120&cht=qr&chl=" . urlencode($verificationQrData);
-    $qrCodes['navigation'] = "https://chart.googleapis.com/chart?chs=100x100&cht=qr&chl=" . urlencode($verificationUrl);
+    // Generate QR codes using multiple fallback methods
+    $qrCodes['main'] = generateQRCodeImage($mainQrData, 150);
+    $qrCodes['verification'] = generateQRCodeImage($verificationQrData, 150);
+    $qrCodes['navigation'] = generateQRCodeImage($verificationUrl, 150);
     
     return $qrCodes;
 }
 
+// Generate QR code image with fallbacks
+function generateQRCodeImage($data, $size) {
+    // Try QR Server API first (more reliable)
+    $qrServerUrl = "https://api.qrserver.com/v1/create-qr-code/?size={$size}x{$size}&data=" . urlencode($data);
+    
+    // Test if QR Server is accessible
+    $headers = @get_headers($qrServerUrl);
+    if ($headers && strpos($headers[0], '200') !== false) {
+        return $qrServerUrl;
+    }
+    
+    // Fallback to Google Charts API
+    $googleUrl = "https://chart.googleapis.com/chart?chs={$size}x{$size}&cht=qr&chl=" . urlencode($data);
+    
+    // Test if Google Charts is accessible
+    $headers = @get_headers($googleUrl);
+    if ($headers && strpos($headers[0], '200') !== false) {
+        return $googleUrl;
+    }
+    
+    // Final fallback - return a placeholder with data
+    return "data:image/svg+xml;base64," . base64_encode(
+        '<svg width="' . $size . '" height="' . $size . '" xmlns="http://www.w3.org/2000/svg">' .
+        '<rect width="' . $size . '" height="' . $size . '" fill="#f0f0f0" stroke="#ccc" stroke-width="2"/>' .
+        '<text x="' . ($size/2) . '" y="' . ($size/2) . '" text-anchor="middle" fill="#666" font-size="12">QR Code</text>' .
+        '<text x="' . ($size/2) . '" y="' . ($size/2 + 15) . '" text-anchor="middle" fill="#999" font-size="8">' . substr($data, 0, 20) . '...</text>' .
+        '</svg>'
+    );
+}
+
 $qrCodes = generateReceiptQRCodes($registration, $registration['user_email']);
 
-// Set print-friendly headers if printing
-if ($isPrint) {
+// Debug QR codes (remove in production)
+if (isset($_GET['debug']) && $_GET['debug'] == '1') {
+    echo "<!-- QR Code Debug Info:\n";
+    echo "Main QR URL: " . $qrCodes['main'] . "\n";
+    echo "Verification QR URL: " . $qrCodes['verification'] . "\n";
+    echo "Navigation QR URL: " . $qrCodes['navigation'] . "\n";
+    echo "-->\n";
+}
+
+// Set headers based on action
+if ($isDownload) {
+    // Redirect to print version which can be saved as PDF
+    header('Location: receipt.php?id=' . $registrationId . '&email=' . urlencode($userEmail) . '&print=1');
+    exit;
+} elseif ($isPrint) {
     header('Content-Type: text/html; charset=UTF-8');
 }
 ?>
@@ -119,6 +163,7 @@ if ($isPrint) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registration Receipt - <?php echo CONFERENCE_SHORT_NAME; ?></title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -145,23 +190,28 @@ if ($isPrint) {
             display: flex;
             justify-content: center;
             align-items: center;
-            margin-bottom: 15px;
-            width: 100%;
+            margin: 0 -30px 15px -30px;
+            width: calc(100% + 60px);
             gap: 20px;
+            background: white;
+            padding: 15px 30px;
+            border-radius: 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
         .logo {
             max-width: 150px;
+            width: 150px;
             height: auto;
-            background: white;
-            padding: 10px;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
         .africa-cdc-logo {
-            max-width: 120px;
+            max-width: 150px;
+            width: 150px;
+            height: auto;
         }
         .cphia-logo {
-            max-width: 180px;
+            max-width: 150px;
+            width: 150px;
+            height: auto;
         }
         .header h1 {
             margin: 0;
@@ -236,25 +286,108 @@ if ($isPrint) {
             text-align: center;
         }
         .qr-code {
-            max-width: 200px;
-            height: auto;
+            max-width: 150px;
+            width: 150px;
+            height: 150px;
             margin: 15px 0;
-            border: 3px solid #1a5632;
-            border-radius: 8px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
         }
         .qr-code-small {
-            max-width: 120px;
-            height: auto;
-            margin: 10px 0;
-            border: 2px solid #1a5632;
-            border-radius: 6px;
+            max-width: 150px;
+            width: 150px;
+            height: 150px;
+            margin: 15px 0;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
         }
         .qr-code-navigation {
-            max-width: 100px;
-            height: auto;
-            margin: 8px 0;
-            border: 2px solid #ff8c00;
+            max-width: 150px;
+            width: 150px;
+            height: 150px;
+            margin: 15px 0;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .qr-code img {
+            max-width: 100%;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border-radius: 4px;
+        }
+        .qr-fallback {
+            background: #f8f9fa;
+            border: 2px dashed #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            color: #6c757d;
+        }
+        .receipt-actions {
+            text-align: center;
+            margin: 30px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        .receipt-actions h4 {
+            color: #1a5632;
+            margin-bottom: 15px;
+        }
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        .action-btn {
+            display: inline-flex;
+            align-items: center;
+            padding: 12px 24px;
+            border: none;
             border-radius: 6px;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .print-btn {
+            background: #1a5632;
+            color: white;
+        }
+        .print-btn:hover {
+            background: #2d7d32;
+            color: white;
+        }
+        .email-btn {
+            background: #007bff;
+            color: white;
+        }
+        .email-btn:hover {
+            background: #0056b3;
+            color: white;
+        }
+        .download-btn {
+            background: #28a745;
+            color: white;
+        }
+        .download-btn:hover {
+            background: #1e7e34;
+            color: white;
+        }
+        @media print {
+            .receipt-actions {
+                display: none;
+            }
         }
         .qr-info {
             color: #666;
@@ -267,10 +400,9 @@ if ($isPrint) {
             margin-top: 10px;
         }
         .qr-info-navigation {
-            color: #ff8c00;
-            font-size: 11px;
-            margin-top: 8px;
-            font-weight: 600;
+            color: #666;
+            font-size: 14px;
+            margin-top: 15px;
         }
         .amount-section {
             background: linear-gradient(135deg, #1a5632 0%, #2d7d32 100%);
@@ -368,10 +500,14 @@ if ($isPrint) {
             body {
                 background: white;
                 padding: 0;
+                font-size: 12px;
+                line-height: 1.4;
             }
             .receipt-container {
                 box-shadow: none;
                 border-radius: 0;
+                max-width: none;
+                width: 100%;
             }
             .header {
                 background: #1a5632 !important;
@@ -388,6 +524,24 @@ if ($isPrint) {
             }
             .participants-section {
                 page-break-inside: avoid;
+            }
+            .receipt-actions {
+                display: none;
+            }
+            .print-instructions {
+                display: none;
+            }
+            .logo {
+                max-width: 120px !important;
+                width: 120px !important;
+            }
+            .qr-code {
+                max-width: 120px !important;
+                width: 120px !important;
+                height: 120px !important;
+            }
+            .receipt-content {
+                padding: 20px;
             }
         }
         
@@ -413,6 +567,18 @@ if ($isPrint) {
     </style>
 </head>
 <body>
+    <?php if ($isPrint): ?>
+    <div class="print-instructions" style="background: #e3f2fd; border: 1px solid #2196f3; padding: 15px; margin: 20px; border-radius: 8px; text-align: center;">
+        <h3 style="color: #1976d2; margin: 0 0 10px 0;">📄 Save as PDF Instructions</h3>
+        <p style="margin: 0; color: #1976d2;">
+            <strong>To save this receipt as a PDF:</strong><br>
+            1. In the print dialog, select "Save as PDF" as the destination<br>
+            2. Choose your preferred settings and click "Save"<br>
+            3. Select a location and filename for your PDF receipt
+        </p>
+    </div>
+    <?php endif; ?>
+    
     <div class="receipt-container">
         <div class="header">
             <div class="logo-container">
@@ -503,22 +669,49 @@ if ($isPrint) {
                 <h4 style="color: #1a5632; margin-bottom: 15px;">Registration QR Codes</h4>
                 <div class="qr-codes-container">
                     <div class="qr-code-main">
-                        <img src="<?php echo $qrCodes['main']; ?>" alt="Full Registration QR Code" class="qr-code">
+                        <div class="qr-code">
+                            <img src="<?php echo $qrCodes['main']; ?>" 
+                                 alt="Full Registration QR Code" 
+                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                            <div class="qr-fallback" style="display: none;">
+                                <i class="fas fa-qrcode" style="font-size: 24px; margin-bottom: 10px;"></i><br>
+                                <strong>Registration QR Code</strong><br>
+                                <small>Registration #<?php echo $registration['id']; ?></small>
+                            </div>
+                        </div>
                         <p class="qr-info">
                             <strong>Complete Receipt</strong><br>
                             All registration details
                         </p>
                     </div>
                     <div class="qr-code-verification">
-                        <img src="<?php echo $qrCodes['verification']; ?>" alt="Verification QR Code" class="qr-code-small">
-                        <p class="qr-info-small">
+                        <div class="qr-code">
+                            <img src="<?php echo $qrCodes['verification']; ?>" 
+                                 alt="Verification QR Code" 
+                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                            <div class="qr-fallback" style="display: none;">
+                                <i class="fas fa-qrcode" style="font-size: 24px; margin-bottom: 10px;"></i><br>
+                                <strong>Verification</strong><br>
+                                <small>Check-in</small>
+                            </div>
+                        </div>
+                        <p class="qr-info">
                             <strong>Quick Check-in</strong><br>
                             Fast attendance scanning
                         </p>
                     </div>
                     <div class="qr-code-navigation">
-                        <img src="<?php echo $qrCodes['navigation']; ?>" alt="Verification Link QR Code" class="qr-code-navigation">
-                        <p class="qr-info-navigation">
+                        <div class="qr-code">
+                            <img src="<?php echo $qrCodes['navigation']; ?>" 
+                                 alt="Verification Link QR Code" 
+                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                            <div class="qr-fallback" style="display: none;">
+                                <i class="fas fa-qrcode" style="font-size: 24px; margin-bottom: 10px;"></i><br>
+                                <strong>Online</strong><br>
+                                <small>Verify</small>
+                            </div>
+                        </div>
+                        <p class="qr-info">
                             <strong>Verify Online</strong><br>
                             Scan to verify attendance
                         </p>
@@ -529,6 +722,27 @@ if ($isPrint) {
             <div class="amount-section">
                 <div class="amount-label">Total Amount Paid</div>
                 <div class="amount-value"><?php echo formatCurrency($registration['total_amount'], $registration['currency']); ?></div>
+            </div>
+            
+            <div class="receipt-actions">
+                <h4>Receipt Actions</h4>
+                <div class="action-buttons">
+                    <button onclick="printReceipt()" class="action-btn print-btn">
+                        <i class="fas fa-print me-2"></i>Print Receipt
+                    </button>
+                    <button onclick="emailReceipt()" class="action-btn email-btn">
+                        <i class="fas fa-envelope me-2"></i>Email Receipt
+                    </button>
+                    <button onclick="downloadReceipt()" class="action-btn download-btn">
+                        <i class="fas fa-download me-2"></i>Download PDF
+                    </button>
+                </div>
+                <p class="text-muted mt-3 mb-0">
+                    <small>
+                        <i class="fas fa-info-circle me-1"></i>
+                        You can print this receipt, email it to yourself, or download it as a PDF for your records.
+                    </small>
+                </p>
             </div>
             
             <div class="contact-info">
@@ -551,13 +765,139 @@ if ($isPrint) {
         </div>
     </div>
     
-    <?php if ($isPrint): ?>
     <script>
+        // Handle QR code loading errors
+        document.addEventListener('DOMContentLoaded', function() {
+            const qrImages = document.querySelectorAll('.qr-code img');
+            qrImages.forEach(function(img) {
+                img.addEventListener('error', function() {
+                    this.style.display = 'none';
+                    const fallback = this.nextElementSibling;
+                    if (fallback) {
+                        fallback.style.display = 'block';
+                    }
+                });
+                
+                // Test if image loads
+                img.addEventListener('load', function() {
+                    console.log('QR code loaded successfully:', this.src);
+                });
+            });
+        });
+        
+        // Print receipt function
+        function printReceipt() {
+            window.print();
+        }
+        
+        // Email receipt function
+        function emailReceipt() {
+            const registrationId = <?php echo $registration['id']; ?>;
+            const email = '<?php echo $registration['user_email']; ?>';
+            
+            // Show loading state
+            const button = event.target;
+            const originalText = button.innerHTML;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Sending...';
+            button.disabled = true;
+            
+            // Send email request
+            fetch('send_receipt_email.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    registration_id: registrationId,
+                    email: email
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    button.innerHTML = '<i class="fas fa-check me-2"></i>Email Sent!';
+                    button.classList.remove('email-btn');
+                    button.classList.add('download-btn');
+                    showMessage('Receipt email sent successfully!', 'success');
+                } else {
+                    button.innerHTML = originalText;
+                    button.disabled = false;
+                    showMessage('Failed to send email. Please try again.', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                button.innerHTML = originalText;
+                button.disabled = false;
+                showMessage('An error occurred. Please try again.', 'error');
+            });
+        }
+        
+        // Download PDF function
+        function downloadReceipt() {
+            const registrationId = <?php echo $registration['id']; ?>;
+            const email = '<?php echo $registration['user_email']; ?>';
+            
+            // Show loading state
+            const button = event.target;
+            const originalText = button.innerHTML;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Opening...';
+            button.disabled = true;
+            
+            // Open print version in new window for PDF generation
+            const printUrl = `receipt.php?id=${registrationId}&email=${encodeURIComponent(email)}&print=1`;
+            const printWindow = window.open(printUrl, '_blank', 'width=800,height=600,scrollbars=yes,resizable=yes');
+            
+            if (printWindow) {
+                printWindow.onload = function() {
+                    // Auto-trigger print dialog for PDF generation
+                    setTimeout(() => {
+                        printWindow.print();
+                    }, 1500);
+                };
+                
+                // Reset button after a delay
+                setTimeout(() => {
+                    button.innerHTML = originalText;
+                    button.disabled = false;
+                }, 3000);
+            } else {
+                // Fallback: show message
+                button.innerHTML = originalText;
+                button.disabled = false;
+                showMessage('Please allow popups to download PDF receipts.', 'warning');
+            }
+        }
+        
+        // Show message function
+        function showMessage(message, type) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show`;
+            messageDiv.style.position = 'fixed';
+            messageDiv.style.top = '20px';
+            messageDiv.style.right = '20px';
+            messageDiv.style.zIndex = '9999';
+            messageDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            
+            document.body.appendChild(messageDiv);
+            
+            // Auto-dismiss after 5 seconds
+            setTimeout(() => {
+                if (messageDiv.parentNode) {
+                    messageDiv.remove();
+                }
+            }, 5000);
+        }
+        
+        <?php if ($isPrint): ?>
         // Auto-print when page loads
         window.onload = function() {
             window.print();
         };
+        <?php endif; ?>
     </script>
-    <?php endif; ?>
 </body>
 </html>

@@ -632,5 +632,70 @@ class RegistrationController extends Controller
             return redirect()->back()->with('error', 'Failed to send receipt email. Please try again.');
         }
     }
+
+    /**
+     * Send receipts to all participants with completed payments
+     */
+    public function sendBulkReceipts(Request $request)
+    {
+        // Authorization check - only admin can send bulk receipts
+        $admin = Auth::guard('admin')->user();
+        if (!$admin || $admin->role !== 'admin') {
+            abort(403, 'Unauthorized access.');
+        }
+
+        try {
+            // Get all registrations with completed payments
+            $completedRegistrations = Registration::where('payment_status', 'completed')
+                ->with(['user', 'package'])
+                ->get();
+
+            if ($completedRegistrations->isEmpty()) {
+                return redirect()->back()->with('warning', 'No registrations with completed payments found.');
+            }
+
+            $receiptService = new ReceiptEmailService();
+            $successCount = 0;
+            $errorCount = 0;
+            $errors = [];
+
+            foreach ($completedRegistrations as $registration) {
+                try {
+                    $receiptSent = $receiptService->sendReceiptEmail($registration);
+                    if ($receiptSent) {
+                        $successCount++;
+                        Log::info("Bulk receipt email sent for registration #{$registration->id}");
+                    } else {
+                        $errorCount++;
+                        $errors[] = "Failed to queue receipt for registration #{$registration->id}";
+                    }
+                } catch (\Exception $e) {
+                    $errorCount++;
+                    $errors[] = "Error sending receipt for registration #{$registration->id}: " . $e->getMessage();
+                    Log::error("Bulk receipt email failed for registration #{$registration->id}: " . $e->getMessage());
+                }
+            }
+
+            $message = "Bulk receipt sending completed. Success: {$successCount}, Errors: {$errorCount}";
+            if (!empty($errors)) {
+                $message .= " Errors: " . implode('; ', array_slice($errors, 0, 5));
+                if (count($errors) > 5) {
+                    $message .= " and " . (count($errors) - 5) . " more errors.";
+                }
+            }
+
+            Log::info("Bulk receipt sending completed by admin #{$admin->id}. Success: {$successCount}, Errors: {$errorCount}");
+
+            if ($errorCount > 0) {
+                return redirect()->back()->with('warning', $message);
+            } else {
+                return redirect()->back()->with('success', $message);
+            }
+
+        } catch (\Exception $e) {
+            Log::error("Bulk receipt sending failed: " . $e->getMessage());
+            return redirect()->back()->with('error', 'Failed to send bulk receipts. Please try again.');
+        }
+    }
 }
 
