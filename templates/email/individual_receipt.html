@@ -123,35 +123,25 @@
             text-align: center;
         }
         .qr-code {
-            max-width: 200px;
-            height: auto;
+            max-width: 150px;
+            width: 150px;
+            height: 150px;
             margin: 15px 0;
-            border: 3px solid #1a5632;
-            border-radius: 8px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
         }
-        .qr-code-small {
-            max-width: 120px;
-            height: auto;
-            margin: 10px 0;
-            border: 2px solid #1a5632;
-            border-radius: 6px;
-        }
-        .qr-code-navigation {
-            max-width: 100px;
-            height: auto;
-            margin: 8px 0;
-            border: 2px solid #ff8c00;
-            border-radius: 6px;
+        .qr-code img {
+            max-width: 100%;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border-radius: 4px;
         }
         .qr-info {
             color: #666;
             font-size: 14px;
             margin-top: 15px;
-        }
-        .qr-info-small {
-            color: #666;
-            font-size: 12px;
-            margin-top: 10px;
         }
         .amount-section {
             background: linear-gradient(135deg, #1a5632 0%, #2d7d32 100%);
@@ -280,21 +270,27 @@
                 <h4 style="color: #1a5632; margin-bottom: 15px;">Registration QR Codes</h4>
                 <div class="qr-codes-container">
                     <div class="qr-code-main">
-                        <img src="{{qr_code}}" alt="Full Registration QR Code" class="qr-code">
+                        <div class="qr-code">
+                            <img src="{{qr_code}}" alt="Full Registration QR Code">
+                        </div>
                         <p class="qr-info">
                             <strong>Complete Receipt</strong><br>
                             All registration details
                         </p>
                     </div>
                     <div class="qr-code-verification">
-                        <img src="{{verification_qr_code}}" alt="Verification QR Code" class="qr-code-small">
-                        <p class="qr-info-small">
+                        <div class="qr-code">
+                            <img src="{{verification_qr_code}}" alt="Verification QR Code">
+                        </div>
+                        <p class="qr-info">
                             <strong>Quick Check-in</strong><br>
                             Fast attendance scanning
                         </p>
                     </div>
                     <div class="qr-code-navigation">
-                        <img src="{{navigation_qr_code}}" alt="Verification Link QR Code" class="qr-code-navigation">
+                        <div class="qr-code">
+                            <img src="{{navigation_qr_code}}" alt="Verification Link QR Code">
+                        </div>
                         <p class="qr-info">
                             <strong>Verify Online</strong><br>
                             Scan to verify attendance
