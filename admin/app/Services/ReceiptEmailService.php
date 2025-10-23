@@ -224,27 +224,10 @@ class ReceiptEmailService
 
             $verificationUrl = url("verify_attendance.php?email=" . urlencode($user->email) . "&reg_id=" . $registration->id);
 
-            // Generate QR codes using SimpleSoftwareIO QR Code library
-            $mainQrBase64 = 'data:image/png;base64,' . base64_encode(
-                QrCode::format('png')
-                    ->size(200)
-                    ->margin(1)
-                    ->generate($mainQrData)
-            );
-
-            $verificationQrBase64 = 'data:image/png;base64,' . base64_encode(
-                QrCode::format('png')
-                    ->size(120)
-                    ->margin(1)
-                    ->generate($verificationQrData)
-            );
-
-            $navigationQrBase64 = 'data:image/png;base64,' . base64_encode(
-                QrCode::format('png')
-                    ->size(100)
-                    ->margin(1)
-                    ->generate($verificationUrl)
-            );
+            // Generate QR codes using external API (fallback for missing imagick)
+            $mainQrBase64 = $this->generateQRCodeImage($mainQrData, 200);
+            $verificationQrBase64 = $this->generateQRCodeImage($verificationQrData, 120);
+            $navigationQrBase64 = $this->generateQRCodeImage($verificationUrl, 100);
 
             return [
                 'main' => $mainQrBase64,
@@ -287,5 +270,44 @@ class ReceiptEmailService
             Log::error("Failed to send manual receipt email for registration {$registrationId}: " . $e->getMessage());
             return false;
         }
+    }
+
+    /**
+     * Generate QR code image using external API
+     */
+    private function generateQRCodeImage($data, $size = 200)
+    {
+        try {
+            // Try QR Server API first
+            $qrServerUrl = "https://api.qrserver.com/v1/create-qr-code/?size={$size}x{$size}&data=" . urlencode($data);
+            $imageData = @file_get_contents($qrServerUrl);
+            
+            if ($imageData !== false) {
+                return 'data:image/png;base64,' . base64_encode($imageData);
+            }
+            
+            // Fallback to Google Charts API
+            $googleChartsUrl = "https://chart.googleapis.com/chart?chs={$size}x{$size}&cht=qr&chl=" . urlencode($data);
+            $imageData = @file_get_contents($googleChartsUrl);
+            
+            if ($imageData !== false) {
+                return 'data:image/png;base64,' . base64_encode($imageData);
+            }
+            
+            // Final fallback to placeholder
+            return $this->getPlaceholderQRCode();
+            
+        } catch (\Exception $e) {
+            Log::error("Failed to generate QR code image: " . $e->getMessage());
+            return $this->getPlaceholderQRCode();
+        }
+    }
+
+    /**
+     * Get placeholder QR code SVG
+     */
+    private function getPlaceholderQRCode()
+    {
+        return 'data:image/svg+xml;base64,' . base64_encode('<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="200" height="200" fill="#f0f0f0"/><text x="100" y="100" text-anchor="middle" fill="#666">QR Code</text></svg>');
     }
 }
