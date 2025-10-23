@@ -21,30 +21,46 @@
             overflow: hidden;
         }
         .header {
-            background: linear-gradient(135deg, #1a5632 0%, #2d7a47 100%);
+            background: #063218;
             color: white;
-            padding: 40px 20px;
+            padding: 30px;
             text-align: center;
-            border-bottom: 3px solid #28a745;
+        }
+        .logo-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 -30px 15px -30px;
+            width: calc(100% + 60px);
+            gap: 20px;
+            background: white;
+            padding: 15px 30px;
+            border-radius: 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .logo {
+            max-width: 150px;
+            width: 150px;
+            height: auto;
+            display: block;
+        }
+        .africa-cdc-logo {
+            max-width: 150px;
+        }
+        .cphia-logo {
+            max-width: 150px;
         }
         .header h1 {
             margin: 0;
             font-size: 28px;
-            font-weight: 600;
+            font-weight: 700;
+            color: white;
         }
         .header p {
             margin: 10px 0 0 0;
             font-size: 16px;
             opacity: 0.9;
-        }
-        .header-logo {
-            text-align: center;
-            margin-bottom: 10px;
-        }
-        .header-logo img {
-            max-height: 60px;
-            width: auto;
-            margin-bottom: 15px;
+            color: white;
         }
         .content {
             padding: 30px 20px;
@@ -73,7 +89,7 @@
         }
         .cta-button {
             display: inline-block;
-            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            background: #1a5632;
             color: white;
             text-decoration: none;
             padding: 15px 30px;
@@ -213,7 +229,10 @@
         <!-- Header -->
         <div class="header">
             <div class="header-logo">
-                
+                <div class="logo-container">
+                    <img src="https://africacdc.org/wp-content/uploads/2020/02/AfricaCDC_Logo.png" alt="Africa CDC" class="logo africa-cdc-logo">
+                    <img src="https://cphia2025.com/wp-content/uploads/2025/09/CPHIA-2025-logo_reverse.png" alt="CPHIA 2025" class="logo cphia-logo">
+                </div>
             </div>
             <h1>CPHIA 2025</h1>
             <p>4th International Conference on Public Health in Africa</p>
