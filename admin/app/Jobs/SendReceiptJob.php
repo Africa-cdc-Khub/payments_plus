@@ -147,7 +147,7 @@ class SendReceiptJob implements ShouldQueue
                 'email' => $user->email
             ]);
 
-            $verificationUrl = url("verify_attendance.php?email=" . urlencode($user->email) . "&reg_id=" . $registration->id);
+            $verificationUrl = url("verify_attendance_public.php?email=" . urlencode($user->email) . "&reg_id=" . $registration->id);
 
             // Generate QR codes using external API
             $mainQrBase64 = $this->generateQRCodeImage($mainQrData, 200);

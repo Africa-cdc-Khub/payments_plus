@@ -96,7 +96,7 @@ function generateReceiptQRCodes($registration, $userEmail) {
     ]);
     
     // Navigation QR code (link to verification page)
-    $verificationUrl = rtrim(APP_URL, '/') . "/verify_attendance.php?email=" . urlencode($userEmail) . "&reg_id=" . $registration['id'];
+    $verificationUrl = rtrim(APP_URL, '/') . "/verify_attendance_public.php?email=" . urlencode($userEmail) . "&reg_id=" . $registration['id'];
     
     // Generate QR codes using multiple fallback methods
     $qrCodes['main'] = generateQRCodeImage($mainQrData, 150);

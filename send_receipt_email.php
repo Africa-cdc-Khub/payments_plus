@@ -107,7 +107,7 @@ try {
         'email' => $email
     ]);
     
-    $verificationUrl = rtrim(APP_URL, '/') . "/verify_attendance.php?email=" . urlencode($email) . "&reg_id=" . $registration['id'];
+    $verificationUrl = rtrim(APP_URL, '/') . "/verify_attendance_public.php?email=" . urlencode($email) . "&reg_id=" . $registration['id'];
     
     $qrCodes = [
         'main' => generateQRCodeImage($mainQrData, 300),
