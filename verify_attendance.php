@@ -12,6 +12,125 @@ if (isset($_GET['logout'])) {
     exit;
 }
 
+// Handle direct verification via GET parameters (for backward compatibility)
+if (isset($_GET['email']) && isset($_GET['reg_id'])) {
+    $email = $_GET['email'];
+    $regId = $_GET['reg_id'];
+    
+    try {
+        $pdo = getConnection();
+        
+        // Check if registration exists and is paid
+        $stmt = $pdo->prepare("
+            SELECT r.id, r.registration_type, r.payment_status, r.attendance_status,
+                   u.first_name, u.last_name, u.email
+            FROM registrations r
+            JOIN users u ON r.user_id = u.id
+            WHERE r.id = ? AND r.payment_status = 'completed'
+        ");
+        $stmt->execute([$regId]);
+        $registration = $stmt->fetch();
+        
+        if (!$registration) {
+            throw new Exception("Registration not found or not paid");
+        }
+        
+        // Check if it's a group registration
+        if ($registration['registration_type'] === 'group') {
+            // For group registrations, check if this is the focal person or a participant
+            $stmt = $pdo->prepare("
+                SELECT rp.id, rp.first_name, rp.last_name, rp.email, rp.attendance_status
+                FROM registration_participants rp
+                WHERE rp.registration_id = ? AND rp.email = ?
+            ");
+            $stmt->execute([$regId, $email]);
+            $participant = $stmt->fetch();
+            
+            if ($participant) {
+                // This is a group participant
+                if ($participant['attendance_status'] === 'present') {
+                    $success = "✅ {$participant['first_name']} {$participant['last_name']} (Group Participant) is already verified as present";
+                    $already_verified = true;
+                } else {
+                    // Update participant attendance
+                    $stmt = $pdo->prepare("
+                        UPDATE registration_participants 
+                        SET attendance_status = 'present', 
+                            attendance_verified_at = NOW(), 
+                            verified_by = 'Online Verification'
+                        WHERE id = ?
+                    ");
+                    $result = $stmt->execute([$participant['id']]);
+                    
+                    if ($result) {
+                        $success = "✅ Attendance verified for {$participant['first_name']} {$participant['last_name']} (Group Participant)";
+                        $participant_name = $participant['first_name'] . ' ' . $participant['last_name'];
+                    } else {
+                        throw new Exception("Failed to update participant attendance status");
+                    }
+                }
+            } else {
+                // Check if this is the focal person
+                if ($registration['email'] === $email) {
+                    if ($registration['attendance_status'] === 'present') {
+                        $success = "✅ {$registration['first_name']} {$registration['last_name']} (Focal Person) is already verified as present";
+                        $already_verified = true;
+                    } else {
+                        // Update focal person attendance
+                        $stmt = $pdo->prepare("
+                            UPDATE registrations 
+                            SET attendance_status = 'present', 
+                                attendance_verified_at = NOW(), 
+                                verified_by = 'Online Verification'
+                            WHERE id = ?
+                        ");
+                        $result = $stmt->execute([$regId]);
+                        
+                        if ($result) {
+                            $success = "✅ Attendance verified for {$registration['first_name']} {$registration['last_name']} (Focal Person)";
+                            $participant_name = $registration['first_name'] . ' ' . $registration['last_name'];
+                        } else {
+                            throw new Exception("Failed to update focal person attendance status");
+                        }
+                    }
+                } else {
+                    throw new Exception("Email not found in this group registration");
+                }
+            }
+        } else {
+            // Individual registration
+            if ($registration['email'] !== $email) {
+                throw new Exception("Email doesn't match this registration");
+            }
+            
+            if ($registration['attendance_status'] === 'present') {
+                $success = "✅ {$registration['first_name']} {$registration['last_name']} is already verified as present";
+                $already_verified = true;
+            } else {
+                // Update individual registration attendance
+                $stmt = $pdo->prepare("
+                    UPDATE registrations 
+                    SET attendance_status = 'present', 
+                        attendance_verified_at = NOW(), 
+                        verified_by = 'Online Verification'
+                    WHERE id = ?
+                ");
+                $result = $stmt->execute([$regId]);
+                
+                if ($result) {
+                    $success = "✅ Attendance verified for {$registration['first_name']} {$registration['last_name']}";
+                    $participant_name = $registration['first_name'] . ' ' . $registration['last_name'];
+                } else {
+                    throw new Exception("Failed to update attendance status");
+                }
+            }
+        }
+        
+    } catch (Exception $e) {
+        $error = "❌ Error: " . $e->getMessage();
+    }
+}
+
 // Handle authentication
 $authenticated = false;
 $auth_error = '';
@@ -356,7 +475,30 @@ $totalPending = $stats['individual']['pending'] + $stats['participants']['pendin
     </div>
 
     <div class="container">
-        <?php if (!$authenticated): ?>
+        <?php if (isset($_GET['email']) && isset($_GET['reg_id'])): ?>
+        <!-- Direct Verification Result -->
+        <div class="verification-card">
+            <h3 class="mb-4"><i class="fas fa-check-circle me-2"></i>Attendance Verification Result</h3>
+            
+            <?php if (isset($success)): ?>
+                <div class="alert verification-success">
+                    <i class="fas fa-check-circle me-2"></i><?php echo $success; ?>
+                </div>
+            <?php endif; ?>
+            
+            <?php if (isset($error)): ?>
+                <div class="alert verification-error">
+                    <i class="fas fa-exclamation-circle me-2"></i><?php echo $error; ?>
+                </div>
+            <?php endif; ?>
+            
+            <div class="text-center mt-4">
+                <a href="verify_attendance.php" class="btn btn-verify">
+                    <i class="fas fa-qrcode me-2"></i>Back to Admin Verification
+                </a>
+            </div>
+        </div>
+        <?php elseif (!$authenticated): ?>
         <!-- Authentication Form -->
         <div class="verification-card">
             <h3 class="mb-4"><i class="fas fa-lock me-2"></i>Access Verification Required</h3>
