@@ -84,6 +84,7 @@ class SendReceiptJob implements ShouldQueue
                 'mail_from_address' => config('mail.from.address', 'noreply@cphia2025.com'),
                 'support_email' => config('app.support_email', 'support@cphia2025.com'),
                 'registration_id' => $registration->id,
+                'registration_type' => $registration->registration_type ?? 'individual',
                 'participant_name' => $registration->user->first_name . ' ' . $registration->user->last_name,
                 'participant_email' => $registration->user->email,
                 'phone' => $registration->user->phone ?? 'N/A',
@@ -94,7 +95,7 @@ class SendReceiptJob implements ShouldQueue
                 'payment_date' => now()->format('F j, Y \a\t g:i A'),
                 'total_amount' => '$' . number_format($registration->total_amount, 2),
                 'payment_method' => $this->paymentMethod ?: 'Online Payment',
-                'qr_code' => $qrCodes['main'],
+                'main_qr_code' => $qrCodes['main'],
                 'verification_qr_code' => $qrCodes['verification'],
                 'navigation_qr_code' => $qrCodes['navigation']
             ];
