@@ -195,19 +195,35 @@ class ReceiptEmailService
             // Generate email body using Blade template
             $emailBody = view('admin.emails.group_receipt', $templateData)->render();
 
-            // Send email using Exchange Email Service
-            $result = $this->emailService->sendEmail(
-                $user->email,
-                "Group Registration Receipt - {$package->name} - CPHIA 2025",
-                $emailBody,
-                true // isHtml
-            );
+            // Try Exchange Email Service first
+            try {
+                $result = $this->emailService->sendEmail(
+                    $user->email,
+                    "Group Registration Receipt - {$package->name} - CPHIA 2025",
+                    $emailBody,
+                    true // isHtml
+                );
 
-            if ($result) {
-                Log::info("Group receipt email sent for registration {$registration->id}");
+                if ($result) {
+                    Log::info("Group receipt email sent via ExchangeEmailService for registration {$registration->id}");
+                    return true;
+                }
+            } catch (\Exception $e) {
+                Log::warning("ExchangeEmailService failed for group receipt, trying Laravel Mail: " . $e->getMessage());
+            }
+
+            // Fallback to Laravel Mail
+            try {
+                Mail::html($emailBody, function ($message) use ($user, $package) {
+                    $message->to($user->email)
+                           ->subject("Group Registration Receipt - {$package->name} - CPHIA 2025")
+                           ->from(config('mail.from.address'), config('mail.from.name'));
+                });
+                
+                Log::info("Group receipt email sent via Laravel Mail for registration {$registration->id}");
                 return true;
-            } else {
-                Log::error("Failed to send group receipt email for registration {$registration->id}");
+            } catch (\Exception $e) {
+                Log::error("Failed to send group receipt email for registration {$registration->id}: " . $e->getMessage());
                 return false;
             }
         } catch (\Exception $e) {
