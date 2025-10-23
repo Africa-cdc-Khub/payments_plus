@@ -802,6 +802,7 @@ if ($isDownload) {
             button.disabled = true;
             
             // Send email request
+            console.log('Sending email request:', { registration_id: registrationId, email: email });
             fetch('send_receipt_email.php', {
                 method: 'POST',
                 headers: {
@@ -812,8 +813,15 @@ if ($isDownload) {
                     email: email
                 })
             })
-            .then(response => response.json())
+            .then(response => {
+                console.log('Email response status:', response.status);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
             .then(data => {
+                console.log('Email response data:', data);
                 if (data.success) {
                     button.innerHTML = '<i class="fas fa-check me-2"></i>Email Sent!';
                     button.classList.remove('email-btn');
@@ -822,14 +830,14 @@ if ($isDownload) {
                 } else {
                     button.innerHTML = originalText;
                     button.disabled = false;
-                    showMessage('Failed to send email. Please try again.', 'error');
+                    showMessage(data.message || 'Failed to send email. Please try again.', 'error');
                 }
             })
             .catch(error => {
-                console.error('Error:', error);
+                console.error('Email sending error:', error);
                 button.innerHTML = originalText;
                 button.disabled = false;
-                showMessage('An error occurred. Please try again.', 'error');
+                showMessage(`Error: ${error.message}. Please try again.`, 'error');
             });
         }
         

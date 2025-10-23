@@ -111,10 +111,31 @@ try {
             'message' => 'Receipt email has been queued and will be sent shortly'
         ]);
     } else {
-        echo json_encode([
-            'success' => false, 
-            'message' => 'Failed to queue receipt email. Please try again.'
-        ]);
+        // Check if it's a duplicate email issue
+        $pdo = getConnection();
+        $duplicateCheck = $pdo->prepare("
+            SELECT COUNT(*) as count
+            FROM email_queue
+            WHERE to_email = ? 
+            AND subject = ?
+            AND template_name = ?
+            AND created_at > DATE_SUB(NOW(), INTERVAL 24 HOUR)
+            AND status IN ('pending', 'sent', 'processing')
+        ");
+        $duplicateCheck->execute([$email, 'Registration Receipt - ' . CONFERENCE_SHORT_NAME, 'individual_receipt']);
+        $duplicateCount = $duplicateCheck->fetch(\PDO::FETCH_ASSOC)['count'];
+        
+        if ($duplicateCount > 0) {
+            echo json_encode([
+                'success' => false, 
+                'message' => 'A receipt email was already sent recently. Please check your email or try again later.'
+            ]);
+        } else {
+            echo json_encode([
+                'success' => false, 
+                'message' => 'Failed to queue receipt email. Please try again.'
+            ]);
+        }
     }
     
 } catch (Exception $e) {
