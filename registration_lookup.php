@@ -246,6 +246,12 @@ if (isset($_GET['view']) && is_numeric($_GET['view'])) {
                                                         <i class="fas fa-file-invoice me-1"></i>View Invoice
                                                     </a>
                                                 <?php endif; ?>
+                                                
+                                                <?php if ($paymentStatus === 'completed'): ?>
+                                                    <a href="receipt.php?id=<?php echo $registration['id']; ?>&email=<?php echo urlencode($registration['email']); ?>" class="btn btn-outline-success btn-sm" target="_blank">
+                                                        <i class="fas fa-receipt me-1"></i>View Receipt
+                                                    </a>
+                                                <?php endif; ?>
                                             </div>
                                         </td>
                                     </tr>
@@ -513,6 +519,20 @@ if (isset($_GET['view']) && is_numeric($_GET['view'])) {
                                 </div>
                             </div>
                             <?php endif; ?>
+                            
+                            <?php if ($paymentStatus === 'completed'): ?>
+                            <div class="mt-3">
+                                <h6 class="fw-bold">Receipt</h6>
+                                <div class="d-flex gap-2 flex-wrap">
+                                    <a href="receipt.php?id=<?php echo $registrationDetails['id']; ?>&email=<?php echo urlencode($registrationDetails['email']); ?>" class="btn btn-outline-success" target="_blank">
+                                        <i class="fas fa-receipt me-2"></i>View Receipt
+                                    </a>
+                                    <button onclick="printReceipt(<?php echo $registrationDetails['id']; ?>, '<?php echo urlencode($registrationDetails['email']); ?>')" class="btn btn-outline-primary">
+                                        <i class="fas fa-print me-2"></i>Print Receipt
+                                    </button>
+                                </div>
+                            </div>
+                            <?php endif; ?>
                         </div>
 
                         <div class="mt-4">
@@ -702,6 +722,20 @@ if (isset($_GET['view']) && is_numeric($_GET['view'])) {
                         alertDiv.remove();
                     }
                 }, 5000);
+            }
+        }
+        
+        // Function to print receipt
+        function printReceipt(registrationId, email) {
+            const receiptUrl = `receipt.php?id=${registrationId}&email=${email}&print=1`;
+            const printWindow = window.open(receiptUrl, '_blank', 'width=800,height=600');
+            
+            if (printWindow) {
+                printWindow.onload = function() {
+                    printWindow.print();
+                };
+            } else {
+                showAlert('Please allow popups to print receipts.', 'warning');
             }
         }
     </script>
