@@ -580,7 +580,10 @@ class RegistrationController extends Controller
         }
 
         try {
-            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('invoices.template', [
+            // Load registration with relationships
+            $registration->load(['user', 'package', 'participants']);
+            
+            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('invoices.registration', [
                 'registration' => $registration,
                 'user' => $registration->user
             ]);
@@ -590,6 +593,7 @@ class RegistrationController extends Controller
             return $pdf->download($filename);
         } catch (\Exception $e) {
             Log::error("Failed to generate invoice for registration #{$registration->id}: " . $e->getMessage());
+            Log::error("Stack trace: " . $e->getTraceAsString());
             return redirect()->back()->with('error', 'Failed to generate invoice. Please try again.');
         }
     }
