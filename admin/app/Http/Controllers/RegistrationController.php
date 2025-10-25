@@ -632,6 +632,112 @@ class RegistrationController extends Controller
     }
 
     /**
+     * Download receipt as PDF
+     */
+    public function downloadReceipt(Registration $registration)
+    {
+        // Only admin and finance can download receipts
+        $admin = Auth::guard('admin')->user();
+        if (!$admin || !in_array($admin->role, ['admin', 'finance'])) {
+            abort(403, 'Unauthorized access.');
+        }
+
+        // Check if registration is paid
+        if ($registration->payment_status !== 'completed') {
+            return redirect()->back()->with('error', 'Receipt can only be downloaded for paid registrations.');
+        }
+
+        try {
+            // Load registration with relationships
+            $registration->load(['user', 'package', 'participants']);
+            
+            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('receipts.pdf', [
+                'registration' => $registration,
+                'user' => $registration->user,
+                'package' => $registration->package,
+                'participants' => $registration->participants ?? collect(),
+            ]);
+
+            $filename = 'receipt_' . $registration->id . '_' . now()->format('Y-m-d') . '.pdf';
+            
+            return $pdf->download($filename);
+        } catch (\Exception $e) {
+            Log::error("Failed to generate receipt PDF for registration #{$registration->id}: " . $e->getMessage());
+            Log::error("Stack trace: " . $e->getTraceAsString());
+            return redirect()->back()->with('error', 'Failed to generate receipt PDF. Please try again.');
+        }
+    }
+
+    /**
+     * Preview receipt as PDF
+     */
+    public function previewReceipt(Registration $registration)
+    {
+        // Only admin and finance can preview receipts
+        $admin = Auth::guard('admin')->user();
+        if (!$admin || !in_array($admin->role, ['admin', 'finance'])) {
+            abort(403, 'Unauthorized access.');
+        }
+
+        // Check if registration is paid
+        if ($registration->payment_status !== 'completed') {
+            return redirect()->back()->with('error', 'Receipt can only be previewed for paid registrations.');
+        }
+
+        try {
+            // Load registration with relationships
+            $registration->load(['user', 'package', 'participants']);
+            
+            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('receipts.pdf', [
+                'registration' => $registration,
+                'user' => $registration->user,
+                'package' => $registration->package,
+                'participants' => $registration->participants ?? collect(),
+            ]);
+
+            $filename = 'receipt_' . $registration->id . '_' . now()->format('Y-m-d') . '.pdf';
+            
+            return $pdf->stream($filename);
+        } catch (\Exception $e) {
+            Log::error("Failed to generate receipt PDF for registration #{$registration->id}: " . $e->getMessage());
+            Log::error("Stack trace: " . $e->getTraceAsString());
+            return redirect()->back()->with('error', 'Failed to generate receipt PDF. Please try again.');
+        }
+    }
+
+    /**
+     * Send receipt as PDF attachment via email
+     */
+    public function sendReceiptPdf(Request $request, Registration $registration)
+    {
+        // Only admin and finance can send receipts
+        $admin = Auth::guard('admin')->user();
+        if (!$admin || !in_array($admin->role, ['admin', 'finance'])) {
+            abort(403, 'Unauthorized access.');
+        }
+
+        // Check if registration is paid
+        if ($registration->payment_status !== 'completed') {
+            return redirect()->back()->with('error', 'Receipt can only be sent for paid registrations.');
+        }
+
+        $request->validate([
+            'email' => 'required|email',
+        ]);
+
+        try {
+            Log::info("RegistrationController@sendReceiptPdf: Dispatching SendReceiptPdfJob for registration #{$registration->id} to {$request->email}");
+            \App\Jobs\SendReceiptPdfJob::dispatch($registration->id, $request->email);
+            Log::info("RegistrationController@sendReceiptPdf: Job dispatched successfully");
+            return redirect()->back()->with('success', 'Receipt is being sent to ' . $request->email . '.');
+        } catch (\Exception $e) {
+            Log::error("RegistrationController@sendReceiptPdf: Failed to dispatch SendReceiptPdfJob for registration #{$registration->id}: " . $e->getMessage());
+            Log::error("RegistrationController@sendReceiptPdf: Stack trace: " . $e->getTraceAsString());
+            return redirect()->back()->with('error', 'Failed to queue receipt email. Please try again.');
+        }
+    }
+
+    /**
      * Send receipts to all participants with completed payments
      */
     public function sendBulkReceipts(Request $request)

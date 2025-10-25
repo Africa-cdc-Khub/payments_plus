@@ -337,6 +337,35 @@
 @endif
 @endcan
 
+@if($registration->isPaid() && in_array(auth('admin')->user()->role, ['admin', 'finance']))
+<div class="mt-6 bg-white rounded-lg shadow p-6">
+    <h3 class="text-lg font-semibold mb-4 flex items-center">
+        <i class="fas fa-receipt mr-2 text-green-600"></i>
+        Receipt Actions
+    </h3>
+    <p class="text-sm text-gray-600 mb-4">
+        Generate and send the official receipt for this paid registration.
+    </p>
+    <div class="flex space-x-4">
+        <button type="button" 
+                onclick="openReceiptModal({{ $registration->id }})" 
+                class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
+            <i class="fas fa-eye"></i> Preview Receipt PDF
+        </button>
+        <a href="{{ route('registrations.receipt.download', $registration) }}" 
+           class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+            <i class="fas fa-download"></i> Download PDF
+        </a>
+        <button type="button" 
+                class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 send-receipt-btn"
+                data-registration-id="{{ $registration->id }}"
+                data-email="{{ $registration->user->email }}">
+            <i class="fas fa-paper-plane"></i> Send Receipt
+        </button>
+    </div>
+</div>
+@endif
+
 {{-- <div class="mt-6">
     <a href="{{ route('registrations.index') }}" class="text-blue-600 hover:text-blue-800">
         <i class="fas fa-arrow-left"></i> Back to Registrations
@@ -345,6 +374,12 @@
 
 <!-- Include PDF Preview Modal -->
 @include('components.invitation-preview-modal')
+
+<!-- Include Receipt Preview Modal -->
+@include('components.receipt-preview-modal')
+
+<!-- Include Send Receipt Modal -->
+@include('components.send-receipt-modal')
 
 <!-- Include Passport Preview Modal (Admin and Hosts roles) -->
 @if(in_array(auth('admin')->user()->role, ['admin', 'hosts']))

@@ -27,6 +27,9 @@ Route::middleware(['admin.auth'])->group(function () {
     Route::resource('registrations', RegistrationController::class);
     Route::get('registrations/export/csv', [RegistrationController::class, 'export'])->name('registrations.export');
     Route::get('registrations/{registration}/invoice', [RegistrationController::class, 'invoice'])->name('registrations.invoice');
+    Route::get('registrations/{registration}/receipt/download', [RegistrationController::class, 'downloadReceipt'])->name('registrations.receipt.download');
+    Route::get('registrations/{registration}/receipt/preview', [RegistrationController::class, 'previewReceipt'])->name('registrations.receipt.preview');
+    Route::post('registrations/{registration}/receipt/send-pdf', [RegistrationController::class, 'sendReceiptPdf'])->name('registrations.receipt.send-pdf');
     Route::get('registrations/{registration}/mark-paid', function($registrationId) {
         return redirect()->route('registrations.index')->with('error', 'Please use the "Mark as Paid" button in the registrations list to mark a payment as paid.');
     });
