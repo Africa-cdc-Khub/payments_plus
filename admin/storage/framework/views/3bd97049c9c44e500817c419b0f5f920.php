@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Receipt - {{ $invoice->invoice_number }}</title>
+    <title>Receipt - <?php echo e($invoice->invoice_number); ?></title>
     <style>
         body {
             font-family: 'Open Sans', 'Helvetica', 'Arial', sans-serif;
@@ -199,24 +199,25 @@
             <div class="invoice-details">
                 <div class="bill-to">
                     <h3>Receipt To</h3>
-                    <p><strong>{{ $invoice->biller_name }}</strong></p>
-                    <p>{{ $invoice->biller_email }}</p>
-                    <p style="white-space: pre-line;">{{ $invoice->biller_address }}</p>
+                    <p><strong><?php echo e($invoice->biller_name); ?></strong></p>
+                    <p><?php echo e($invoice->biller_email); ?></p>
+                    <p style="white-space: pre-line;"><?php echo e($invoice->biller_address); ?></p>
                 </div>
                 
                 <div class="invoice-info">
                     <h3>Receipt Details</h3>
-                    <p><strong>Invoice Number:</strong> {{ $invoice->invoice_number }}</p>
+                    <p><strong>Invoice Number:</strong> <?php echo e($invoice->invoice_number); ?></p>
                     <p><strong>Status:</strong> 
-                        <span class="status-badge status-{{ $invoice->status }}">
-                            {{ ucfirst($invoice->status) }}
+                        <span class="status-badge status-<?php echo e($invoice->status); ?>">
+                            <?php echo e(ucfirst($invoice->status)); ?>
+
                         </span>
                     </p>
-                    <p><strong>Date:</strong> {{ $invoice->created_at->format('M d, Y') }}</p>
-                    <p><strong>Due Date:</strong> {{ $invoice->created_at->addDays(30)->format('M d, Y') }}</p>
-                    @if($invoice->paid_at)
-                        <p><strong>Paid Date:</strong> {{ $invoice->paid_at->format('M d, Y') }}</p>
-                    @endif
+                    <p><strong>Date:</strong> <?php echo e($invoice->created_at->format('M d, Y')); ?></p>
+                    <p><strong>Due Date:</strong> <?php echo e($invoice->created_at->addDays(30)->format('M d, Y')); ?></p>
+                    <?php if($invoice->paid_at): ?>
+                        <p><strong>Paid Date:</strong> <?php echo e($invoice->paid_at->format('M d, Y')); ?></p>
+                    <?php endif; ?>
                 </div>
             </div>
 
@@ -227,22 +228,22 @@
                         <th class="item-col">Item</th>
                         <th class="description-col">Description</th>
                         <th class="qty-col">Qty</th>
-                        <th class="rate-col">Rate ({{ $invoice->currency }})</th>
-                        <th class="amount-col">Amount ({{ $invoice->currency }})</th>
+                        <th class="rate-col">Rate (<?php echo e($invoice->currency); ?>)</th>
+                        <th class="amount-col">Amount (<?php echo e($invoice->currency); ?>)</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
                         <td class="number-col">1</td>
-                        <td class="item-col">{{ $invoice->item }}</td>
-                        <td class="description-col">{{ $invoice->description }}</td>
-                        <td class="qty-col">{{ $invoice->quantity }}</td>
-                        <td class="rate-col">{{ number_format($invoice->rate, 2) }}</td>
-                        <td class="amount-col">{{ number_format($invoice->amount, 2) }}</td>
+                        <td class="item-col"><?php echo e($invoice->item); ?></td>
+                        <td class="description-col"><?php echo e($invoice->description); ?></td>
+                        <td class="qty-col"><?php echo e($invoice->quantity); ?></td>
+                        <td class="rate-col"><?php echo e(number_format($invoice->rate, 2)); ?></td>
+                        <td class="amount-col"><?php echo e(number_format($invoice->amount, 2)); ?></td>
                     </tr>
                     <tr class="total-row">
-                        <td colspan="4"><strong>Total ({{ $invoice->currency }})</strong></td>
-                        <td colspan="2" class="amount-col"><strong>{{ number_format($invoice->amount, 2) }}</strong></td>
+                        <td colspan="4"><strong>Total (<?php echo e($invoice->currency); ?>)</strong></td>
+                        <td colspan="2" class="amount-col"><strong><?php echo e(number_format($invoice->amount, 2)); ?></strong></td>
                     </tr>
                 </tbody>
             </table>
@@ -254,7 +255,7 @@
                 <p><strong>Account Number (USD):</strong> 6640006767</p>
                 <p><strong>Swift Code:</strong> ECOCKENA</p>
                 <p><strong>Branch:</strong> Westlands, Kenya</p>
-                <p><strong>Reference:</strong> {{ $invoice->invoice_number }}</p>
+                <p><strong>Reference:</strong> <?php echo e($invoice->invoice_number); ?></p>
             </div>
         </div>
 
@@ -266,3 +267,4 @@
     </div>
 </body>
 </html>
+<?php /**PATH /opt/homebrew/var/www/payments_plus/admin/resources/views/invoices/email.blade.php ENDPATH**/ ?>
