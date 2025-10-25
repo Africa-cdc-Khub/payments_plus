@@ -101,6 +101,7 @@ Route::middleware(['admin.auth'])->group(function () {
         Route::post('invoices/{invoice}/cancel', [\App\Http\Controllers\InvoiceController::class, 'cancel'])->name('invoices.cancel');
         Route::get('invoices/{invoice}/download', [\App\Http\Controllers\InvoiceController::class, 'download'])->name('invoices.download');
         Route::get('invoices/{invoice}/preview', [\App\Http\Controllers\InvoiceController::class, 'preview'])->name('invoices.preview');
+        Route::get('invoices/{invoice}/email-preview', [\App\Http\Controllers\InvoiceController::class, 'emailPreview'])->name('invoices.email-preview');
         Route::post('invoices/{invoice}/send', [\App\Http\Controllers\InvoiceController::class, 'send'])->name('invoices.send');
     });
     

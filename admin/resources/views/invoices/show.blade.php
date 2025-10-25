@@ -89,11 +89,17 @@
         <button type="button" 
                 onclick="openInvoiceModal({{ $invoice->id }})" 
                 class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
-            <i class="fas fa-eye"></i> Preview Invoice
+            <i class="fas fa-eye"></i> Preview PDF
         </button>
         
+        <a href="{{ route('invoices.email-preview', $invoice) }}" 
+           target="_blank"
+           class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
+            <i class="fas fa-envelope"></i> Preview Email
+        </a>
+        
         <a href="{{ route('invoices.download', $invoice) }}" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
-            <i class="fas fa-download"></i> Download Invoice
+            <i class="fas fa-download"></i> Download PDF
         </a>
 
         <button type="button"

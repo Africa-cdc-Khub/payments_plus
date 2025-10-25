@@ -257,6 +257,19 @@ class InvoiceController extends Controller
         }
     }
 
+    public function emailPreview(Invoice $invoice)
+    {
+        // Only admin can access
+        $admin = Auth::guard('admin')->user();
+        if (!$admin || $admin->role !== 'admin') {
+            abort(403, 'Unauthorized access.');
+        }
+
+        return view('invoices.email', [
+            'invoice' => $invoice
+        ]);
+    }
+
     public function send(Request $request, Invoice $invoice)
     {
         // Only admin can access
