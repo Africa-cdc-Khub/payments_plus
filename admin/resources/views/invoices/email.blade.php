@@ -192,6 +192,8 @@
     <div class="container">
         <div class="header">
             <h1>Receipt</h1>
+            
+              {{-- <img src="{{public_path('images/logo.png')}}" alt="CPHIA 2025" class="logo cphia-logo"/> --}}
             <p>CPHIA 2025 - 4th International Conference on Public Health in Africa</p>
         </div>
 
@@ -207,6 +209,7 @@
                 <div class="invoice-info">
                     <h3>Receipt Details</h3>
                     <p><strong>Invoice Number:</strong> {{ $invoice->invoice_number }}</p>
+                    
                     <p><strong>Status:</strong> 
                         <span class="status-badge status-{{ $invoice->status }}">
                             {{ ucfirst($invoice->status) }}
