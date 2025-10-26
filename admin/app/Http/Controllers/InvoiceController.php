@@ -294,6 +294,91 @@ class InvoiceController extends Controller
         }
     }
 
+    public function downloadReceipt(Invoice $invoice)
+    {
+        // Only admin can access
+        $admin = Auth::guard('admin')->user();
+        if (!$admin || $admin->role !== 'admin') {
+            abort(403, 'Unauthorized access.');
+        }
+
+        // Check if invoice is paid
+        if ($invoice->status !== 'paid') {
+            return redirect()->back()->with('error', 'Receipt can only be downloaded for paid invoices.');
+        }
+
+        try {
+            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('invoices.receipt', [
+                'invoice' => $invoice,
+            ]);
+
+            $filename = 'receipt_RCPT-' . str_pad($invoice->id, 6, '0', STR_PAD_LEFT) . '_' . now()->format('Y-m-d') . '.pdf';
+            
+            return $pdf->download($filename);
+        } catch (\Exception $e) {
+            Log::error("Failed to generate receipt PDF for invoice #{$invoice->id}: " . $e->getMessage());
+            Log::error("Stack trace: " . $e->getTraceAsString());
+            return redirect()->back()->with('error', 'Failed to generate receipt PDF. Please try again.');
+        }
+    }
+
+    public function previewReceipt(Invoice $invoice)
+    {
+        // Only admin can access
+        $admin = Auth::guard('admin')->user();
+        if (!$admin || $admin->role !== 'admin') {
+            abort(403, 'Unauthorized access.');
+        }
+
+        // Check if invoice is paid
+        if ($invoice->status !== 'paid') {
+            return redirect()->back()->with('error', 'Receipt can only be previewed for paid invoices.');
+        }
+
+        try {
+            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('invoices.receipt', [
+                'invoice' => $invoice,
+            ]);
+
+            $filename = 'receipt_RCPT-' . str_pad($invoice->id, 6, '0', STR_PAD_LEFT) . '_' . now()->format('Y-m-d') . '.pdf';
+            
+            return $pdf->stream($filename);
+        } catch (\Exception $e) {
+            Log::error("Failed to generate receipt PDF for invoice #{$invoice->id}: " . $e->getMessage());
+            Log::error("Stack trace: " . $e->getTraceAsString());
+            return redirect()->back()->with('error', 'Failed to generate receipt PDF. Please try again.');
+        }
+    }
+
+    public function sendReceipt(Request $request, Invoice $invoice)
+    {
+        // Only admin can access
+        $admin = Auth::guard('admin')->user();
+        if (!$admin || $admin->role !== 'admin') {
+            abort(403, 'Unauthorized access.');
+        }
+
+        // Check if invoice is paid
+        if ($invoice->status !== 'paid') {
+            return redirect()->back()->with('error', 'Receipt can only be sent for paid invoices.');
+        }
+
+        $request->validate([
+            'email' => 'required|email',
+        ]);
+
+        try {
+            Log::info("InvoiceController@sendReceipt: Dispatching SendInvoiceReceiptPdfJob for invoice #{$invoice->id} to {$request->email}");
+            \App\Jobs\SendInvoiceReceiptPdfJob::dispatch($invoice->id, $request->email);
+            Log::info("InvoiceController@sendReceipt: Job dispatched successfully");
+            return redirect()->back()->with('success', 'Receipt is being sent to ' . $request->email . '.');
+        } catch (\Exception $e) {
+            Log::error("InvoiceController@sendReceipt: Failed to dispatch SendInvoiceReceiptPdfJob for invoice #{$invoice->id}: " . $e->getMessage());
+            Log::error("InvoiceController@sendReceipt: Stack trace: " . $e->getTraceAsString());
+            return redirect()->back()->with('error', 'Failed to queue receipt email. Please try again.');
+        }
+    }
+
     public function markAsPaid(Invoice $invoice)
     {
         // Only admin can access
@@ -314,7 +399,12 @@ class InvoiceController extends Controller
                 'paid_by' => $admin->id,
             ]);
 
-            return redirect()->back()->with('success', 'Invoice marked as paid.');
+            // Automatically send receipt email
+            Log::info("InvoiceController@markAsPaid: Dispatching SendInvoiceReceiptPdfJob for invoice #{$invoice->id} to {$invoice->biller_email}");
+            \App\Jobs\SendInvoiceReceiptPdfJob::dispatch($invoice->id, $invoice->biller_email);
+            Log::info("InvoiceController@markAsPaid: Job dispatched successfully");
+
+            return redirect()->back()->with('success', 'Invoice marked as paid and receipt is being sent to ' . $invoice->biller_email . '.');
         } catch (\Exception $e) {
             Log::error("Failed to mark invoice #{$invoice->id} as paid: " . $e->getMessage());
 

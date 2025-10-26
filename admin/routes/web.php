@@ -106,6 +106,18 @@ Route::middleware(['admin.auth'])->group(function () {
         Route::get('invoices/{invoice}/preview', [\App\Http\Controllers\InvoiceController::class, 'preview'])->name('invoices.preview');
         Route::get('invoices/{invoice}/email-preview', [\App\Http\Controllers\InvoiceController::class, 'emailPreview'])->name('invoices.email-preview');
         Route::post('invoices/{invoice}/send', [\App\Http\Controllers\InvoiceController::class, 'send'])->name('invoices.send');
+        Route::get('invoices/{invoice}/receipt/download', [\App\Http\Controllers\InvoiceController::class, 'downloadReceipt'])->name('invoices.receipt.download');
+        Route::get('invoices/{invoice}/receipt/preview', [\App\Http\Controllers\InvoiceController::class, 'previewReceipt'])->name('invoices.receipt.preview');
+        Route::post('invoices/{invoice}/receipt/send', [\App\Http\Controllers\InvoiceController::class, 'sendReceipt'])->name('invoices.receipt.send');
+    });
+    
+    // Receipts (Admin only)
+    Route::middleware(['auth:admin'])->group(function () {
+        Route::resource('receipts', \App\Http\Controllers\ReceiptController::class);
+        Route::get('receipts/export/csv', [\App\Http\Controllers\ReceiptController::class, 'export'])->name('receipts.export');
+        Route::get('receipts/{receipt}/download', [\App\Http\Controllers\ReceiptController::class, 'download'])->name('receipts.download');
+        Route::get('receipts/{receipt}/preview', [\App\Http\Controllers\ReceiptController::class, 'preview'])->name('receipts.preview');
+        Route::post('receipts/{receipt}/send', [\App\Http\Controllers\ReceiptController::class, 'send'])->name('receipts.send');
     });
     
     // Approved Delegates

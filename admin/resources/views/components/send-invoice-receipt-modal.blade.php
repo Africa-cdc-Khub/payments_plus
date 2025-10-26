@@ -1,5 +1,5 @@
-<!-- Send Receipt Modal -->
-<div id="sendReceiptModal" class="fixed inset-0 bg-gray-900 bg-opacity-75 overflow-y-auto h-full w-6/12"
+<!-- Send Invoice Receipt Modal -->
+<div id="sendInvoiceReceiptModal" class="fixed inset-0 bg-gray-900 bg-opacity-75 overflow-y-auto h-full w-6/12"
  style="display: none; z-index: 10000; position:absolute; background-color: rgba(0, 0, 0, 0.5);">
     <div class="relative top-20 mx-auto p-5 border w-full max-w-lg shadow-2xl rounded-lg bg-white"
      style="max-width: 50%; margin:0 auto; padding:10px; top:10%; ">
@@ -10,21 +10,21 @@
                     <i class="fas fa-paper-plane text-green-500 mr-2"></i>
                     Send Receipt
                 </h3>
-                <button type="button" onclick="closeSendReceiptModal()" class="text-gray-400 hover:text-gray-600 text-2xl leading-none">
+                <button type="button" onclick="closeSendInvoiceReceiptModal()" class="text-gray-400 hover:text-gray-600 text-2xl leading-none">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
 
             <!-- Modal Body -->
-            <form id="sendReceiptForm" method="POST" action="">
-                <?php echo csrf_field(); ?>
+            <form id="sendInvoiceReceiptForm" method="POST" action="">
+                @csrf
                 <div class="mb-4">
-                    <label for="send_receipt_email" class="block text-sm font-medium text-gray-700 mb-2">
+                    <label for="send_invoice_receipt_email" class="block text-sm font-medium text-gray-700 mb-2">
                         Recipient Email <span class="text-red-500">*</span>
                     </label>
                     <input 
                         type="email" 
-                        id="send_receipt_email" 
+                        id="send_invoice_receipt_email" 
                         name="email" 
                         required
                         placeholder="recipient@example.com"
@@ -48,16 +48,17 @@
                 <div class="flex justify-end space-x-3">
                     <button 
                         type="button" 
-                        onclick="closeSendReceiptModal()" 
-                        class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400"
+                        onclick="closeSendInvoiceReceiptModal()" 
+                        class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors duration-200"
                     >
                         Cancel
                     </button>
                     <button 
                         type="submit" 
-                        class="px-4 py-2 ml-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                        class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 flex items-center"
                     >
-                        <i class="fas fa-paper-plane"></i> Send
+                        <i class="fas fa-paper-plane mr-2"></i>
+                        Send Receipt
                     </button>
                 </div>
             </form>
@@ -66,18 +67,18 @@
 </div>
 
 <script>
-function openSendReceiptModal(registrationId, email = '') {
-    const modal = document.getElementById('sendReceiptModal');
-    const form = document.getElementById('sendReceiptForm');
-    const emailInput = document.getElementById('send_receipt_email');
+function openSendInvoiceReceiptModal(invoiceId, email = '') {
+    const modal = document.getElementById('sendInvoiceReceiptModal');
+    const form = document.getElementById('sendInvoiceReceiptForm');
+    const emailInput = document.getElementById('send_invoice_receipt_email');
     
     if (!modal || !form || !emailInput) {
-        console.error('Send Receipt modal elements not found');
+        console.error('Send Invoice Receipt modal elements not found');
         return;
     }
     
     // Set form action
-    form.action = `<?php echo e(url('/receipts')); ?>/${receiptId}/send`;
+    form.action = `{{ url('/invoices') }}/${invoiceId}/receipt/send`;
     
     // Pre-fill email if provided
     emailInput.value = email || '';
@@ -90,8 +91,8 @@ function openSendReceiptModal(registrationId, email = '') {
     setTimeout(() => emailInput.focus(), 100);
 }
 
-function closeSendReceiptModal() {
-    const modal = document.getElementById('sendReceiptModal');
+function closeSendInvoiceReceiptModal() {
+    const modal = document.getElementById('sendInvoiceReceiptModal');
     if (modal) {
         modal.style.display = 'none';
         document.body.style.overflow = '';
@@ -100,27 +101,23 @@ function closeSendReceiptModal() {
 
 // Delegate click for send buttons
 document.addEventListener('click', function(e) {
-    if (e.target.closest('.send-receipt-btn')) {
-        const btn = e.target.closest('.send-receipt-btn');
-        const receiptId = btn.getAttribute('data-receipt-id');
+    if (e.target.closest('.send-invoice-receipt-btn')) {
+        const btn = e.target.closest('.send-invoice-receipt-btn');
+        const invoiceId = btn.getAttribute('data-invoice-id');
         const email = btn.getAttribute('data-email') || '';
-        openSendReceiptModal(receiptId, email);
+        openSendInvoiceReceiptModal(invoiceId, email);
     }
 });
 
 // ESC close
 document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') closeSendReceiptModal();
+    if (e.key === 'Escape') closeSendInvoiceReceiptModal();
 });
 
-// Click outside to close
-document.addEventListener('DOMContentLoaded', function() {
-    const modal = document.getElementById('sendReceiptModal');
-    if (modal) {
-        modal.addEventListener('click', function(e) {
-            if (e.target === this) closeSendReceiptModal();
-        });
+// Close on backdrop click
+document.getElementById('sendInvoiceReceiptModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeSendInvoiceReceiptModal();
     }
 });
 </script>
-<?php /**PATH /opt/homebrew/var/www/payments_plus/admin/resources/views/components/send-receipt-modal.blade.php ENDPATH**/ ?>

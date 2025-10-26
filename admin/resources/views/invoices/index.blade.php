@@ -251,6 +251,26 @@
                             <i class="fas fa-paper-plane"></i> Send
                         </button>
                         
+                        @if($invoice->status === 'paid')
+                        <button type="button" 
+                                onclick="openInvoiceReceiptModal({{ $invoice->id }})" 
+                                class="ml-3 text-green-600 hover:text-green-900"
+                                title="Preview Receipt PDF">
+                            <i class="fas fa-receipt"></i> Receipt
+                        </button>
+                        
+                        <a href="{{ route('invoices.receipt.download', $invoice) }}" class="ml-3 text-green-600 hover:text-green-900">
+                            <i class="fas fa-download"></i> Receipt PDF
+                        </a>
+
+                        <button type="button" 
+                                class="ml-3 text-green-600 hover:text-green-900 send-invoice-receipt-btn"
+                                data-invoice-id="{{ $invoice->id }}"
+                                data-email="{{ $invoice->biller_email }}">
+                            <i class="fas fa-paper-plane"></i> Send Receipt
+                        </button>
+                        @endif
+                        
                         @if($invoice->status === 'pending')
                             <button type="button" 
                                     class="ml-3 text-orange-600 hover:text-orange-900 edit-invoice-btn"
@@ -351,5 +371,11 @@ function cancelInvoice(invoiceId, billerName) {
 
 <!-- Include Send Invoice Modal -->
 @include('components.send-invoice-modal')
+
+<!-- Include Invoice Receipt Preview Modal -->
+@include('components.invoice-receipt-preview-modal')
+
+<!-- Include Send Invoice Receipt Modal -->
+@include('components.send-invoice-receipt-modal')
 
 @endsection

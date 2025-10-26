@@ -77,7 +77,7 @@ function openSendReceiptModal(registrationId, email = '') {
     }
     
     // Set form action
-    form.action = `{{ url('/registrations') }}/${registrationId}/receipt/send-pdf`;
+    form.action = `{{ url('/receipts') }}/${receiptId}/send`;
     
     // Pre-fill email if provided
     emailInput.value = email || '';
@@ -102,9 +102,9 @@ function closeSendReceiptModal() {
 document.addEventListener('click', function(e) {
     if (e.target.closest('.send-receipt-btn')) {
         const btn = e.target.closest('.send-receipt-btn');
-        const registrationId = btn.getAttribute('data-registration-id');
+        const receiptId = btn.getAttribute('data-receipt-id');
         const email = btn.getAttribute('data-email') || '';
-        openSendReceiptModal(registrationId, email);
+        openSendReceiptModal(receiptId, email);
     }
 });
 

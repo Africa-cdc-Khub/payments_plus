@@ -60,7 +60,7 @@ function openReceiptModal(registrationId) {
     document.body.style.overflow = 'hidden'; // Prevent background scrolling
     
     // Store current receipt ID for download
-    currentReceiptUrl = `/registrations/${registrationId}/receipt/download`;
+    currentReceiptUrl = `/receipts/${receiptId}/download`;
     
     // Set a timeout to hide loader after 10 seconds if PDF doesn't load
     if (receiptLoadTimeout) {
@@ -74,7 +74,7 @@ function openReceiptModal(registrationId) {
     setTimeout(function() {
         const form = document.createElement('form');
         form.method = 'GET';
-        form.action = `{{ url('/registrations') }}/${registrationId}/receipt/preview`;
+        form.action = `{{ url('/receipts') }}/${receiptId}/preview`;
         form.target = 'receiptIframe';
         form.style.display = 'none';
         

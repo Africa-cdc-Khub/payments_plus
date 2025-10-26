@@ -274,6 +274,26 @@
                             <i class="fas fa-paper-plane"></i> Send
                         </button>
                         
+                        <?php if($invoice->status === 'paid'): ?>
+                        <button type="button" 
+                                onclick="openInvoiceReceiptModal(<?php echo e($invoice->id); ?>)" 
+                                class="ml-3 text-green-600 hover:text-green-900"
+                                title="Preview Receipt PDF">
+                            <i class="fas fa-receipt"></i> Receipt
+                        </button>
+                        
+                        <a href="<?php echo e(route('invoices.receipt.download', $invoice)); ?>" class="ml-3 text-green-600 hover:text-green-900">
+                            <i class="fas fa-download"></i> Receipt PDF
+                        </a>
+
+                        <button type="button" 
+                                class="ml-3 text-green-600 hover:text-green-900 send-invoice-receipt-btn"
+                                data-invoice-id="<?php echo e($invoice->id); ?>"
+                                data-email="<?php echo e($invoice->biller_email); ?>">
+                            <i class="fas fa-paper-plane"></i> Send Receipt
+                        </button>
+                        <?php endif; ?>
+                        
                         <?php if($invoice->status === 'pending'): ?>
                             <button type="button" 
                                     class="ml-3 text-orange-600 hover:text-orange-900 edit-invoice-btn"
@@ -375,6 +395,12 @@ function cancelInvoice(invoiceId, billerName) {
 
 <!-- Include Send Invoice Modal -->
 <?php echo $__env->make('components.send-invoice-modal', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+
+<!-- Include Invoice Receipt Preview Modal -->
+<?php echo $__env->make('components.invoice-receipt-preview-modal', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+
+<!-- Include Send Invoice Receipt Modal -->
+<?php echo $__env->make('components.send-invoice-receipt-modal', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
 <?php $__env->stopSection(); ?>
 
