@@ -192,7 +192,8 @@
     <div class="container">
         <div class="header">
             <h1>Receipt</h1>
-              <img src="<?php echo e(public_path('images/logo.png')); ?>" alt="CPHIA 2025" class="logo cphia-logo"/>
+            
+              
             <p>CPHIA 2025 - 4th International Conference on Public Health in Africa</p>
         </div>
 

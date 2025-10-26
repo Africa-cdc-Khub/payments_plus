@@ -82,7 +82,7 @@ class SendReceiptPdfJob implements ShouldQueue
             Log::info("SendReceiptPdfJob: Sending email to {$this->recipientEmail}");
             $result = $emailService->sendEmail(
                 $this->recipientEmail,
-                'CPHIA 2025 Receipt - Registration #' . $registration->id,
+                'CPHIA 2025 Receipt - RCP-' . str_pad($registration->id, 6, '0', STR_PAD_LEFT),
                 $emailBody,
                 true, // isHtml
                 null, // fromEmail (use default)

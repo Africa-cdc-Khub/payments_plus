@@ -20,7 +20,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <div class="heading">Receipt #{{ $registration->id }}</div>
+            <div class="heading">Receipt #RCP-{{ str_pad($registration->id, 6, '0', STR_PAD_LEFT) }}</div>
             <div class="meta">Date: {{ optional($registration->created_at)->format('M d, Y') }}</div>
         </div>
 

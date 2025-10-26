@@ -32,17 +32,13 @@
             padding: 0;
             text-align: center;
         }
-        .header h1 {
-            font-size: 32px;
-            font-weight: bold;
-            color: #1a5632;
-            margin: 0 0 10px 0;
+
+        .header img {
+            width: 100%;
+            height: auto;
+            display: block;
         }
-        .header p {
-            font-size: 16px;
-            color: #666;
-            margin: 0;
-        }
+
         .receipt-details {
             display: table;
             width: 100%;
@@ -72,6 +68,11 @@
         }
         .receipt-info p strong {
             font-weight: bold;
+        }
+        .receipt-info h3 .info-label{
+            margin-left: 12px;
+            display: inline-block;
+            font-weight: normal;
         }
         .items-table {
             width: 100%;
@@ -140,43 +141,29 @@
             font-size: 10pt;
         }
         .footer {
-            margin-top: 20mm;
+            width: 100%;
             text-align: center;
-            font-size: 9pt;
-            color: #6B7280;
+            margin-top: 20px;
+            padding: 0;
+            bottom: 0;
+            position: absolute;
+            margin-bottom: 20mm;
         }
-        .footer p {
-            margin: 2px 0;
-        }
-        .qr-codes {
-            margin: 15mm 0;
-            text-align: center;
-        }
-        .qr-code {
-            display: inline-block;
-            margin: 0 10px;
-            text-align: center;
-        }
-        .qr-code img {
-            width: 80px;
-            height: 80px;
-            border: 1px solid #D1D5DB;
-        }
-        .qr-info {
-            font-size: 8pt;
-            color: #666;
-            margin-top: 5px;
+        .footer img {
+            width: auto;
+            max-height: 20mm;
+            height: auto;
+            display: block;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="content-wrapper">
-            <div class="header">
-                <h1>Receipt</h1>
-                <p>CPHIA 2025 - 4th International Conference on Public Health in Africa</p>
-            </div>
+        <header class="header">
+            <img src="{{ public_path('images/invoice-top.png') }}" alt="CPHIA 2025 Receipt Header" />
+        </header>
 
+        <div class="content-wrapper">
             <div class="receipt-details">
                 <div class="bill-to">
                     <h3>Bill To</h3>
@@ -194,14 +181,11 @@
                 </div>
                 
                 <div class="receipt-info">
-                    <h3>Receipt Details</h3>
-                    <p><strong>Receipt Number:</strong> {{ $registration->id }}</p>
-                    <p><strong>Registration Type:</strong> {{ ucfirst($registration->registration_type) }}</p>
-                    <p><strong>Payment Status:</strong> {{ ucfirst($registration->payment_status) }}</p>
-                    <p><strong>Date:</strong> {{ $registration->created_at->format('M d, Y') }}</p>
-                    <p><strong>Package:</strong> {{ $package->name }}</p>
+                    <h3>Receipt <div class="info-label">RCP-{{ str_pad($registration->id, 6, '0', STR_PAD_LEFT) }}</div></h3>
+                    <h3>Date: <div class="info-label">{{ $registration->created_at->format('d/m/Y') }}</div></h3>
+                    <h3>Payment Status: <div class="info-label">{{ ucfirst($registration->payment_status) }}</div></h3>
                     @if($registration->payment_method)
-                        <p><strong>Payment Method:</strong> {{ ucfirst($registration->payment_method) }}</p>
+                        <h3>Payment Method: <div class="info-label">{{ ucfirst($registration->payment_method) }}</div></h3>
                     @endif
                 </div>
             </div>
@@ -269,31 +253,9 @@
             </div>
             @endif
 
-            <div class="qr-codes">
-                <div class="qr-code">
-                    <img src="data:image/svg+xml;base64,{{ base64_encode('<svg width="80" height="80" xmlns="http://www.w3.org/2000/svg"><rect width="80" height="80" fill="white"/><text x="40" y="40" text-anchor="middle" font-size="8" fill="black">QR Code</text></svg>') }}" alt="Receipt QR Code">
-                    <div class="qr-info">Receipt Verification</div>
-                </div>
-                <div class="qr-code">
-                    <img src="data:image/svg+xml;base64,{{ base64_encode('<svg width="80" height="80" xmlns="http://www.w3.org/2000/svg"><rect width="80" height="80" fill="white"/><text x="40" y="40" text-anchor="middle" font-size="8" fill="black">QR Code</text></svg>') }}" alt="Attendance QR Code">
-                    <div class="qr-info">Attendance Verification</div>
-                </div>
-            </div>
-
-            <div class="bank-details">
-                <h3>Payment Information</h3>
-                <p><strong>Account Name:</strong> AFRICA CDC-CPHIA FUND ACCOUNT</p>
-                <p><strong>Bank:</strong> ECO BANK</p>
-                <p><strong>Account Number (USD):</strong> 6640006767</p>
-                <p><strong>Swift Code:</strong> ECOCKENA</p>
-                <p><strong>Branch:</strong> Westlands, Kenya</p>
-                <p><strong>Reference:</strong> {{ $registration->id }}</p>
-            </div>
 
             <div class="footer">
-                <p><strong>CPHIA 2025</strong> - 4th International Conference on Public Health in Africa</p>
-                <p>22-25 October 2025 • Durban, South Africa</p>
-                <p>For questions, contact: support@cphia2025.com</p>
+                <img src="{{ public_path('images/bottom-banner.png') }}" alt="CPHIA 2025 Footer" />
             </div>
         </div>
     </div>
