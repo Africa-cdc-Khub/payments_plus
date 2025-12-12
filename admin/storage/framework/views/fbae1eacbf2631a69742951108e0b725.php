@@ -1,36 +1,68 @@
 <!-- Send Invoice Receipt Modal -->
-<div id="sendInvoiceReceiptModal" class="modal" style="display: none;">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3>Send Invoice Receipt</h3>
-            <span class="close" onclick="closeSendInvoiceReceiptModal()">&times;</span>
+<div id="sendInvoiceReceiptModal" class="fixed inset-0 bg-gray-900 bg-opacity-75 overflow-y-auto h-full w-6/12"
+ style="display: none; z-index: 10000; position:absolute; background-color: rgba(0, 0, 0, 0.5);">
+    <div class="relative top-20 mx-auto p-5 border w-full max-w-lg shadow-2xl rounded-lg bg-white"
+     style="max-width: 50%; margin:0 auto; padding:10px; top:10%; ">
+        <div class="mt-3">
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-gray-900 flex items-center">
+                    <i class="fas fa-paper-plane text-green-500 mr-2"></i>
+                    Send Receipt
+                </h3>
+                <button type="button" onclick="closeSendInvoiceReceiptModal()" class="text-gray-400 hover:text-gray-600 text-2xl leading-none">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <!-- Modal Body -->
+            <form id="sendInvoiceReceiptForm" method="POST" action="">
+                <?php echo csrf_field(); ?>
+                <div class="mb-4">
+                    <label for="send_invoice_receipt_email" class="block text-sm font-medium text-gray-700 mb-2">
+                        Recipient Email <span class="text-red-500">*</span>
+                    </label>
+                    <input 
+                        type="email" 
+                        id="send_invoice_receipt_email" 
+                        name="email" 
+                        required
+                        placeholder="recipient@example.com"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    >
+                </div>
+
+                <div class="bg-green-50 border-l-4 border-green-400 p-3 mb-4">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-info-circle text-green-400"></i>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm text-green-700">
+                                The receipt will be generated as a PDF and attached to the email.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-end space-x-3">
+                    <button 
+                        type="button" 
+                        onclick="closeSendInvoiceReceiptModal()" 
+                        class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors duration-200"
+                    >
+                        Cancel
+                    </button>
+                    <button 
+                        type="submit" 
+                        class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 flex items-center"
+                    >
+                        <i class="fas fa-paper-plane mr-2"></i>
+                        Send Receipt
+                    </button>
+                </div>
+            </form>
         </div>
-        <form id="sendInvoiceReceiptForm" method="POST" action="">
-            <?php echo csrf_field(); ?>
-            <div class="modal-body">
-                <div class="form-group">
-                    <label for="invoiceReceiptEmail">Recipient Email:</label>
-                    <input type="email" 
-                           id="invoiceReceiptEmail" 
-                           name="email" 
-                           class="form-control" 
-                           required 
-                           placeholder="Enter recipient email address">
-                </div>
-                <div class="alert alert-info">
-                    <i class="fas fa-info-circle"></i>
-                    The receipt will be sent as a PDF attachment to the specified email address.
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" onclick="closeSendInvoiceReceiptModal()" class="btn btn-secondary">
-                    Cancel
-                </button>
-                <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-paper-plane"></i> Send Receipt
-                </button>
-            </div>
-        </form>
     </div>
 </div>
 
@@ -38,7 +70,7 @@
 function openSendInvoiceReceiptModal(invoiceId, email = '') {
     const modal = document.getElementById('sendInvoiceReceiptModal');
     const form = document.getElementById('sendInvoiceReceiptForm');
-    const emailInput = document.getElementById('invoiceReceiptEmail');
+    const emailInput = document.getElementById('send_invoice_receipt_email');
     
     if (!modal || !form || !emailInput) {
         console.error('Send Invoice Receipt modal elements not found');
@@ -88,5 +120,4 @@ document.getElementById('sendInvoiceReceiptModal').addEventListener('click', fun
         closeSendInvoiceReceiptModal();
     }
 });
-</script>
-<?php /**PATH /opt/homebrew/var/www/payments_plus/admin/resources/views/components/send-invoice-receipt-modal.blade.php ENDPATH**/ ?>
+</script><?php /**PATH /opt/homebrew/var/www/payments_plus/admin/resources/views/components/send-invoice-receipt-modal.blade.php ENDPATH**/ ?>

@@ -1,29 +1,38 @@
 <!-- Invoice Receipt Preview Modal -->
-<div id="invoiceReceiptPreviewModal" class="modal" style="display: none;">
-    <div class="modal-content" style="width: 90%; max-width: 1000px; height: 90%; max-height: 800px;">
-        <div class="modal-header">
-            <h3>Invoice Receipt Preview</h3>
-            <span class="close" onclick="closeInvoiceReceiptModal()">&times;</span>
-        </div>
-        <div class="modal-body" style="height: calc(100% - 120px); padding: 0;">
-            <div id="invoiceReceiptLoader" class="loader" style="display: flex; justify-content: center; align-items: center; height: 100%;">
-                <div style="text-align: center;">
-                    <div class="spinner" style="border: 4px solid #f3f3f3; border-top: 4px solid #1a5632; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 20px;"></div>
-                    <p>Loading receipt PDF...</p>
+<div id="invoiceReceiptPreviewModal" class="fixed inset-0 bg-gray-900 bg-opacity-75 overflow-y-auto h-full w-full"
+ style="display: none; z-index: 10000; position:absolute; background-color: rgba(0, 0, 0, 0.5);">
+    <div class="relative top-10 mx-auto p-5 border w-full max-w-6xl shadow-2xl rounded-lg bg-white"
+     style="max-width: 90%; margin:0 auto; padding:10px; top:5%; height:90%;">
+        <div class="h-full flex flex-col">
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between mb-4 border-b pb-3">
+                <h3 class="text-lg font-semibold text-gray-900 flex items-center">
+                    <i class="fas fa-receipt text-green-500 mr-2"></i>
+                    Receipt Preview
+                </h3>
+                <div class="flex items-center space-x-3">
+                    <button type="button" onclick="downloadInvoiceReceipt()" class="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700">
+                        <i class="fas fa-download mr-1"></i> Download
+                    </button>
+                    <button type="button" onclick="closeInvoiceReceiptModal()" class="text-gray-400 hover:text-gray-600 text-2xl leading-none">
+                        <i class="fas fa-times"></i>
+                    </button>
                 </div>
             </div>
-            <iframe id="invoiceReceiptIframe" 
-                    src="" 
-                    style="width: 100%; height: 100%; border: none; display: none;">
-            </iframe>
-        </div>
-        <div class="modal-footer">
-            <button type="button" onclick="downloadInvoiceReceipt()" class="btn btn-primary">
-                <i class="fas fa-download"></i> Download Receipt PDF
-            </button>
-            <button type="button" onclick="closeInvoiceReceiptModal()" class="btn btn-secondary">
-                Close
-            </button>
+
+            <!-- Modal Body -->
+            <div class="flex-1 relative" style="height: calc(100% - 80px);">
+                <div id="invoiceReceiptLoader" class="absolute inset-0 flex justify-center items-center bg-white bg-opacity-90" style="display: flex;">
+                    <div class="text-center">
+                        <div class="spinner border-4 border-gray-300 border-t-green-600 rounded-full w-12 h-12 animate-spin mx-auto mb-4"></div>
+                        <p class="text-gray-600">Loading receipt PDF...</p>
+                    </div>
+                </div>
+                <iframe id="invoiceReceiptIframe" 
+                        src="" 
+                        style="width: 100%; height: 100%; border: none; display: none;">
+                </iframe>
+            </div>
         </div>
     </div>
 </div>
@@ -142,5 +151,4 @@ document.getElementById('invoiceReceiptPreviewModal').addEventListener('click', 
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
-</style>
-<?php /**PATH /opt/homebrew/var/www/payments_plus/admin/resources/views/components/invoice-receipt-preview-modal.blade.php ENDPATH**/ ?>
+</style><?php /**PATH /opt/homebrew/var/www/payments_plus/admin/resources/views/components/invoice-receipt-preview-modal.blade.php ENDPATH**/ ?>
