@@ -155,6 +155,12 @@
                     <i class="fas fa-user-shield mr-2"></i> Admins
                 </a>
                 @endif
+                
+                @if($admin && in_array($admin->role, ['admin', 'secretariat']))
+                <a href="{{ route('certificates.index') }}" class="block px-6 py-3 hover:bg-gray-700 {{ request()->routeIs('certificates.*') ? 'bg-gray-700' : '' }}">
+                    <i class="fas fa-certificate mr-2"></i> Certificates
+                </a>
+                @endif
             </nav>
         </aside>
 

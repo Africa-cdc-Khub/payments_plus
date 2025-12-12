@@ -29,7 +29,7 @@
                 </button>
                 @endif
             </div>
-        </div>
+            </div>
             
         <!-- Filter Form -->
         <form method="GET" class="bg-gray-50 p-4 rounded-lg">

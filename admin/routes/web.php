@@ -8,6 +8,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\PackageController;
 use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\DelegateController;
+use App\Http\Controllers\CertificateController;
 use Illuminate\Support\Facades\Route;
 
 // Authentication Routes
@@ -87,6 +88,13 @@ Route::middleware(['admin.auth'])->group(function () {
     Route::post('invitations/preview', [InvitationController::class, 'preview'])->name('invitations.preview');
     Route::post('invitations/send', [InvitationController::class, 'send'])->name('invitations.send');
     Route::get('invitations/download/{registration}', [InvitationController::class, 'download'])->name('invitations.download');
+    
+    // Certificates
+    Route::get('certificates', [CertificateController::class, 'index'])->name('certificates.index');
+    Route::get('certificates/preview', [CertificateController::class, 'preview'])->name('certificates.preview');
+    Route::get('certificates/download', [CertificateController::class, 'download'])->name('certificates.download');
+    Route::post('certificates/send', [CertificateController::class, 'send'])->name('certificates.send');
+    Route::post('certificates/send-bulk', [CertificateController::class, 'sendBulk'])->name('certificates.send-bulk');
     
     // Delegates
     Route::get('delegates', [DelegateController::class, 'index'])->name('delegates.index');
