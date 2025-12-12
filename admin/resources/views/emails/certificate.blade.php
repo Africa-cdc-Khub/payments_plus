@@ -28,7 +28,9 @@
         }
         .header img {
             max-width: 200px;
-            height: auto;
+            width: 200px;
+            height: 80px;
+            object-fit: contain;
             margin: 10px;
         }
         .content {
@@ -75,8 +77,8 @@
 <body>
     <div class="email-container">
         <div class="header">
-            <img src="{{ rtrim(config('domains.parent_url', env('PARENT_APP_URL', config('app.url'))), '/') }}/images/africa-cdc-logo.png" alt="Africa CDC" />
-            <img src="{{ rtrim(config('domains.parent_url', env('PARENT_APP_URL', config('app.url'))), '/') }}/images/cphia-logo.png" alt="CPHIA 2025" />
+            <img src="{{ rtrim(config('domains.parent_url', env('PARENT_APP_URL', config('app.url'))), '/') }}/images/logo.png" alt="Africa CDC" />
+            <img src="{{ rtrim(config('domains.parent_url', env('PARENT_APP_URL', config('app.url'))), '/') }}/images/CPHIA-2025-logo_reverse.png" alt="CPHIA 2025" />
         </div>
 
         <div class="content">
