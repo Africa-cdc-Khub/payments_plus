@@ -95,6 +95,7 @@ Route::middleware(['admin.auth'])->group(function () {
     Route::get('certificates/download', [CertificateController::class, 'download'])->name('certificates.download');
     Route::post('certificates/send', [CertificateController::class, 'send'])->name('certificates.send');
     Route::post('certificates/send-bulk', [CertificateController::class, 'sendBulk'])->name('certificates.send-bulk');
+    Route::post('certificates/send-all', [CertificateController::class, 'sendAll'])->name('certificates.send-all');
     
     // Delegates
     Route::get('delegates', [DelegateController::class, 'index'])->name('delegates.index');

@@ -179,7 +179,7 @@ class CertificateController extends Controller
     }
 
     /**
-     * Send bulk certificates
+     * Send bulk certificates (selected participants)
      */
     public function sendBulk(Request $request)
     {
@@ -195,6 +195,38 @@ class CertificateController extends Controller
 
         if ($results['queued'] > 0) {
             $message = "Successfully queued {$results['queued']} certificate(s) for sending.";
+            if ($results['failed'] > 0) {
+                $message .= " {$results['failed']} could not be queued.";
+            }
+            $message .= " Emails will be sent in the background.";
+            return redirect()->back()->with('success', $message);
+        } else {
+            return redirect()->back()->with('error', 'Failed to queue certificates. ' . implode(', ', $results['errors']));
+        }
+    }
+
+    /**
+     * Send certificates to all eligible participants
+     */
+    public function sendAll(Request $request)
+    {
+        $this->authorize('viewAny', Registration::class);
+
+        // Get all eligible participants (not paginated)
+        $allParticipants = $this->certificateService->getEligibleParticipants();
+
+        // Convert to the format expected by sendBulkCertificates
+        $participantsData = $allParticipants->map(function($participant) {
+            return [
+                'registration_id' => $participant['registration_id'],
+                'participant_id' => $participant['participant_id'],
+            ];
+        })->toArray();
+
+        $results = $this->certificateService->sendBulkCertificates($participantsData);
+
+        if ($results['queued'] > 0) {
+            $message = "Successfully queued {$results['queued']} certificate(s) for sending to all eligible participants.";
             if ($results['failed'] > 0) {
                 $message .= " {$results['failed']} could not be queued.";
             }

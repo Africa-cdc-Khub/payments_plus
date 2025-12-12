@@ -425,29 +425,11 @@ function sendSelectedCertificates() {
 }
 
 function sendAllCertificates() {
-    const allCheckboxes = document.querySelectorAll('.participant-checkbox');
-    const totalCount = allCheckboxes.length;
-    
-    if (totalCount === 0) {
-        alert('No participants found to send certificates to.');
-        return;
-    }
-    
-    if (confirm(`Send certificates to ALL ${totalCount} participant(s) in the table?\n\nThis will queue certificate emails for all participants. This action may take some time to complete.`)) {
-        // Build participants array for all participants
-        const participants = [];
-        allCheckboxes.forEach((checkbox, index) => {
-            const participantId = checkbox.getAttribute('data-participant-id');
-            participants.push({
-                registration_id: checkbox.value,
-                participant_id: participantId || null
-            });
-        });
-        
-        // Create form and submit
+    if (confirm('Send certificates to ALL eligible participants?\n\nThis will queue certificate emails for all eligible participants across all pages, not just the current page. This action may take some time to complete.')) {
+        // Create form and submit to send-all route (which fetches all participants from backend)
         const form = document.createElement('form');
         form.method = 'POST';
-        form.action = '{{ route("certificates.send-bulk") }}';
+        form.action = '{{ route("certificates.send-all") }}';
         
         // Add CSRF token
         const csrfToken = document.createElement('input');
@@ -455,23 +437,6 @@ function sendAllCertificates() {
         csrfToken.name = '_token';
         csrfToken.value = '{{ csrf_token() }}';
         form.appendChild(csrfToken);
-        
-        // Add participants data
-        participants.forEach((p, index) => {
-            const regInput = document.createElement('input');
-            regInput.type = 'hidden';
-            regInput.name = `participants[${index}][registration_id]`;
-            regInput.value = p.registration_id;
-            form.appendChild(regInput);
-            
-            if (p.participant_id) {
-                const partInput = document.createElement('input');
-                partInput.type = 'hidden';
-                partInput.name = `participants[${index}][participant_id]`;
-                partInput.value = p.participant_id;
-                form.appendChild(partInput);
-            }
-        });
         
         document.body.appendChild(form);
         form.submit();

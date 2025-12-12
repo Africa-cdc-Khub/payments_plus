@@ -11,11 +11,19 @@
                 <?php if(auth('admin')->user()->role === 'admin'): ?>
                 <button 
                     type="button" 
-                    onclick="sendBulkCertificates()"
-                    class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
-                    title="Send certificates to all eligible participants"
+                    onclick="sendSelectedCertificates()"
+                    class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                    title="Send certificates to selected participants"
                 >
-                    <i class="fas fa-certificate"></i> Send Bulk Certificates
+                    <i class="fas fa-check-square"></i> Send Selected
+                </button>
+                <button 
+                    type="button" 
+                    onclick="sendAllCertificates()"
+                    class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                    title="Send certificates to all participants in the table"
+                >
+                    <i class="fas fa-certificate"></i> Send to All Participants
                 </button>
                 <?php endif; ?>
             </div>
@@ -362,7 +370,7 @@ function sendCertificate(registrationId, participantId, participantName) {
     }
 }
 
-function sendBulkCertificates() {
+function sendSelectedCertificates() {
     const checkboxes = document.querySelectorAll('.participant-checkbox:checked');
     
     if (checkboxes.length === 0) {
@@ -374,6 +382,60 @@ function sendBulkCertificates() {
         // Build participants array
         const participants = [];
         checkboxes.forEach((checkbox, index) => {
+            const participantId = checkbox.getAttribute('data-participant-id');
+            participants.push({
+                registration_id: checkbox.value,
+                participant_id: participantId || null
+            });
+        });
+        
+        // Create form and submit
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '<?php echo e(route("certificates.send-bulk")); ?>';
+        
+        // Add CSRF token
+        const csrfToken = document.createElement('input');
+        csrfToken.type = 'hidden';
+        csrfToken.name = '_token';
+        csrfToken.value = '<?php echo e(csrf_token()); ?>';
+        form.appendChild(csrfToken);
+        
+        // Add participants data
+        participants.forEach((p, index) => {
+            const regInput = document.createElement('input');
+            regInput.type = 'hidden';
+            regInput.name = `participants[${index}][registration_id]`;
+            regInput.value = p.registration_id;
+            form.appendChild(regInput);
+            
+            if (p.participant_id) {
+                const partInput = document.createElement('input');
+                partInput.type = 'hidden';
+                partInput.name = `participants[${index}][participant_id]`;
+                partInput.value = p.participant_id;
+                form.appendChild(partInput);
+            }
+        });
+        
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+
+function sendAllCertificates() {
+    const allCheckboxes = document.querySelectorAll('.participant-checkbox');
+    const totalCount = allCheckboxes.length;
+    
+    if (totalCount === 0) {
+        alert('No participants found to send certificates to.');
+        return;
+    }
+    
+    if (confirm(`Send certificates to ALL ${totalCount} participant(s) in the table?\n\nThis will queue certificate emails for all participants. This action may take some time to complete.`)) {
+        // Build participants array for all participants
+        const participants = [];
+        allCheckboxes.forEach((checkbox, index) => {
             const participantId = checkbox.getAttribute('data-participant-id');
             participants.push({
                 registration_id: checkbox.value,
