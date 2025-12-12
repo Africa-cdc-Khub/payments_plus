@@ -75,8 +75,8 @@
 <body>
     <div class="email-container">
         <div class="header">
-            <img src="{{ config('app.url') }}/images/africa-cdc-logo.png" alt="Africa CDC" />
-            <img src="{{ config('app.url') }}/images/cphia-logo.png" alt="CPHIA 2025" />
+            <img src="{{ rtrim(config('domains.parent_url', env('PARENT_APP_URL', config('app.url'))), '/') }}/images/africa-cdc-logo.png" alt="Africa CDC" />
+            <img src="{{ rtrim(config('domains.parent_url', env('PARENT_APP_URL', config('app.url'))), '/') }}/images/cphia-logo.png" alt="CPHIA 2025" />
         </div>
 
         <div class="content">
