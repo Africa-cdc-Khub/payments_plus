@@ -104,7 +104,7 @@ class SendCertificateJob implements ShouldQueue
                 $emailBody,
                 true, // isHtml
                 null, // fromEmail (use default)
-                null, // fromName (use default)
+                'CPHIA Secretariat', // fromName
                 [], // cc
                 [], // bcc
                 [$filePath] // attachments array

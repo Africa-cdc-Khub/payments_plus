@@ -75,8 +75,8 @@
 <body>
     <div class="email-container">
         <div class="header">
-            <img src="{{ asset('images/africa-cdc-logo.png') }}" alt="Africa CDC" />
-            <img src="{{ asset('images/cphia-logo.png') }}" alt="CPHIA 2025" />
+            <img src="{{ config('app.url') }}/images/africa-cdc-logo.png" alt="Africa CDC" />
+            <img src="{{ config('app.url') }}/images/cphia-logo.png" alt="CPHIA 2025" />
         </div>
 
         <div class="content">
@@ -105,7 +105,7 @@
 
         <div class="footer">
             <p>Best regards,<br>
-            CPHIA 2025 Organizing Committee</p>
+            <strong>CPHIA Secretariat</strong></p>
             <p style="margin-top: 10px; font-size: 11px;">
                 This is an automated email. Please do not reply to this message.
             </p>
